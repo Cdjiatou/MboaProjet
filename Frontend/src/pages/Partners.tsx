@@ -105,7 +105,7 @@ const Partners = () => {
           3. GRILLES PAR CATÉGORIES (Glassmorphism)
           ===================================================================== */}
       <div className="max-w-7xl mx-auto px-6 w-full space-y-32">
-        {PARTNER_CATEGORIES.map((category, catIndex) => (
+        {PARTNER_CATEGORIES.map((category) => (
           <section key={category.id} className="relative w-full">
             
             {/* Entête de la catégorie */}
