@@ -27,6 +27,10 @@ export interface Candidate {
   categoryId: number;
   category?: Category;
   createdAt: string;
+  // Champs optionnels utilisés par certaines pages/components (compatibilité vue/front)
+  user?: { firstName?: string; lastName?: string };
+  artistName?: string;
+  voteCode?: string;
 }
 
 /** Représente un vote émis par un utilisateur */

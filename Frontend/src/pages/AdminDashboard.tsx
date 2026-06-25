@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import type { DashboardStats } from '@/types';
 
 const AdminDashboard = () => {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
 

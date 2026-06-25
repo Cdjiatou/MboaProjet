@@ -2,9 +2,9 @@
 // COMPOSANT Footer — Carousel Vidéos + Pied de page 4 colonnes
 // =============================================================================
 
-import { Mail, Phone, MapPin, Send, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useThemeStore } from '@/store/useThemeStore';
 import FooterAdBanner from './AdBanner';
 

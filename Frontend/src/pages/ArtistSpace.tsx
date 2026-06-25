@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Camera, Video, Send, CheckCircle } from 'lucide-react';
+import { FileText, Camera, Video, Send, CheckCircle, Star } from 'lucide-react';
 import { useWordCount } from '@/hooks/useWordCount';
 
 const ArtistSpace = () => {
