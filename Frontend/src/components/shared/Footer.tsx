@@ -6,6 +6,7 @@ import { Mail, Phone, MapPin, Send, ChevronLeft, ChevronRight, Play } from 'luci
 import { Link } from 'react-router-dom';
 import { useState, useRef } from 'react';
 import { useThemeStore } from '@/store/useThemeStore';
+import FooterAdBanner from './AdBanner';
 
 const navLinks = [
   { label: 'Accueil', href: '/' },
@@ -15,148 +16,18 @@ const navLinks = [
   { label: 'Contacts', href: '/contact' },
 ];
 
-// Vidéos à afficher dans le carousel (à remplacer par des données dynamiques)
-const footerVideos = [
-  {
-    id: '1',
-    title: 'MBOA NEXT STAR — Vidéo Exclusive',
-    videoUrl: 'https://drive.google.com/file/d/1uLjYSEaiWUKPcpeGmoQWeOBhpQCqPlXO/preview',
-    thumbnail: '/images/categories/chant.jpg',
-  },
-  {
-    id: '2',
-    title: 'Auditions Douala — Les meilleurs moments',
-    youtubeId: 'jNQXAC9IVRw',
-    thumbnail: 'https://img.youtube.com/vi/jNQXAC9IVRw/hqdefault.jpg',
-  },
-  {
-    id: '3',
-    title: 'Tony Nobody — Interview Exclusive',
-    youtubeId: '9bZkp7q19f0',
-    thumbnail: 'https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg',
-  },
-  {
-    id: '4',
-    title: 'Finale Yaoundé — Best of',
-    youtubeId: 'kJQP7kiw5Fk',
-    thumbnail: 'https://img.youtube.com/vi/kJQP7kiw5Fk/hqdefault.jpg',
-  },
-  {
-    id: '5',
-    title: 'MBOA TRAP — Danse d\'abord (Clip officiel)',
-    youtubeId: 'RgKAFK5djSk',
-    thumbnail: 'https://img.youtube.com/vi/RgKAFK5djSk/hqdefault.jpg',
-  },
-];
+// Les vidéos ont été déplacées vers le composant FooterAdBanner.
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState('');
-  const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const assets = useThemeStore((state) => state.assets);
   const logoUrl = assets.logo_url || assets.site_logo;
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (!scrollRef.current) return;
-    const cardWidth = 320;
-    const gap = 16;
-    const scrollAmount = cardWidth + gap;
-    scrollRef.current.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
-    });
-  };
 
   return (
     <footer className="w-full bg-[#050505] border-t border-neutral-900 mt-auto">
 
-      {/* ================================================================
-          SECTION CAROUSEL VIDÉOS
-          ================================================================ */}
-      <div className="border-b border-neutral-900/60">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-          {/* Titre + Contrôles */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <span className="text-[#d4af37] text-[10px] font-bold uppercase tracking-[0.25em] block mb-1">
-                Vidéothèque
-              </span>
-              <h3 className="text-white font-black text-lg sm:text-xl uppercase tracking-wider">
-                Nos <span className="bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">Vidéos</span>
-              </h3>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => scroll('left')}
-                className="w-9 h-9 rounded-xl border border-neutral-800 flex items-center justify-center text-neutral-500 hover:text-[#d4af37] hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5 transition-all duration-300"
-                aria-label="Vidéo précédente"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => scroll('right')}
-                className="w-9 h-9 rounded-xl border border-neutral-800 flex items-center justify-center text-neutral-500 hover:text-[#d4af37] hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5 transition-all duration-300"
-                aria-label="Vidéo suivante"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
 
-          {/* Carousel horizontal */}
-          <div
-            ref={scrollRef}
-            className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 -mx-1 px-1"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {footerVideos.map((video) => (
-              <div
-                key={video.id}
-                className="flex-shrink-0 w-[280px] sm:w-[320px] snap-start group"
-              >
-                <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 bg-neutral-950 hover:border-[#d4af37]/30 transition-all duration-300">
-                  {activeVideo === video.id ? (
-                    /* Iframe YouTube ou Google Drive */
-                    <iframe
-                      src={video.videoUrl || `https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
-                      title={video.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="w-full h-full"
-                    />
-                  ) : (
-                    /* Thumbnail + Bouton Play */
-                    <button
-                      onClick={() => setActiveVideo(video.id)}
-                      className="w-full h-full relative cursor-pointer"
-                      aria-label={`Lire ${video.title}`}
-                    >
-                      <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-                      />
-                      {/* Overlay gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      {/* Play button */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-[#d4af37]/90 backdrop-blur-sm flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.3)] group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all duration-300">
-                          <Play className="w-5 h-5 text-black fill-black ml-0.5" />
-                        </div>
-                      </div>
-                    </button>
-                  )}
-                </div>
-                {/* Titre vidéo */}
-                <p className="mt-2.5 text-neutral-400 text-xs font-medium truncate group-hover:text-white transition-colors px-1">
-                  {video.title}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* ================================================================
           SECTION PRINCIPALE — 4 COLONNES
@@ -275,6 +146,11 @@ export const Footer = () => {
           </div>
         </div>
       </div>
+
+      {/* ================================================================
+          SECTION PUBLICITAIRE INTELLIGENTE
+          ================================================================ */}
+      <FooterAdBanner />
 
       {/* Barre inférieure — Copyright */}
       <div className="border-t border-neutral-900/60 bg-neutral-950/40">
