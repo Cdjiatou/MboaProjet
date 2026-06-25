@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-color: #d4af37;
+    --primary-hover-color: #c4a030;
+    --primary-light-color: #f5e6b8;
+    --secondary-color: #1a1a2e;
+    --background-color: #050505;
+    --surface-color: #0b0b0b;
+    --surface-hover-color: #141414;
+    --border-color: rgba(212, 175, 55, 0.12);
+  }
+}
+
+/* Reset global */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* FIX CRUCIAL : Force tous les titres à adopter la police sans-serif premium */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-black text-white;
+    letter-spacing: -0.025em;
+  }
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-background text-text;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  #root {
+    @apply min-h-[100dvh] flex flex-col bg-background;
+  }
+}
+
+/* Correction stricte de l'ancien sélecteur de boilerplate Vite */
+#center {
+  all: unset;
+  display: block;
+  width: 100%;
+}
+
+/* Scrollbar Premium */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+::-webkit-scrollbar-thumb {
+  background: #1a1a1a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}

@@ -1,0 +1,40 @@
+/* =============================================================================
+   VARIABLES GLOBALES — CHARTE PREMIUM VOTE (OR & LOOK SOMBRE)
+   ============================================================================= */
+:root {
+  --background: #050505;
+  --surface: #0f0f0f;
+  --surface-hover: #161616;
+  
+  /* Palette Or Impérial */
+  --primary: #d4af37;
+  --primary-hover: #f3e5ab;
+  --border-gold: rgba(212, 175, 55, 0.15);
+  
+  --text-main: #ffffff;
+  --text-muted: #a3a3a3;
+  
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--background);
+  color: var(--text-main);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--background);
+  overflow-x: hidden;
+}
+
+/* =============================================================================
+   CLASSES UTILITAIRES DE TEXTURE & LUMIÈRE
+   ============================================================================= */
+
+
+/* Nettoyage des vieux conteneurs de template */
+#center {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background);
+}

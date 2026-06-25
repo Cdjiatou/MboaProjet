@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  COACH
+}
+
+enum CandidateStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  ACTIVE
+}
+
+enum VoteStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  COMPLETED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(COACH)
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id         Int         @id @default(autoincrement())
+  name       String
+  slug       String      @unique
+  candidates Candidate[]
+}
+
+model Candidate {
+  id                Int             @id @default(autoincrement())
+  categoryId        Int
+  category          Category        @relation(fields: [categoryId], references: [id])
+  firstName         String
+  lastName          String
+  email             String          @unique
+  phone             String          @unique
+  birthDate         DateTime?
+  city              String?
+  country           String?
+  biography         String?         @db.Text
+  profilePhoto      String?
+  videoUrl          String?
+  socialLinks       Json?
+  slug              String?         @unique
+  verificationCode  String?
+  status            CandidateStatus @default(PENDING_VERIFICATION)
+  totalVotesCache   Int             @default(0)
+  votes             Vote[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([slug])
+  @@index([categoryId])
+}
+
+model Vote {
+  id               Int        @id @default(autoincrement())
+  candidateId      Int
+  candidate        Candidate  @relation(fields: [candidateId], references: [id])
+  voterIdentifier  String
+  paymentReference String     @unique
+  amount           Int        @default(100)
+  status           VoteStatus @default(PENDING)
+  paidAt           DateTime?
+  createdAt        DateTime   @default(now())
+
+  // Note: Prisma does not fully support partial unique indexes directly in the schema yet.
+  // We will enforce the rule "One SUCCESS vote per candidate and voter" in the service layer,
+  // or we can create a manual raw SQL migration for the partial index:
+  // CREATE UNIQUE INDEX "Vote_candidate_voter_success_unique" ON "Vote"("candidateId", "voterIdentifier") WHERE status = 'SUCCESS';
+  @@index([candidateId, voterIdentifier])
+}
+
+model SiteConfiguration {
+  id          Int      @id @default(autoincrement())
+  configKey   String   @unique
+  configValue String   @db.Text
+  updatedAt   DateTime @updatedAt
+}
+
+model Withdrawal {
+  id              Int              @id @default(autoincrement())
+  requestedAmount Int
+  feeAmount       Int
+  netAmount       Int
+  status          WithdrawalStatus @default(PENDING)
+  createdAt       DateTime         @default(now())
+}
