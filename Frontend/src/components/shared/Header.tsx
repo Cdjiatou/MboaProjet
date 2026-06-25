@@ -56,9 +56,9 @@ export const Header = () => {
             {navLinks.map((link) => {
               const isActive = currentPath === link.href || (link.href === '/' && currentPath === '');
               return (
-                <a
+                <Link
                   key={link.href}
-                  href={link.href}
+                  to={link.href}
                   className={`relative py-2 text-[11px] font-bold uppercase tracking-widest transition-colors duration-300 ${
                     isActive ? 'text-[#d4af37]' : 'text-neutral-400 hover:text-white'
                   }`}
@@ -70,7 +70,7 @@ export const Header = () => {
                       className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#d4af37] rounded-full"
                     />
                   )}
-                </a>
+                </Link>
               );
             })}
           </nav>
@@ -100,9 +100,9 @@ export const Header = () => {
               {navLinks.map((link) => {
                 const isActive = currentPath === link.href;
                 return (
-                  <a
+                  <Link
                     key={link.href}
-                    href={link.href}
+                    to={link.href}
                     onClick={() => setIsMenuOpen(false)}
                     className={`px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                       isActive
@@ -111,7 +111,7 @@ export const Header = () => {
                     }`}
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 );
               })}
             </nav>
