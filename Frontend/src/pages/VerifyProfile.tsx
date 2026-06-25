@@ -15,9 +15,11 @@ import {
   RefreshCw,
   AlertCircle,
   AlertTriangle,
+  Copy,
+  Check,
 } from 'lucide-react';
 
-type Step = 'otp' | 'success' | 'invalid';
+type Step = 'otp' | 'legend' | 'success' | 'invalid';
 
 const OTP_LENGTH = 6;
 
@@ -31,6 +33,11 @@ const VerifyProfile = () => {
   const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  const [legend, setLegend] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [uniqueLink, setUniqueLink] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -107,7 +114,7 @@ const VerifyProfile = () => {
 
     // Simuler une vérification réussie
     setVerifying(false);
-    setStep('success');
+    setStep('legend');
   };
 
   // ─── RENVOI DU CODE ────────────────────────────────────────────────
@@ -123,6 +130,36 @@ const VerifyProfile = () => {
     setResending(false);
     setResendCooldown(60);
     inputRefs.current[0]?.focus();
+  };
+
+  // ─── SOUMISSION DE LA LÉGENDE ─────────────────────────────────────
+  const handleSubmitLegend = async () => {
+    if (!legend.trim()) {
+      setError('Veuillez entrer votre légende.');
+      return;
+    }
+
+    setError('');
+    setSubmitting(true);
+
+    // TODO: Appel API → POST /api/candidate/profile { token, legend }
+    // Réponse: { profileId: "abc123", shareLink: "https://mboa-next-star.vercel.app/c/abc123" }
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // Simuler la génération d'un lien unique
+    const uniqueId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const shareLink = `${window.location.origin}/candidats/${uniqueId}`;
+    setUniqueLink(shareLink);
+
+    setSubmitting(false);
+    setStep('success');
+  };
+
+  // ─── COPIER LE LIEN UNIQUE ────────────────────────────────────────
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(uniqueLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   // =================================================================
@@ -299,7 +336,95 @@ const VerifyProfile = () => {
           )}
 
           {/* ═══════════════════════════════════════════════════════
-              SUCCÈS
+              SAISIE DE LA LÉGENDE
+              ═══════════════════════════════════════════════════════ */}
+          {step === 'legend' && (
+            <motion.div
+              key="legend"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* En-tête */}
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#d4af37]/20 to-transparent border border-[#d4af37]/30 mb-5">
+                  <Star className="w-7 h-7 text-[#d4af37]" />
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-black text-white font-heading uppercase tracking-wider">
+                  Ma <span className="bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">Légende</span>
+                </h1>
+                <p className="text-neutral-400 mt-3 text-sm leading-relaxed max-w-sm mx-auto">
+                  Décrivez-vous en quelques mots. C'est votre légende unique sur MBOA NEXT STAR.
+                </p>
+              </div>
+
+              {/* Carte Légende */}
+              <div className="bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(212,175,55,0.03)] rounded-3xl p-6 sm:p-8 space-y-6">
+                {/* Input Légende */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
+                    Votre légende
+                  </label>
+                  <textarea
+                    value={legend}
+                    onChange={(e) => {
+                      setLegend(e.target.value);
+                      setError('');
+                    }}
+                    placeholder="Entrez votre légende ici (ex: Artiste polyvalent passionné par la musique et la danse)"
+                    rows={5}
+                    maxLength={200}
+                    className="w-full px-5 py-4 bg-[#050505] border border-white/10 rounded-2xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/50 focus:ring-1 focus:ring-[#d4af37]/50 transition-all resize-none"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[10px] text-neutral-600 uppercase tracking-widest">
+                      {legend.length}/200 caractères
+                    </span>
+                    {legend.length > 0 && (
+                      <span className="text-[10px] text-[#d4af37] uppercase tracking-widest">
+                        ✓ Valide
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Message d'erreur */}
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 text-red-400 text-xs"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    {error}
+                  </motion.div>
+                )}
+
+                {/* Bouton de soumission */}
+                <button
+                  onClick={handleSubmitLegend}
+                  disabled={submitting || !legend.trim()}
+                  className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black uppercase tracking-widest text-sm rounded-xl hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  {submitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                      Création du profil...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      Créer mon profil
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════
+              SUCCÈS — Affichage du profil et lien de partage
               ═══════════════════════════════════════════════════════ */}
           {step === 'success' && (
             <motion.div
@@ -326,13 +451,58 @@ const VerifyProfile = () => {
                   transition={{ delay: 0.4 }}
                 >
                   <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-2">
-                    Profil Vérifié !
+                    Profil Créé avec Succès !
                   </h2>
                   <p className="text-neutral-400 text-sm leading-relaxed max-w-sm mx-auto">
-                    Votre identité a été confirmée avec succès. Vous pouvez
-                    maintenant accéder à votre espace artiste et compléter votre
-                    profil de candidature.
+                    Votre profil est maintenant visible dans le classement des candidats. Partagez votre lien unique pour recevoir plus de votes !
                   </p>
+                </motion.div>
+
+                {/* Affichage du lien unique */}
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="space-y-3 pt-4"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-px bg-white/10" />
+                    <span className="text-[10px] text-neutral-600 uppercase tracking-widest px-2">
+                      Votre lien unique
+                    </span>
+                    <div className="flex-1 h-px bg-white/10" />
+                  </div>
+
+                  <div className="bg-[#050505]/60 border border-[#d4af37]/30 rounded-2xl p-4 flex items-center justify-between gap-3 group hover:border-[#d4af37]/50 transition-colors">
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-xs text-neutral-600 uppercase tracking-widest mb-1">Lien de partage</p>
+                      <p className="text-[#d4af37] text-xs font-mono break-all">
+                        {uniqueLink}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleCopyLink}
+                      className="shrink-0 w-10 h-10 rounded-lg bg-[#d4af37] text-black flex items-center justify-center hover:bg-[#b8952e] transition-all duration-300 active:scale-95"
+                      title="Copier le lien"
+                    >
+                      {copied ? (
+                        <Check className="w-5 h-5" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+
+                  {copied && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-[#d4af37] text-xs uppercase tracking-widest font-semibold"
+                    >
+                      ✓ Lien copié dans le presse-papiers !
+                    </motion.p>
+                  )}
                 </motion.div>
 
                 {/* Stars décoratives */}
@@ -342,7 +512,7 @@ const VerifyProfile = () => {
                       key={i}
                       initial={{ opacity: 0, rotate: -180, scale: 0 }}
                       animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                      transition={{ delay: 0.5 + i * 0.1, type: 'spring' }}
+                      transition={{ delay: 0.6 + i * 0.1, type: 'spring' }}
                     >
                       <Star className="w-4 h-4 text-[#d4af37] fill-[#d4af37]" />
                     </motion.div>
@@ -352,10 +522,10 @@ const VerifyProfile = () => {
                 {/* Actions */}
                 <div className="flex flex-col gap-3 pt-4">
                   <Link
-                    to="/artist"
+                    to="/candidats"
                     className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black uppercase tracking-widest text-sm rounded-xl hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all duration-300 flex items-center justify-center gap-2"
                   >
-                    Accéder à mon Espace Artiste
+                    Voir mon profil
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <Link
