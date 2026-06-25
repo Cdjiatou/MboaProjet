@@ -81,13 +81,25 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
           {candidate.biography ? candidate.biography.split(',')[0]?.trim() : 'Cameroun'}
         </p>
 
-        {/* Votes */}
-        <div className="flex items-center gap-1.5 mt-2.5">
-          <Star className="w-3.5 h-3.5 text-[#d4af37] fill-[#d4af37]" />
-          <span className="text-[#d4af37] font-bold text-xs">
-            {candidate.totalVotesCache.toLocaleString('fr-FR')}
-          </span>
-          <span className="text-neutral-500 text-xs">votes</span>
+        {/* Votes + bouton Voter */}
+        <div className="flex items-center justify-between mt-2.5 gap-2">
+          <div className="flex items-center gap-1.5">
+            <Star className="w-3.5 h-3.5 text-[#d4af37] fill-[#d4af37]" />
+            <span className="text-[#d4af37] font-bold text-xs">
+              {candidate.totalVotesCache.toLocaleString('fr-FR')}
+            </span>
+            <span className="text-neutral-500 text-xs">votes</span>
+          </div>
+
+          {/* Bouton Voter — utilise handleVoteAction pour stopper la propagation */}
+          {onVoteClick && (
+            <button
+              onClick={handleVoteAction}
+              className="px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-[#d4af37] text-black hover:bg-[#e8c547] active:scale-95 transition-all duration-150 shadow-md"
+            >
+              Voter
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
