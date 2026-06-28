@@ -16,7 +16,32 @@ import { Router } from 'express';
 
 // Import de tous les contrôleurs admin : chaque fonction correspond à un
 // endpoint spécifique du back-office.
-import { createCandidate, getStats, saveConfig, createWithdrawal, exportVotes, exportWithdrawals } from '../controllers/admin.controller';
+import { 
+  createCandidate, 
+  getStats, 
+  saveConfig, 
+  createWithdrawal, 
+  exportVotes, 
+  exportWithdrawals,
+  uploadCandidatePhoto,
+  deleteCandidatePhoto,
+  patchWithdrawalStatus,
+  uploadSponsorLogoController,
+  getCandidatesList,
+  updateCandidateAdmin,
+  deleteCandidateAdmin,
+  getWhatsAppStatus,
+  logoutWhatsAppSession,
+  refreshWhatsAppSession,
+  getSponsorsConfigController,
+  saveSponsorsConfigController,
+} from '../controllers/admin.controller';
+
+// Import des routes sponsors
+import sponsorRoutes from './sponsor.routes';
+
+// Import du middleware upload
+import { uploadCandidatePhoto as uploadMiddleware, uploadSponsorLogo, handleMulterError } from '../middlewares/upload.middleware';
 
 // Middleware d'authentification vérifiant la présence et la validité d'un
 // JWT admin dans le header Authorization. Rejette avec 401 si absent ou invalide.
@@ -56,7 +81,10 @@ router.use(authenticateAdmin);
  * - `firstName` et `lastName` : au moins 2 caractères pour éviter les saisies vides.
  * - `email` : format email valide pour l'envoi de notifications.
  * - `phone` : au moins 8 caractères pour couvrir les formats internationaux.
- * - `categoryId` : nombre positif car c'est une clé étrangère vers la table Category.
+ * - `categoryId` : peut être string ou number (multipart envoie en string).
+ * 
+ * Note: Quand multipart/form-data est utilisé, categoryId vient en string
+ * et sera converti en number dans le contrôleur.
  */
 const createCandidateSchema = z.object({
   body: z.object({
@@ -64,7 +92,13 @@ const createCandidateSchema = z.object({
     lastName: z.string().min(2, 'Le nom est requis'),
     email: z.string().email('Email invalide'),
     phone: z.string().min(8, 'Numéro de téléphone invalide'),
-    categoryId: z.number().positive()
+    categoryId: z.union([z.number().positive(), z.string().regex(/^\d+$/)]),
+    biography: z.string().optional(),
+    profilePhoto: z.string().optional(),
+    videoUrl: z.string().optional(),
+    city: z.string().optional(),
+    country: z.string().optional(),
+    socialLinks: z.union([z.record(z.string()), z.string()]).optional()
   })
 });
 
@@ -100,6 +134,23 @@ const withdrawalSchema = z.object({
   })
 });
 
+const updateCandidateSchema = z.object({
+  params: z.object({ id: z.string().regex(/^\d+$/) }),
+  body: z.object({
+    firstName: z.string().min(2).optional(),
+    lastName: z.string().min(2).optional(),
+    email: z.string().email().optional(),
+    phone: z.string().min(8).optional(),
+    categoryId: z.union([z.number().positive(), z.string().regex(/^\d+$/)]).optional(),
+    biography: z.string().optional(),
+    videoUrl: z.string().optional(),
+    city: z.string().optional(),
+    country: z.string().optional(),
+    status: z.enum(['PENDING_VERIFICATION', 'VERIFIED', 'ACTIVE', 'SUSPENDED']).optional(),
+    socialLinks: z.union([z.record(z.string()), z.string()]).optional(),
+  }),
+});
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Définition des routes du back-office admin
 // ──────────────────────────────────────────────────────────────────────────────
@@ -107,9 +158,76 @@ const withdrawalSchema = z.object({
 /**
  * @route POST /candidates
  * @description Crée un nouveau candidat et lui envoie un OTP via WhatsApp.
- * Pipeline : validation Zod → contrôleur createCandidate.
+ * Supporte l'upload optionnel d'une photo via multipart/form-data.
+ * Pipeline : (optionnel) multer middleware → validation Zod → contrôleur createCandidate.
  */
-router.post('/candidates', validate(createCandidateSchema), createCandidate);
+router.post('/candidates', 
+  (req, res, next) => {
+    // Appliquer multer seulement si Content-Type est multipart/form-data
+    if (req.is('multipart/form-data')) {
+      uploadMiddleware(req, res, (err) => {
+        if (err) {
+          return handleMulterError(err, req, res, next);
+        }
+        next();
+      });
+    } else {
+      next();
+    }
+  },
+  validate(createCandidateSchema), 
+  createCandidate
+);
+
+/**
+ * @route POST /candidates/:id/photo
+ * @description Upload ou met à jour la photo d'un candidat.
+ * Pipeline : multer middleware → contrôleur uploadCandidatePhoto.
+ */
+router.post('/candidates/:id/photo', uploadMiddleware, handleMulterError, uploadCandidatePhoto);
+
+/**
+ * @route DELETE /candidates/:id/photo
+ * @description Supprime la photo d'un candidat.
+ * Pipeline : contrôleur deleteCandidatePhoto.
+ */
+router.delete('/candidates/:id/photo', deleteCandidatePhoto);
+
+/**
+ * @route GET /candidates
+ * @description Liste tous les candidats pour le back-office.
+ */
+router.get('/candidates', getCandidatesList);
+
+/**
+ * @route PATCH /candidates/:id
+ * @description Met à jour un candidat existant.
+ */
+router.patch('/candidates/:id', validate(updateCandidateSchema), updateCandidateAdmin);
+
+/**
+ * @route DELETE /candidates/:id
+ * @description Supprime un candidat et ses votes.
+ */
+router.delete('/candidates/:id', deleteCandidateAdmin);
+
+/**
+ * @route POST /sponsors/upload-logo
+ * @description Upload le logo d'un sponsor depuis le PC.
+ */
+router.post('/sponsors/upload-logo', uploadSponsorLogo, handleMulterError, uploadSponsorLogoController);
+
+/**
+ * @route GET /sponsors/config
+ * @description Récupère la liste complète des sponsors enregistrés.
+ */
+router.get('/sponsors/config', getSponsorsConfigController);
+
+/**
+ * @route POST /sponsors/config
+ * @description Sauvegarde les sponsors (fusion ou remplacement complet).
+ */
+router.post('/sponsors/config', saveSponsorsConfigController);
 
 /**
  * @route GET /dashboard/stats
@@ -133,6 +251,13 @@ router.post('/config', validate(configSchema), saveConfig);
 router.post('/withdrawals', validate(withdrawalSchema), createWithdrawal);
 
 /**
+ * @route PATCH /withdrawals/:id
+ * @description Met à jour le statut d'un retrait de PENDING vers COMPLETED.
+ * Pipeline : contrôleur patchWithdrawalStatus.
+ */
+router.patch('/withdrawals/:id', patchWithdrawalStatus);
+
+/**
  * @route GET /exports/votes
  * @description Télécharge l'export CSV de tous les votes enregistrés.
  * Pas de validation nécessaire : c'est un GET qui génère un fichier complet.
@@ -144,6 +269,20 @@ router.get('/exports/votes', exportVotes);
  * @description Télécharge l'export CSV de tous les retraits effectués.
  */
 router.get('/exports/withdrawals', exportWithdrawals);
+
+/**
+ * Routes pour la gestion de WhatsApp
+ * Préfixe : /api/admin/whatsapp
+ */
+router.get('/whatsapp/status', getWhatsAppStatus);
+router.post('/whatsapp/refresh', refreshWhatsAppSession);
+router.post('/whatsapp/logout', logoutWhatsAppSession);
+
+/**
+ * Routes pour la gestion des sponsors
+ * Préfixe : /api/admin/sponsors
+ */
+router.use('/sponsors', sponsorRoutes);
 
 // Export du routeur pour montage dans index.ts via `app.use('/api/admin', adminRoutes)`.
 export default router;

@@ -17,6 +17,7 @@ import prisma from '../utils/prisma';
 
 // Classe d'erreur personnalisée avec code HTTP pour le middleware d'erreurs
 import { AppError } from '../utils/AppError';
+import { mergeSponsorsConfig, parseSponsorsConfig, resolvePublicSponsors, type SponsorEntry } from '../utils/sponsorsConfig';
 
 // =============================================================================
 // FONCTION : getDashboardStats
@@ -117,6 +118,62 @@ export const getDashboardStats = async () => {
 };
 
 // =============================================================================
+// FONCTION : listCandidates
+// =============================================================================
+
+/**
+ * Liste les candidats pour le back-office avec recherche et pagination.
+ */
+export const listCandidates = async (params: { search?: string; page?: number; limit?: number } = {}) => {
+  const page = params.page || 1;
+  const limit = Math.min(params.limit || 50, 100);
+  const skip = (page - 1) * limit;
+
+  const where = params.search
+    ? {
+        OR: [
+          { firstName: { contains: params.search, mode: 'insensitive' as const } },
+          { lastName: { contains: params.search, mode: 'insensitive' as const } },
+          { email: { contains: params.search, mode: 'insensitive' as const } },
+          { phone: { contains: params.search } },
+        ],
+      }
+    : {};
+
+  const [candidates, total] = await Promise.all([
+    prisma.candidate.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          profilePhoto: true,
+          biography: true,
+          videoUrl: true,
+          city: true,
+          country: true,
+          categoryId: true,
+          socialLinks: true,
+          totalVotesCache: true,
+          status: true,
+          slug: true,
+          createdAt: true,
+          updatedAt: true,
+          category: { select: { id: true, name: true, slug: true } },
+        },
+    }),
+    prisma.candidate.count({ where }),
+  ]);
+
+  return { candidates, total, page, limit };
+};
+
+// =============================================================================
 // FONCTION : updateSiteConfig
 // =============================================================================
 
@@ -158,16 +215,43 @@ export const updateSiteConfig = async (configs: { key: string; value: string }[]
   return await prisma.$transaction(operations);
 };
 
-// =============================================================================
-// FONCTION : calculateWithdrawalFees
-// =============================================================================
-
 /**
- * Calcule les frais de retrait et le montant net à verser.
+ * Sauvegarde la liste des sponsors dans SiteConfiguration.
+ * @param replaceAll - true : remplace entièrement (gestion admin). false : fusionne (append).
+ */
+export const saveSponsorsConfig = async (sponsors: SponsorEntry[], replaceAll = true) => {
+  const existing = await prisma.siteConfiguration.findUnique({ where: { configKey: 'sponsors' } });
+  const existingList = parseSponsorsConfig(existing?.configValue);
+  const merged = mergeSponsorsConfig(existingList, sponsors, replaceAll);
+  await updateSiteConfig([{ key: 'sponsors', value: JSON.stringify(merged) }]);
+  return merged;
+};
+
+/** Récupère les sponsors depuis la configuration site (liste résolue avec défauts si incomplète) */
+export const getSponsorsConfig = async (): Promise<SponsorEntry[]> => {
+  const row = await prisma.siteConfiguration.findUnique({ where: { configKey: 'sponsors' } });
+  const fromDb = parseSponsorsConfig(row?.configValue);
+  return resolvePublicSponsors(fromDb);
+};
+
+/** Répare la config sponsors en DB si la liste est incomplète */
+export const repairSponsorsConfigIfNeeded = async (): Promise<SponsorEntry[]> => {
+  const row = await prisma.siteConfiguration.findUnique({ where: { configKey: 'sponsors' } });
+  const fromDb = parseSponsorsConfig(row?.configValue);
+  const resolved = resolvePublicSponsors(fromDb);
+  const resolvedJson = JSON.stringify(resolved);
+  if (!row?.configValue || row.configValue !== resolvedJson) {
+    await updateSiteConfig([{ key: 'sponsors', value: resolvedJson }]);
+  }
+  return resolved;
+};
+
+// Commission Marvians (Smobilpay) prélevée sur chaque retrait en fin de concours
+export const MARVIANS_WITHDRAWAL_FEE_RATE = 0.03;
+/**
+ * Calcule les frais de retrait Marvians et le montant net à verser.
  *
- * Les frais appliqués sont de **3%** du montant brut demandé.
- * Le montant des frais est arrondi à l'entier inférieur (`Math.floor`)
- * pour éviter les fractions de FCFA (la plus petite unité monétaire).
+ * Les frais appliqués sont de **3%** (commission Marvians / Smobilpay).
  *
  * Cette fonction est **pure** (pas d'effet de bord, pas d'appel en base),
  * ce qui facilite les tests unitaires et la réutilisation.
@@ -185,11 +269,9 @@ export const updateSiteConfig = async (configs: { key: string; value: string }[]
  * // → { feeAmount: 45, netAmount: 1455 }
  */
 export const calculateWithdrawalFees = (requestedAmount: number) => {
-  // Calcul des frais à 3%, arrondi à l'entier inférieur
-  const feeAmount = Math.floor(requestedAmount * 0.03);
-  // Le montant net est simplement la différence entre le brut et les frais
+  const feeAmount = Math.floor(requestedAmount * MARVIANS_WITHDRAWAL_FEE_RATE);
   const netAmount = requestedAmount - feeAmount;
-  return { feeAmount, netAmount };
+  return { feeAmount, netAmount, feeRate: MARVIANS_WITHDRAWAL_FEE_RATE };
 };
 
 // =============================================================================
@@ -231,4 +313,50 @@ export const initiateWithdrawal = async (requestedAmount: number) => {
   });
 
   return withdrawal;
+};
+
+// =============================================================================
+// FONCTION : updateWithdrawalStatus
+// =============================================================================
+
+/**
+ * Met à jour le statut d'un retrait de PENDING vers COMPLETED.
+ *
+ * Cette fonction vérifie que :
+ * 1. Le retrait existe en base de données
+ * 2. Le retrait est actuellement en statut PENDING
+ * 
+ * Seule la transition PENDING → COMPLETED est autorisée pour des raisons
+ * d'audit et de traçabilité financière. Une fois un retrait marqué comme
+ * COMPLETED, il ne peut plus être modifié.
+ *
+ * @param withdrawalId - Identifiant unique du retrait à mettre à jour.
+ * @returns L'objet retrait mis à jour avec le nouveau statut COMPLETED.
+ * @throws {AppError} 404 — Si le retrait n'existe pas en base.
+ * @throws {AppError} 400 — Si le retrait n'est pas en statut PENDING.
+ */
+export const updateWithdrawalStatus = async (withdrawalId: number) => {
+  // Vérification de l'existence du retrait
+  const withdrawal = await prisma.withdrawal.findUnique({
+    where: { id: withdrawalId }
+  });
+
+  if (!withdrawal) {
+    throw new AppError('Retrait introuvable.', 404);
+  }
+
+  // Vérification que le retrait est en statut PENDING
+  // Seule cette transition est autorisée pour éviter les modifications
+  // de retraits déjà complétés (intégrité financière)
+  if (withdrawal.status !== 'PENDING') {
+    throw new AppError('Seuls les retraits en statut PENDING peuvent être marqués comme COMPLETED.', 400);
+  }
+
+  // Mise à jour du statut vers COMPLETED
+  const updatedWithdrawal = await prisma.withdrawal.update({
+    where: { id: withdrawalId },
+    data: { status: 'COMPLETED' }
+  });
+
+  return updatedWithdrawal;
 };

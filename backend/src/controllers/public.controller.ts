@@ -26,13 +26,14 @@ import prisma from '../utils/prisma';
 
 // Services de vote : la logique de paiement et de traitement des webhooks
 // est suffisamment complexe pour justifier une couche service dédiée.
-import { initiateVote, handleMaviansWebhook } from '../services/vote.service';
+import { initiateVote, handleMaviansWebhook, checkAndUpdateVoteStatus } from '../services/vote.service';
 
 // Wrapper asynchrone pour la gestion centralisée des erreurs.
 import { catchAsync } from '../utils/catchAsync';
 
 // Classe d'erreur personnalisée pour les erreurs HTTP structurées.
 import { AppError } from '../utils/AppError';
+import { parseSponsorsConfig, resolvePublicSponsors } from '../utils/sponsorsConfig';
 
 /**
  * Récupère la configuration publique du site sous forme de map clé/valeur.
@@ -57,7 +58,13 @@ export const getConfig = catchAsync(async (req: Request, res: Response) => {
   // Transformation du tableau [{configKey, configValue}, ...] en objet plat
   // { configKey1: configValue1, configKey2: configValue2, ... }.
   // Le pattern reduce + spread est utilisé pour construire la map de manière immutable.
-  const configMap = configs.reduce((acc, curr) => ({ ...acc, [curr.configKey]: curr.configValue }), {});
+  const configMap: Record<string, string> = configs.reduce(
+    (acc, curr) => ({ ...acc, [curr.configKey]: curr.configValue }),
+    {} as Record<string, string>
+  );
+
+  const resolvedSponsors = resolvePublicSponsors(parseSponsorsConfig(configMap.sponsors as string | undefined));
+  configMap.sponsors = JSON.stringify(resolvedSponsors);
 
   res.json({ success: true, data: configMap });
 });
@@ -94,9 +101,14 @@ export const getCategories = catchAsync(async (req: Request, res: Response) => {
           id: true,
           firstName: true,
           lastName: true,
-          slug: true,          // Identifiant URL-friendly pour les liens de profil
-          profilePhoto: true,  // URL de la photo pour l'affichage en grille
-          totalVotesCache: true // Compteur dénormalisé pour l'affichage en temps réel
+          slug: true,
+          profilePhoto: true,
+          totalVotesCache: true,
+          city: true,
+          country: true,
+          status: true,
+          videoUrl: true,
+          updatedAt: true,
         }
       }
     }
@@ -163,15 +175,24 @@ export const getCandidateBySlug = catchAsync(async (req: Request, res: Response)
  * même après validation Zod, certains clients peuvent envoyer l'ID en string.
  */
 export const initiateCandidateVote = catchAsync(async (req: Request, res: Response) => {
-  const { candidateId, voterIdentifier } = req.body;
+  const { candidateId, voterIdentifier, amount, paymentMethod } = req.body;
 
-  // Initiation du vote via le service dédié : création en base + appel API paiement.
-  // Le candidateId est converti explicitement en nombre pour assurer la compatibilité
-  // avec Prisma qui attend un type numérique pour les clés primaires.
-  const vote = await initiateVote(Number(candidateId), voterIdentifier);
+  const result = await initiateVote(
+    Number(candidateId),
+    voterIdentifier,
+    Number(amount),
+    paymentMethod
+  );
 
-  // Code 201 : un vote (ressource) a été créé, même si le paiement est encore pending.
-  res.status(201).json({ success: true, message: 'Paiement initié.', vote });
+  res.status(201).json({
+    success: true,
+    message: result.message || 'Paiement initié.',
+    data: {
+      vote: result.vote,
+      paymentUrl: result.paymentUrl,
+      votesCount: result.votesCount,
+    },
+  });
 });
 
 /**
@@ -221,13 +242,7 @@ export const maviansWebhook = catchAsync(async (req: Request, res: Response) => 
 export const getVoteStatus = catchAsync(async (req: Request, res: Response) => {
   const { paymentReference } = req.params;
 
-  const vote = await prisma.vote.findUnique({
-    where: { paymentReference }
-  });
+  const vote = await checkAndUpdateVoteStatus(paymentReference);
 
-  if (!vote) {
-    throw new AppError('Vote introuvable.', 404);
-  }
-
-  res.json({ success: true, status: vote.status, vote });
+  res.json({ success: true, data: { status: vote.status, vote } });
 });

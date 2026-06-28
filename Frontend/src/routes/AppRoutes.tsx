@@ -13,7 +13,10 @@ const Contact = lazy(() => import('../pages/Contact'));
 const VerifyProfile = lazy(() => import('../pages/VerifyProfile'));
 const Partners = lazy(() => import('../pages/Partners'));
 const Candidats = lazy(() => import('../pages/Candidats'));
+const Categories = lazy(() => import('../pages/Categories'));
 const CandidateProfile = lazy(() => import('../pages/CandidateProfile'));
+const Classement = lazy(() => import('../pages/Classement'));
+const Reglement = lazy(() => import('../pages/Reglement'));
 const ArtistSpace = lazy(() => import('../pages/ArtistSpace'));
 const Login = lazy(() => import('../pages/Login'));
 const AdminDashboard = lazy(() => import('../pages/AdminDashboard'));
@@ -34,6 +37,9 @@ const AppRoutes: React.FC = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/partners" element={<Partners />} />
         <Route path="/candidats" element={<Candidats />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/classement" element={<Classement />} />
+        <Route path="/reglement" element={<Reglement />} />
         <Route path="/verify-profile" element={<VerifyProfile />} />
         <Route path="/candidats/:slug" element={<CandidateProfile />} />
         <Route path="/artist" element={<ArtistSpace />} />

@@ -14,9 +14,13 @@ const Player = ReactPlayer as unknown as React.ComponentType<{
   playing?: boolean;
   light?: boolean;
 }>;
-import { ArrowLeft, Star, Trophy, Share2 } from 'lucide-react';
+import { ArrowLeft, Star, Trophy } from 'lucide-react';
+import ShareButtons from '@/components/shared/ShareButtons';
+import { BiographyDisplay } from '@/components/shared/BiographyDisplay';
+import { getMediaUrl } from '@/utils/mediaUrl';
 import { getCandidateBySlug } from '@/services/adminService';
 import { VoteModal } from '@/components/candidate/VoteModal';
+import { CANDIDATES_REFRESH_EVENT } from '@/hooks/usePublicCandidates';
 import type { Candidate } from '@/types';
 
 const CandidateProfile = () => {
@@ -26,8 +30,9 @@ const CandidateProfile = () => {
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchCandidate = async () => {
+    const fetchCandidate = async (silent = false) => {
       if (!slug) return;
+      if (!silent) setLoading(true);
       try {
         const res = await getCandidateBySlug(slug);
         if (res.success && res.data) {
@@ -36,21 +41,17 @@ const CandidateProfile = () => {
       } catch (err) {
         console.error('Erreur chargement candidat :', err);
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     };
     fetchCandidate();
+    const onRefresh = () => fetchCandidate(true);
+    window.addEventListener(CANDIDATES_REFRESH_EVENT, onRefresh);
+    return () => window.removeEventListener(CANDIDATES_REFRESH_EVENT, onRefresh);
   }, [slug]);
 
-  const handleShare = () => {
-    const url = window.location.href;
-    const text = `⭐ Votez pour ${candidate?.firstName} ${candidate?.lastName} sur MBOA NEXT STAR ! ${url}`;
-    if (navigator.share) {
-      navigator.share({ title: 'MBOA NEXT STAR', text, url });
-    } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-    }
-  };
+  const shareUrl = window.location.href;
+  const shareText = `⭐ Votez pour ${candidate?.firstName} ${candidate?.lastName} dans la catégorie ${candidate?.category?.name || 'Artiste'} sur MBOA NEXT STAR !`;
 
   if (loading) {
     return (
@@ -119,9 +120,11 @@ const CandidateProfile = () => {
               <h2 className="text-xl font-black text-white mb-6 font-heading uppercase tracking-widest border-b border-white/10 pb-4 inline-block">
                 Biographie
               </h2>
-              <p className="text-neutral-400 leading-relaxed text-sm sm:text-base whitespace-pre-line">
-                {candidate.biography || 'La biographie de cet artiste sera bientôt disponible.'}
-              </p>
+              {candidate.biography ? (
+                <BiographyDisplay text={candidate.biography} />
+              ) : (
+                <p className="text-neutral-500 text-sm italic">La biographie de cet artiste sera bientôt disponible.</p>
+              )}
             </div>
           </motion.div>
 
@@ -141,7 +144,7 @@ const CandidateProfile = () => {
               <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-[#0b0b0b] shadow-[0_0_0_2px_rgba(212,175,55,0.5)] bg-[#141414] relative z-10">
                 {candidate.profilePhoto ? (
                   <img
-                    src={candidate.profilePhoto}
+                    src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
                     alt={`${candidate.firstName} ${candidate.lastName}`}
                     className="w-full h-full object-cover"
                   />
@@ -181,13 +184,12 @@ const CandidateProfile = () => {
                   <Star className="w-5 h-5 fill-black" /> Voter pour {candidate.firstName}
                 </button>
 
-                <button
-                  onClick={handleShare}
-                  className="w-full py-3 border border-white/10 rounded-xl text-neutral-400 text-sm hover:bg-white/5 hover:text-white transition-all flex items-center justify-center gap-2 font-medium"
-                >
-                  <Share2 className="w-4 h-4" />
-                  Partager le profil
-                </button>
+                <div className="space-y-3">
+                  <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest text-center">Partager le profil</p>
+                  <div className="flex justify-center">
+                    <ShareButtons url={shareUrl} text={shareText} size="md" />
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>

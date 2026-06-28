@@ -5,15 +5,26 @@
 import api from './api';
 import type { ApiResponse, Vote } from '@/types';
 
+export type PaymentMethod = 'MTN_MOMO' | 'ORANGE_MOMO' | 'CARD';
+
+export interface InitiateVotePayload {
+  candidateId: number;
+  voterIdentifier: string;
+  amount: number;
+  paymentMethod: PaymentMethod;
+}
+
+export interface InitiateVoteResponse {
+  vote: Vote;
+  paymentUrl?: string;
+  votesCount: number;
+}
+
 /** Initie un vote payant pour un candidat donné */
 export const initiateVote = async (
-  candidateId: number,
-  voterIdentifier: string
-): Promise<ApiResponse<{ vote: Vote }>> => {
-  const response = await api.post('/votes/initiate', {
-    candidateId,
-    voterIdentifier,
-  });
+  payload: InitiateVotePayload
+): Promise<ApiResponse<InitiateVoteResponse>> => {
+  const response = await api.post('/votes/initiate', payload);
   return response.data;
 };
 

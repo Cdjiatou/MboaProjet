@@ -7,7 +7,7 @@
 //   3. Complétion du profil avec biographie, photo, etc. (completeProfile)
 //
 // Le flux métier est le suivant :
-//   PENDING_VERIFICATION → (vérification OTP) → VERIFIED → (complétion profil) → ACTIVE
+//   PENDING_VERIFICATION → (vérification OTP) → ACTIVE
 //
 // Fonctions utilitaires privées :
 //   - generateOTP : génération d'un code à 6 chiffres
@@ -22,6 +22,8 @@ import prisma from '../utils/prisma';
 
 // Service externe pour l'envoi de codes OTP via WhatsApp
 import { sendWhatsAppOTP } from './external.service';
+import { sendOtpEmail } from './email.service';
+import { getWhatsAppStatus } from './whatsapp.service';
 
 // Utilitaire de génération de tokens JWT pour l'authentification des candidats
 import { generateToken } from '../utils/jwt';
@@ -58,44 +60,112 @@ export const createCandidateByCoach = async (data: {
   email: string;
   phone: string;
   categoryId: number;
+  biography?: string;
+  profilePhoto?: string;
+  videoUrl?: string;
+  city?: string;
+  country?: string;
+  socialLinks?: Record<string, string>;
 }) => {
-  // Vérification d'unicité : on cherche un candidat existant ayant
-  // soit le même email, soit le même numéro de téléphone
-  // L'opérateur OR de Prisma permet de vérifier les deux en une seule requête
-  const existing = await prisma.candidate.findFirst({
-    where: {
-      OR: [
-        { email: data.email },
-        { phone: data.phone }
-      ]
-    }
+  const normalizedEmail = data.email.trim().toLowerCase();
+  const phoneDigits = data.phone.replace(/\D/g, '');
+
+  const existingByEmail = await prisma.candidate.findFirst({
+    where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
   });
 
-  // Si un doublon est trouvé, on refuse la création (code HTTP 409 : Conflit)
-  if (existing) {
-    throw new AppError('Un candidat avec cet email ou numéro de téléphone existe déjà.', 409);
+  if (existingByEmail) {
+    throw new AppError(
+      `L'email « ${data.email} » est déjà utilisé par ${existingByEmail.firstName} ${existingByEmail.lastName}.`,
+      409
+    );
   }
 
-  // Génération d'un code OTP à 6 chiffres pour la vérification du numéro
+  const candidates = await prisma.candidate.findMany({
+    select: { phone: true, firstName: true, lastName: true },
+  });
+
+  const existingByPhone = candidates.find(
+    (c) => c.phone.replace(/\D/g, '') === phoneDigits
+  );
+
+  if (existingByPhone) {
+    throw new AppError(
+      `Le numéro « ${data.phone} » est déjà utilisé par ${existingByPhone.firstName} ${existingByPhone.lastName}.`,
+      409
+    );
+  }
+
   const otp = generateOTP();
 
-  // Création du candidat en base de données avec le statut initial
-  // Le code OTP est stocké temporairement dans `verificationCode`
-  // pour être comparé lors de l'étape de vérification
   const candidate = await prisma.candidate.create({
     data: {
       ...data,
+      email: normalizedEmail,
+      phone: phoneDigits ? `+${phoneDigits}` : data.phone.trim(),
       verificationCode: otp,
-      status: 'PENDING_VERIFICATION'
-    }
+      status: 'PENDING_VERIFICATION',
+    },
   });
 
-  // Envoi du code OTP par WhatsApp au candidat
-  // Note : en cas d'échec de l'envoi, le candidat est quand même créé en base.
-  // On pourrait envisager un mécanisme de renvoi ultérieur.
-  await sendWhatsAppOTP(candidate.phone, otp);
+  const whatsappConnected = getWhatsAppStatus().connected;
+  let otpSent = false;
 
-  return candidate;
+  // Tenter d'envoyer l'OTP par WhatsApp
+  if (whatsappConnected) {
+    otpSent = await sendWhatsAppOTP(candidate.phone, otp);
+  }
+
+  return { candidate, otpSent, whatsappConnected };
+};
+
+/**
+ * Renvoie le code OTP à un candidat en attente de vérification.
+ */
+export const resendCandidateOtp = async (phone: string) => {
+  const phoneDigits = phone.replace(/\D/g, '');
+
+  const candidates = await prisma.candidate.findMany({
+    where: { status: { in: ['PENDING_VERIFICATION', 'VERIFIED'] } },
+  });
+
+  const candidate = candidates.find(
+    (c) => c.phone.replace(/\D/g, '') === phoneDigits
+  );
+
+  if (!candidate) {
+    throw new AppError('Aucun candidat en attente de vérification pour ce numéro.', 404);
+  }
+
+  if (candidate.status === 'VERIFIED' && candidate.slug) {
+    throw new AppError('Ce profil est déjà activé.', 400);
+  }
+
+  const otp = generateOTP();
+  await prisma.candidate.update({
+    where: { id: candidate.id },
+    data: { verificationCode: otp },
+  });
+
+  const whatsappConnected = getWhatsAppStatus().connected;
+  let otpSent = false;
+
+  if (whatsappConnected) {
+    try {
+      otpSent = await sendWhatsAppOTP(candidate.phone, otp);
+    } catch (e) {
+      console.warn('[WhatsApp] Échec lors de la réexpédition de l\'OTP:', e);
+    }
+  }
+
+  // Tenter l'envoi par e-mail
+  const emailSent = await sendOtpEmail(candidate.email, `${candidate.firstName} ${candidate.lastName}`, otp);
+
+  if (!otpSent && !emailSent) {
+    throw new AppError('Impossible d\'envoyer le code. Vérifiez les connexions WhatsApp et e-mail.', 503);
+  }
+
+  return { otpSent: true, phone: candidate.phone, emailSent };
 };
 
 // =============================================================================
@@ -117,10 +187,15 @@ export const createCandidateByCoach = async (data: {
  * @throws {AppError} 400 — Si le code OTP fourni ne correspond pas à celui stocké en base.
  */
 export const verifyCandidateOtp = async (phone: string, otp: string) => {
-  // Recherche du candidat par son numéro de téléphone (champ unique)
-  const candidate = await prisma.candidate.findUnique({
-    where: { phone }
+  const phoneDigits = phone.replace(/\D/g, '');
+
+  const candidates = await prisma.candidate.findMany({
+    where: { status: { in: ['PENDING_VERIFICATION', 'VERIFIED'] } },
   });
+
+  const candidate = candidates.find(
+    (c) => c.phone.replace(/\D/g, '') === phoneDigits
+  );
 
   // Vérification de l'existence du candidat
   if (!candidate) {
@@ -133,22 +208,23 @@ export const verifyCandidateOtp = async (phone: string, otp: string) => {
     throw new AppError('Code OTP invalide.', 400);
   }
 
-  // Mise à jour du candidat : passage au statut VERIFIED et suppression du code OTP
-  // Le code est mis à `null` pour empêcher toute réutilisation (sécurité)
-  const updatedCandidate = await prisma.candidate.update({
+  // OTP valide → activation immédiate du profil (visible sur le site)
+  const slugName = `${candidate.firstName}-${candidate.lastName}`;
+  const slug = candidate.slug || (await generateUniqueSlug(slugName));
+
+  const finalCandidate = await prisma.candidate.update({
     where: { id: candidate.id },
     data: {
-      status: 'VERIFIED',
-      verificationCode: null
-    }
+      status: 'ACTIVE',
+      verificationCode: null,
+      slug,
+    },
+    include: { category: true },
   });
 
-  // Génération d'un token JWT de type 'candidate'
-  // Ce token permettra au candidat d'accéder aux routes protégées
-  // pour compléter son profil (biographie, photo, etc.)
-  const token = generateToken({ id: updatedCandidate.id, type: 'candidate' });
+  const token = generateToken({ id: finalCandidate.id, type: 'candidate' });
 
-  return { candidate: updatedCandidate, token };
+  return { candidate: finalCandidate, token, autoActivated: true };
 };
 
 // =============================================================================
@@ -192,28 +268,117 @@ export const completeProfile = async (candidateId: number, data: {
   // Cette contrainte métier garantit un contenu suffisamment riche
   // pour le profil public du candidat
   const wordCount = countWords(data.biography);
-  if (wordCount < 300) {
-    throw new AppError(`La biographie doit contenir au moins 300 mots. Vous avez fourni ${wordCount} mots.`, 400);
+  if (wordCount > 300) {
+    throw new AppError(`La biographie ne doit pas dépasser 300 mots. Vous en avez ${wordCount}.`, 400);
+  }
+  if (wordCount < 10) {
+    throw new AppError(`La biographie doit contenir au moins 10 mots. Vous en avez ${wordCount}.`, 400);
   }
 
   // Génération d'un slug URL unique à partir du prénom et du nom
   // Ex: "Jean Dupont" → "jean-dupont" (ou "jean-dupont-1" si déjà pris)
   // Le slug sera utilisé dans l'URL publique du profil candidat
   const slugName = `${candidate.firstName}-${candidate.lastName}`;
-  const slug = await generateUniqueSlug(slugName);
+  const slug = candidate.slug || (await generateUniqueSlug(slugName));
 
-  // Mise à jour du profil candidat avec les nouvelles données
-  // et passage au statut ACTIVE (le candidat devient visible et votable)
+  const updateData: Record<string, unknown> = {
+    ...data,
+    slug,
+    status: 'ACTIVE',
+  };
+
   const updatedCandidate = await prisma.candidate.update({
     where: { id: candidateId },
-    data: {
-      ...data,
-      slug,
-      status: 'ACTIVE'
-    }
+    data: updateData,
   });
 
   return updatedCandidate;
+};
+
+// =============================================================================
+// ADMIN — Mise à jour & suppression candidat
+// =============================================================================
+
+export const updateCandidateByAdmin = async (
+  candidateId: number,
+  data: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    categoryId?: number;
+    biography?: string;
+    videoUrl?: string;
+    city?: string;
+    country?: string;
+    status?: 'PENDING_VERIFICATION' | 'VERIFIED' | 'ACTIVE' | 'SUSPENDED';
+    socialLinks?: Record<string, string>;
+  }
+) => {
+  const candidate = await prisma.candidate.findUnique({ where: { id: candidateId } });
+  if (!candidate) throw new AppError('Candidat introuvable.', 404);
+
+  if (data.email) {
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const dup = await prisma.candidate.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' }, id: { not: candidateId } },
+    });
+    if (dup) throw new AppError(`L'email « ${data.email} » est déjà utilisé.`, 409);
+    data.email = normalizedEmail;
+  }
+
+  if (data.phone) {
+    const phoneDigits = data.phone.replace(/\D/g, '');
+    const all = await prisma.candidate.findMany({ where: { id: { not: candidateId } }, select: { phone: true } });
+    if (all.some((c) => c.phone.replace(/\D/g, '') === phoneDigits)) {
+      throw new AppError(`Le numéro « ${data.phone} » est déjà utilisé.`, 409);
+    }
+    data.phone = phoneDigits ? `+${phoneDigits}` : data.phone.trim();
+  }
+
+  if (data.biography !== undefined) {
+    const wc = countWords(data.biography);
+    if (wc > 300) throw new AppError(`La biographie ne doit pas dépasser 300 mots (${wc}).`, 400);
+  }
+
+  const updateData: Record<string, unknown> = { ...data };
+
+  if (data.status === 'ACTIVE' && !candidate.slug) {
+    const slugName = `${data.firstName || candidate.firstName}-${data.lastName || candidate.lastName}`;
+    updateData.slug = await generateUniqueSlug(slugName);
+  }
+
+  if (data.status && data.status !== 'ACTIVE' && candidate.status === 'ACTIVE') {
+    // Conserver le slug même si suspendu
+  }
+
+  const updated = await prisma.candidate.update({
+    where: { id: candidateId },
+    data: updateData,
+    include: { category: { select: { id: true, name: true, slug: true } } },
+  });
+
+  return updated;
+};
+
+export const deleteCandidateByAdmin = async (candidateId: number) => {
+  const candidate = await prisma.candidate.findUnique({ where: { id: candidateId } });
+  if (!candidate) throw new AppError('Candidat introuvable.', 404);
+
+  if (candidate.profilePhoto) {
+    const fs = await import('fs/promises');
+    const pathMod = await import('path');
+    try {
+      await fs.unlink(pathMod.join(__dirname, '../../', candidate.profilePhoto));
+    } catch {
+      // fichier absent
+    }
+  }
+
+  await prisma.vote.deleteMany({ where: { candidateId } });
+  await prisma.candidate.delete({ where: { id: candidateId } });
+
+  return { deleted: true };
 };
 
 // =============================================================================

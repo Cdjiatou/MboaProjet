@@ -18,7 +18,7 @@ import { Request, Response } from 'express';
 
 // Services métier du domaine candidat : la vérification OTP et la mise à jour
 // du profil sont des opérations distinctes encapsulées dans le service candidat.
-import { verifyCandidateOtp, completeProfile } from '../services/candidate.service';
+import { verifyCandidateOtp, completeProfile, resendCandidateOtp } from '../services/candidate.service';
 
 // Wrapper asynchrone : capture automatiquement les rejets de promesse et les
 // redirige vers le middleware de gestion d'erreurs centralisé.
@@ -52,7 +52,13 @@ export const verifyOtp = catchAsync(async (req: Request, res: Response) => {
   // et retourne un token JWT + les infos du candidat en cas de succès.
   const result = await verifyCandidateOtp(phone, otp);
 
-  res.json({ success: true, message: 'OTP vérifié avec succès.', ...result });
+  res.json({ success: true, message: 'OTP vérifié avec succès.', data: result });
+});
+
+export const resendOtp = catchAsync(async (req: Request, res: Response) => {
+  const { phone } = req.body;
+  const result = await resendCandidateOtp(phone);
+  res.json({ success: true, message: 'Code OTP renvoyé par WhatsApp.', data: result });
 });
 
 /**
@@ -89,5 +95,5 @@ export const updateProfile = catchAsync(async (req: Request, res: Response) => {
   // métier supplémentaires (validation de l'URL de la photo, etc.).
   const updatedCandidate = await completeProfile(candidateId, req.body);
 
-  res.json({ success: true, message: 'Profil complété avec succès.', candidate: updatedCandidate });
+  res.json({ success: true, message: 'Profil complété avec succès.', data: { candidate: updatedCandidate } });
 });

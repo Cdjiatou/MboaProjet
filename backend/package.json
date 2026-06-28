@@ -5,20 +5,29 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon",
     "build": "npx tsc && npx prisma generate",
     "vercel-build": "npx prisma generate && npx prisma migrate deploy && npx tsc",
     "prisma:generate": "npx prisma generate",
     "prisma:migrate": "npx prisma migrate dev",
-    "seed": "npx ts-node prisma/seed.ts"
+    "seed": "npx ts-node prisma/seed.ts",
+    "seed:sponsors": "npx ts-node prisma/seed-sponsors.ts",
+    "create:admin": "npx ts-node prisma/create-admin.ts",
+    "export:json": "npx ts-node scripts/export-database.ts",
+    "export:sql": "npx ts-node scripts/export-to-sql.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",
+    "@types/multer": "^2.1.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc13",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.1",
+    "qrcode": "^1.5.4",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -27,6 +36,8 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.12",
+    "@types/nodemailer": "^8.0.1",
+    "@types/qrcode": "^1.5.6",
     "nodemon": "^3.1.0",
     "prisma": "^5.14.0",
     "ts-node": "^10.9.2",

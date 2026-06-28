@@ -37,7 +37,9 @@ export const useThemeStore = create<AppState>((set) => ({
   primaryColor: '#d4af37',
   secondaryColor: '#ffffff',
   backgroundColor: '#0a0a0a',
-  assets: {},
+  assets: {
+    logo_url: '/logo.jpg'
+  },
   token: null,
   role: null,
   isAuthenticated: false,

@@ -4,41 +4,94 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Camera, Video, Send, CheckCircle, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { FileText, Video, Send, CheckCircle, Star, ArrowRight } from 'lucide-react';
 import { useWordCount } from '@/hooks/useWordCount';
+import { completeCandidateProfile } from '@/services/candidateService';
+import { useThemeStore } from '@/store/useThemeStore';
+import { getCandidateSessionToken } from '@/services/api';
+import { notifyCandidatesUpdated } from '@/hooks/usePublicCandidates';
+import ProfileSharePanel from '@/components/shared/ProfileSharePanel';
 
 const ArtistSpace = () => {
   const [biography, setBiography] = useState('');
-  const [profilePhoto, setProfilePhoto] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [uniqueLink, setUniqueLink] = useState('');
+  const [candidateName, setCandidateName] = useState('');
   const wordCount = useWordCount(biography);
 
-  const minWords = 300;
-  const progress = Math.min((wordCount / minWords) * 100, 100);
-  const isValid = wordCount >= minWords;
+  const maxWords = 300;
+  const minWords = 10;
+  const progress = Math.min((wordCount / maxWords) * 100, 100);
+  const isValid = wordCount >= minWords && wordCount <= maxWords;
+  const authToken = useThemeStore((state) => state.token);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    if (!isValid) return;
-    // TODO: Appel API pour compléter le profil
-    console.log('Soumission du profil :', { biography, profilePhoto, videoUrl });
-    setSubmitted(true);
+  const handleSubmit = async () => {
+    const token = authToken || getCandidateSessionToken();
+    if (!isValid || !token) return;
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const payload: { biography: string; videoUrl?: string } = { biography };
+      if (videoUrl.trim()) payload.videoUrl = videoUrl.trim();
+
+      const res = await completeCandidateProfile(payload, token);
+
+      if (res.success && res.data) {
+        const c = res.data.candidate;
+        setCandidateName(`${c.firstName} ${c.lastName}`);
+        if (c.slug) {
+          setUniqueLink(`${window.location.origin}/candidats/${c.slug}`);
+        }
+        notifyCandidatesUpdated();
+        setSubmitted(true);
+      } else {
+        setError(res.message || 'Erreur lors de la soumission du profil.');
+      }
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      setError(msg || 'Erreur serveur.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center px-4">
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center px-4 bg-[#050505]">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#0b0b0b]/40 border border-[#d4af37]/10 shadow-[0_0_30px_rgba(212,175,55,0.12)] rounded-2xl p-8 text-center max-w-md w-full"
+          className="bg-[#0b0b0b]/60 border border-[#d4af37]/20 shadow-[0_0_40px_rgba(212,175,55,0.1)] rounded-3xl p-8 sm:p-10 text-center max-w-md w-full space-y-6"
         >
-          <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Profil soumis !</h2>
-          <p className="text-text-muted">
-            Votre profil est en cours de validation. Vous recevrez une notification par WhatsApp
-            dès qu'il sera activé.
-          </p>
+          <CheckCircle className="w-16 h-16 text-[#d4af37] mx-auto" />
+          <div>
+            <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-2">Profil complété !</h2>
+            <p className="text-neutral-400 text-sm">
+              Partagez votre lien unique pour recevoir des votes de vos proches.
+            </p>
+          </div>
+
+          {uniqueLink && candidateName && (
+            <ProfileSharePanel url={uniqueLink} candidateName={candidateName} />
+          )}
+
+          {uniqueLink && (
+            <Link
+              to={uniqueLink.replace(window.location.origin, '')}
+              className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black uppercase tracking-widest text-sm rounded-xl hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all flex items-center justify-center gap-2"
+            >
+              Voir mon profil
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
         </motion.div>
       </div>
     );
@@ -81,7 +134,7 @@ const ArtistSpace = () => {
               <div className="p-2 rounded-lg bg-[#d4af37]/10">
                 <FileText className="w-4 h-4 text-[#d4af37]" />
               </div>
-              Biographie ({minWords} mots minimum)
+              Biographie (10 à 300 mots)
             </label>
             <textarea
               value={biography}
@@ -95,7 +148,7 @@ const ArtistSpace = () => {
             <div className="mt-3 space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className={`font-medium ${isValid ? 'text-success' : 'text-text-muted'}`}>
-                  {wordCount} / {minWords} mots
+                  {wordCount} / {maxWords} mots
                 </span>
                 {isValid && (
                   <motion.span
@@ -119,23 +172,6 @@ const ArtistSpace = () => {
             </div>
           </div>
 
-          {/* Photo de profil */}
-          <div>
-            <label className="flex items-center gap-3 text-white font-bold mb-3 uppercase tracking-wider text-xs">
-              <div className="p-2 rounded-lg bg-[#d4af37]/10">
-                <Camera className="w-4 h-4 text-[#d4af37]" />
-              </div>
-              Photo de profil (URL)
-            </label>
-            <input
-              type="url"
-              value={profilePhoto}
-              onChange={(e) => setProfilePhoto(e.target.value)}
-              placeholder="https://exemple.com/ma-photo.jpg"
-              className="w-full px-5 py-4 bg-[#050505] border border-white/10 rounded-2xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/50 focus:ring-1 focus:ring-[#d4af37]/50 transition-all"
-            />
-          </div>
-
           {/* URL Vidéo */}
           <div>
             <label className="flex items-center gap-3 text-white font-bold mb-3 uppercase tracking-wider text-xs">
@@ -155,18 +191,27 @@ const ArtistSpace = () => {
 
           {/* Bouton de soumission */}
           <div className="pt-4">
+            {error && (
+              <p className="text-red-400 text-sm text-center mb-4">
+                {error}
+              </p>
+            )}
             <button
               onClick={handleSubmit}
-              disabled={!isValid}
+              disabled={!isValid || isSubmitting}
               className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black uppercase tracking-widest text-sm rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
             >
-              <Send className="w-5 h-5" />
-              Soumettre mon profil
+              {isSubmitting ? (
+                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+              {isSubmitting ? 'Soumission...' : 'Soumettre mon profil'}
             </button>
 
             {!isValid && (
               <p className="text-red-400 text-xs text-center mt-4">
-                Vous devez rédiger au minimum {minWords} mots dans votre biographie pour soumettre.
+                La biographie doit contenir entre {minWords} et {maxWords} mots.
               </p>
             )}
           </div>

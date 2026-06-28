@@ -16,12 +16,33 @@ const api = axios.create({
   },
 });
 
-// Intercepteur de requêtes : injecte le token JWT si présent dans localStorage
+const CANDIDATE_TOKEN_KEY = 'mboa_candidate_token';
+
+export const getCandidateSessionToken = (): string | null =>
+  sessionStorage.getItem(CANDIDATE_TOKEN_KEY);
+
+export const setCandidateSessionToken = (token: string | null) => {
+  if (token) sessionStorage.setItem(CANDIDATE_TOKEN_KEY, token);
+  else sessionStorage.removeItem(CANDIDATE_TOKEN_KEY);
+};
+
+// Intercepteur de requêtes : token admin (localStorage) ou candidat (sessionStorage)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('mboa_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (config.headers.Authorization) return config;
+
+    const url = config.url || '';
+    const isCandidateRoute = url.includes('/candidates/complete-profile');
+    const candidateToken = getCandidateSessionToken();
+
+    if (isCandidateRoute && candidateToken) {
+      config.headers.Authorization = `Bearer ${candidateToken}`;
+      return config;
+    }
+
+    const adminToken = localStorage.getItem('mboa_token');
+    if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
     }
     return config;
   },
@@ -32,10 +53,16 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
-      localStorage.removeItem('mboa_token');
-      // Redirection vers la page de connexion si le token est expiré
-      window.location.href = '/';
+    const url = error.config?.url || '';
+    const isCandidateRoute = url.includes('/candidates/');
+
+    if (error.response?.status === 401 && !url.includes('/auth/login')) {
+      if (isCandidateRoute) {
+        setCandidateSessionToken(null);
+      } else {
+        localStorage.removeItem('mboa_token');
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }

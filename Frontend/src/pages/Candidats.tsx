@@ -3,46 +3,19 @@
 // Navigation, Recherche, et Filtrage par Catégorie
 // =============================================================================
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Star, Filter, Loader2, X } from 'lucide-react';
-import { getCategories } from '@/services/adminService';
+import { usePublicCandidates } from '@/hooks/usePublicCandidates';
 import { CandidateCard } from '@/components/candidate/CandidateCard';
-import type { Category, Candidate } from '@/types';
 
 const Candidats = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryQuery = searchParams.get('category') || 'all';
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
+  const { categories, candidates: allCandidates, loading: isLoading } = usePublicCandidates(15000);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getCategories();
-        if (res.success && res.data) {
-          setCategories(res.data);
-          
-          // Aplatir et trier tous les candidats (les plus votés en premier)
-          const candidatesList = res.data
-            .flatMap((cat) => (cat.candidates || []).map((c) => ({ ...c, category: cat })))
-            .filter((c) => c.status === 'ACTIVE')
-            .sort((a, b) => b.totalVotesCache - a.totalVotesCache);
-            
-          setAllCandidates(candidatesList);
-        }
-      } catch (err) {
-        console.error('Erreur chargement candidats :', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   // Déterminer la catégorie sélectionnée
   const selectedCategorySlug = categoryQuery;
@@ -58,11 +31,8 @@ const Candidats = () => {
       // Filtre par recherche textuelle (nom, pseudo, code)
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchesName = c.user?.firstName?.toLowerCase().includes(query) || c.user?.lastName?.toLowerCase().includes(query);
-        const matchesPseudo = c.artistName?.toLowerCase().includes(query);
-        const matchesCode = c.voteCode?.toLowerCase().includes(query);
-        
-        if (!matchesName && !matchesPseudo && !matchesCode) {
+        const fullName = `${c.firstName} ${c.lastName}`.toLowerCase();
+        if (!fullName.includes(query) && !c.firstName.toLowerCase().includes(query) && !c.lastName.toLowerCase().includes(query)) {
           return false;
         }
       }

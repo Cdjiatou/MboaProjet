@@ -6,7 +6,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   ShieldCheck,
   Star,
@@ -15,19 +15,26 @@ import {
   RefreshCw,
   AlertCircle,
   AlertTriangle,
-  Copy,
-  Check,
+  Phone,
 } from 'lucide-react';
+import { verifyCandidateOtp, completeCandidateProfile, resendCandidateOtp } from '@/services/candidateService';
+import { useThemeStore } from '@/store/useThemeStore';
+import { useWordCount } from '@/hooks/useWordCount';
+import { getApiErrorMessage } from '@/utils/apiError';
+import { notifyCandidatesUpdated } from '@/hooks/usePublicCandidates';
+import { getCandidateSessionToken, setCandidateSessionToken } from '@/services/api';
+import ProfileSharePanel from '@/components/shared/ProfileSharePanel';
 
 type Step = 'otp' | 'legend' | 'success' | 'invalid';
 
 const OTP_LENGTH = 6;
 
 const VerifyProfile = () => {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  // const [searchParams] = useSearchParams();
+  // const token = searchParams.get('token');
 
-  const [step, setStep] = useState<Step>(token ? 'otp' : 'invalid');
+  const [step, setStep] = useState<Step>('otp');
+  const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(''));
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
@@ -35,11 +42,20 @@ const VerifyProfile = () => {
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const [legend, setLegend] = useState('');
+  const legendWordCount = useWordCount(legend);
   const [submitting, setSubmitting] = useState(false);
   const [uniqueLink, setUniqueLink] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [candidateName, setCandidateName] = useState('');
+  const setAuth = useThemeStore((state) => state.setAuth);
+  const authToken = useThemeStore((state) => state.token);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (getCandidateSessionToken()) {
+      setStep('legend');
+    }
+  }, []);
 
   // ─── AUTO-FOCUS LE PREMIER INPUT AU CHARGEMENT ─────────────────────
   useEffect(() => {
@@ -106,30 +122,67 @@ const VerifyProfile = () => {
       return;
     }
 
+    if (!phone.trim()) {
+      setError('Veuillez entrer votre numéro de téléphone.');
+      return;
+    }
+
     setError('');
     setVerifying(true);
 
-    // TODO: Appel API → POST /api/verify/confirm { token, code }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const res = await verifyCandidateOtp(phone, code);
+      if (res.success && res.data) {
+        setCandidateSessionToken(res.data.token);
+        const name = `${res.data.candidate.firstName} ${res.data.candidate.lastName}`;
+        setCandidateName(name);
+        setAuth(res.data.token, 'artist', {
+          id: res.data.candidate.id,
+          name: `${res.data.candidate.firstName} ${res.data.candidate.lastName}`,
+          email: res.data.candidate.email,
+          role: 'artist',
+        });
 
-    // Simuler une vérification réussie
-    setVerifying(false);
-    setStep('legend');
+        const slug = res.data.candidate.slug;
+        if (slug) {
+          setUniqueLink(`${window.location.origin}/candidats/${slug}`);
+        }
+        notifyCandidatesUpdated();
+
+        // Biographie déjà renseignée par l'admin → succès direct
+        // Sinon → étape légende optionnelle (le profil est déjà actif)
+        if (res.data.candidate.biography?.trim()) {
+          setCandidateSessionToken(null);
+          setStep('success');
+        } else {
+          setStep('legend');
+        }
+      } else {
+        setError(res.message || 'Code OTP ou numéro incorrect.');
+      }
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, 'Erreur lors de la vérification.'));
+    } finally {
+      setVerifying(false);
+    }
   };
 
   // ─── RENVOI DU CODE ────────────────────────────────────────────────
   const handleResend = async () => {
-    if (resendCooldown > 0) return;
+    if (resendCooldown > 0 || !phone.trim()) return;
     setOtp(new Array(OTP_LENGTH).fill(''));
     setError('');
     setResending(true);
 
-    // TODO: Appel API → POST /api/verify/resend { token }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    setResending(false);
-    setResendCooldown(60);
-    inputRefs.current[0]?.focus();
+    try {
+      await resendCandidateOtp(phone);
+      setResendCooldown(60);
+      inputRefs.current[0]?.focus();
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, 'Impossible de renvoyer le code.'));
+    } finally {
+      setResending(false);
+    }
   };
 
   // ─── SOUMISSION DE LA LÉGENDE ─────────────────────────────────────
@@ -139,27 +192,44 @@ const VerifyProfile = () => {
       return;
     }
 
+    if (legendWordCount > 300) {
+      setError(`La biographie ne doit pas dépasser 300 mots (actuellement ${legendWordCount}).`);
+      return;
+    }
+    if (legendWordCount < 10) {
+      setError('La biographie doit contenir au moins 10 mots.');
+      return;
+    }
+
+    const token = authToken || getCandidateSessionToken();
+    if (!token) {
+      setError('Session expirée. Veuillez vérifier à nouveau votre code OTP.');
+      return;
+    }
+
     setError('');
     setSubmitting(true);
 
-    // TODO: Appel API → POST /api/candidate/profile { token, legend }
-    // Réponse: { profileId: "abc123", shareLink: "https://mboa-next-star.vercel.app/c/abc123" }
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Simuler la génération d'un lien unique
-    const uniqueId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const shareLink = `${window.location.origin}/candidats/${uniqueId}`;
-    setUniqueLink(shareLink);
-
-    setSubmitting(false);
-    setStep('success');
-  };
-
-  // ─── COPIER LE LIEN UNIQUE ────────────────────────────────────────
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(uniqueLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      const res = await completeCandidateProfile({ biography: legend }, token);
+      if (res.success && res.data) {
+        const c = res.data.candidate;
+        const slug = c.slug;
+        if (slug) {
+          setUniqueLink(`${window.location.origin}/candidats/${slug}`);
+        }
+        setCandidateName(`${c.firstName} ${c.lastName}`);
+        setCandidateSessionToken(null);
+        notifyCandidatesUpdated();
+        setStep('success');
+      } else {
+        setError(res.message || 'Erreur lors de la complétion du profil.');
+      }
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, 'Erreur serveur.'));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // =================================================================
@@ -171,7 +241,7 @@ const VerifyProfile = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.06)_0%,transparent_70%)] pointer-events-none" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#d4af37]/[0.02] blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-md mx-auto px-4 sm:px-6 relative z-10">
+      <div className="w-full max-w-[380px] mx-auto px-4 sm:px-0 relative z-10">
         <AnimatePresence mode="wait">
           {/* ═══════════════════════════════════════════════════════
               LIEN INVALIDE — Pas de token dans l'URL
@@ -245,30 +315,57 @@ const VerifyProfile = () => {
 
               {/* Carte OTP */}
               <div className="bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(212,175,55,0.03)] rounded-3xl p-6 sm:p-8 space-y-6">
-                {/* Inputs OTP */}
-                <div className="flex justify-center gap-2 sm:gap-3" onPaste={handleOtpPaste}>
-                  {otp.map((digit, index) => (
-                    <motion.input
-                      key={index}
-                      ref={(el) => {
-                        inputRefs.current[index] = el;
-                      }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-black rounded-2xl border-2 bg-[#050505] text-white outline-none transition-all duration-300 ${
-                        digit
-                          ? 'border-[#d4af37]/60 shadow-[0_0_15px_rgba(212,175,55,0.15)]'
-                          : 'border-white/10 focus:border-[#d4af37]/50'
-                      } ${error ? 'border-red-500/50' : ''}`}
+                
+                {/* Input Téléphone */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
+                    Numéro de Téléphone (WhatsApp)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Phone className="w-5 h-5 text-neutral-500" />
+                    </div>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Ex: 699123456"
+                      className="w-full pl-12 pr-5 py-4 bg-[#050505] border border-white/10 rounded-2xl text-white text-lg font-medium placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/50 focus:ring-1 focus:ring-[#d4af37]/50 transition-all"
                     />
-                  ))}
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-white/5 my-2" />
+
+                {/* Inputs OTP */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3 text-center">
+                    Code OTP (6 Chiffres)
+                  </label>
+                  <div className="flex justify-center gap-2 sm:gap-3" onPaste={handleOtpPaste}>
+                    {otp.map((digit, index) => (
+                      <motion.input
+                        key={index}
+                        ref={(el) => {
+                          inputRefs.current[index] = el;
+                        }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpChange(index, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className={`w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-black rounded-2xl border-2 bg-[#050505] text-white outline-none transition-all duration-300 ${
+                          digit
+                            ? 'border-[#d4af37]/60 shadow-[0_0_15px_rgba(212,175,55,0.15)]'
+                            : 'border-white/10 focus:border-[#d4af37]/50'
+                        } ${error ? 'border-red-500/50' : ''}`}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 {/* Message d'erreur */}
@@ -355,7 +452,7 @@ const VerifyProfile = () => {
                   Ma <span className="bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">Légende</span>
                 </h1>
                 <p className="text-neutral-400 mt-3 text-sm leading-relaxed max-w-sm mx-auto">
-                  Décrivez-vous en quelques mots. C'est votre légende unique sur MBOA NEXT STAR.
+                  Votre profil est déjà actif sur le site. Ajoutez votre légende pour le compléter (optionnel).
                 </p>
               </div>
 
@@ -372,20 +469,14 @@ const VerifyProfile = () => {
                       setLegend(e.target.value);
                       setError('');
                     }}
-                    placeholder="Entrez votre légende ici (ex: Artiste polyvalent passionné par la musique et la danse)"
-                    rows={5}
-                    maxLength={200}
+                    placeholder="Présentez-vous en quelques mots (10 à 300 mots)..."
+                    rows={6}
                     className="w-full px-5 py-4 bg-[#050505] border border-white/10 rounded-2xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/50 focus:ring-1 focus:ring-[#d4af37]/50 transition-all resize-none"
                   />
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-[10px] text-neutral-600 uppercase tracking-widest">
-                      {legend.length}/200 caractères
+                    <span className={`text-[10px] uppercase tracking-widest ${legendWordCount > 300 ? 'text-red-400' : 'text-neutral-600'}`}>
+                      {legendWordCount} / 300 mots
                     </span>
-                    {legend.length > 0 && (
-                      <span className="text-[10px] text-[#d4af37] uppercase tracking-widest">
-                        ✓ Valide
-                      </span>
-                    )}
                   </div>
                 </div>
 
@@ -404,20 +495,31 @@ const VerifyProfile = () => {
                 {/* Bouton de soumission */}
                 <button
                   onClick={handleSubmitLegend}
-                  disabled={submitting || !legend.trim()}
+                  disabled={submitting || legendWordCount < 10 || legendWordCount > 300}
                   className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black uppercase tracking-widest text-sm rounded-xl hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                      Création du profil...
+                      Enregistrement...
                     </>
                   ) : (
                     <>
                       <CheckCircle className="w-4 h-4" />
-                      Créer mon profil
+                      Enregistrer ma légende
                     </>
                   )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCandidateSessionToken(null);
+                    setStep('success');
+                  }}
+                  className="w-full py-3 rounded-xl border border-white/10 text-neutral-400 text-xs font-bold uppercase tracking-widest hover:text-white hover:border-white/20 transition-all"
+                >
+                  Passer cette étape
                 </button>
               </div>
             </motion.div>
@@ -454,56 +556,21 @@ const VerifyProfile = () => {
                     Profil Créé avec Succès !
                   </h2>
                   <p className="text-neutral-400 text-sm leading-relaxed max-w-sm mx-auto">
-                    Votre profil est maintenant visible dans le classement des candidats. Partagez votre lien unique pour recevoir plus de votes !
+                    Votre profil est actif. Partagez votre lien unique avec vos proches pour recevoir plus de votes !
                   </p>
                 </motion.div>
 
-                {/* Affichage du lien unique */}
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="space-y-3 pt-4"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-px bg-white/10" />
-                    <span className="text-[10px] text-neutral-600 uppercase tracking-widest px-2">
-                      Votre lien unique
-                    </span>
-                    <div className="flex-1 h-px bg-white/10" />
-                  </div>
-
-                  <div className="bg-[#050505]/60 border border-[#d4af37]/30 rounded-2xl p-4 flex items-center justify-between gap-3 group hover:border-[#d4af37]/50 transition-colors">
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-xs text-neutral-600 uppercase tracking-widest mb-1">Lien de partage</p>
-                      <p className="text-[#d4af37] text-xs font-mono break-all">
-                        {uniqueLink}
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleCopyLink}
-                      className="shrink-0 w-10 h-10 rounded-lg bg-[#d4af37] text-black flex items-center justify-center hover:bg-[#b8952e] transition-all duration-300 active:scale-95"
-                      title="Copier le lien"
-                    >
-                      {copied ? (
-                        <Check className="w-5 h-5" />
-                      ) : (
-                        <Copy className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-
-                  {copied && (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-[#d4af37] text-xs uppercase tracking-widest font-semibold"
-                    >
-                      ✓ Lien copié dans le presse-papiers !
-                    </motion.p>
-                  )}
-                </motion.div>
+                {/* Lien unique + partage */}
+                {uniqueLink && candidateName && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="pt-4"
+                  >
+                    <ProfileSharePanel url={uniqueLink} candidateName={candidateName} />
+                  </motion.div>
+                )}
 
                 {/* Stars décoratives */}
                 <div className="flex items-center justify-center gap-1 pt-2">
@@ -522,7 +589,7 @@ const VerifyProfile = () => {
                 {/* Actions */}
                 <div className="flex flex-col gap-3 pt-4">
                   <Link
-                    to="/candidats"
+                    to={uniqueLink ? uniqueLink.replace(window.location.origin, '') : '/candidats'}
                     className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black uppercase tracking-widest text-sm rounded-xl hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all duration-300 flex items-center justify-center gap-2"
                   >
                     Voir mon profil

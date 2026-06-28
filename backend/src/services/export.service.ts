@@ -21,6 +21,9 @@
 // Client Prisma pour les requêtes en base de données
 import prisma from '../utils/prisma';
 
+// Fonction utilitaire de masking des identifiants
+import { maskVoterIdentifier } from '../utils/maskIdentifier';
+
 // =============================================================================
 // CONSTANTES
 // =============================================================================
@@ -74,16 +77,8 @@ export const generateVotesCSV = async (): Promise<string> => {
 
   // Transformation de chaque vote en une ligne CSV
   const rows = votes.map(vote => {
-    // --- Anonymisation partielle de l'identifiant du votant ---
-    // On masque la partie centrale avec des astérisques pour protéger
-    // les données personnelles tout en gardant assez d'info pour identifier
-    // un doublon ou répondre à une réclamation
-    // Ex: "237612345890" → "237***890"
-    let maskedIdentifier = vote.voterIdentifier;
-    if (maskedIdentifier.length > 5) {
-      // On garde les 3 premiers et les 3 derniers caractères
-      maskedIdentifier = maskedIdentifier.substring(0, 3) + '***' + maskedIdentifier.substring(maskedIdentifier.length - 3);
-    }
+    // Utilisation de la fonction utilitaire de masking
+    const maskedIdentifier = maskVoterIdentifier(vote.voterIdentifier);
 
     // Construction du nom complet de l'artiste
     const artistName = `${vote.candidate.firstName} ${vote.candidate.lastName}`;

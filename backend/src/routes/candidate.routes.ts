@@ -17,7 +17,7 @@
 import { Router } from 'express';
 
 // Contrôleurs candidat : chaque fonction gère un endpoint spécifique.
-import { verifyOtp, updateProfile } from '../controllers/candidate.controller';
+import { verifyOtp, updateProfile, resendOtp } from '../controllers/candidate.controller';
 
 // Middleware d'authentification spécifique aux candidats : vérifie un JWT
 // dont le payload contient un rôle "candidate" (différent du rôle "admin").
@@ -88,7 +88,14 @@ const updateProfileSchema = z.object({
  *
  * Pipeline : validation Zod → contrôleur verifyOtp.
  */
+const resendOtpSchema = z.object({
+  body: z.object({
+    phone: z.string().min(8, 'Numéro de téléphone requis'),
+  }),
+});
+
 router.post('/verify-otp', validate(verifyOtpSchema), verifyOtp);
+router.post('/resend-otp', validate(resendOtpSchema), resendOtp);
 
 /**
  * @route PUT /complete-profile

@@ -5,7 +5,9 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Star, Play } from 'lucide-react';
+import ShareButtons from '@/components/shared/ShareButtons';
 import type { Candidate } from '@/types';
+import { getMediaUrl } from '@/utils/mediaUrl';
 
 interface Props {
   candidate: Candidate;
@@ -41,7 +43,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
       <Link to={`/candidats/${candidate.slug}`} className="block relative aspect-[3/4] overflow-hidden bg-neutral-900">
         {candidate.profilePhoto ? (
           <img
-            src={candidate.profilePhoto}
+            src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
             alt={`${candidate.firstName} ${candidate.lastName}`}
             loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.9] group-hover:brightness-100"
@@ -63,6 +65,15 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
             </div>
           </div>
         )}
+
+        {/* Boutons de partage social au hover */}
+        <div className="absolute bottom-3 left-3 z-10 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+          <ShareButtons
+            url={`${window.location.origin}/candidats/${candidate.slug}`}
+            text={`⭐ Votez pour ${candidate.firstName} ${candidate.lastName} sur MBOA NEXT STAR !`}
+            size="sm"
+          />
+        </div>
       </Link>
 
       {/* Bloc d'informations en bas */}
@@ -78,7 +89,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
 
         {/* Localisation */}
         <p className="text-neutral-500 text-xs mt-0.5 truncate">
-          {candidate.biography ? candidate.biography.split(',')[0]?.trim() : 'Cameroun'}
+          {[candidate.city, candidate.country].filter(Boolean).join(', ') || 'Cameroun'}
         </p>
 
         {/* Votes + bouton Voter */}

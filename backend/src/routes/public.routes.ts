@@ -19,6 +19,7 @@ import { Router } from 'express';
 
 // Contrôleurs publics : chaque fonction gère un endpoint visible par les visiteurs.
 import { getConfig, getCategories, getCandidateBySlug, initiateCandidateVote, maviansWebhook, getVoteStatus } from '../controllers/public.controller';
+import { getPublicSponsors } from '../controllers/sponsor.controller';
 
 // Middleware de validation Zod pour les routes qui acceptent des données en body.
 import { validate } from '../middlewares/validationMiddleware';
@@ -44,8 +45,10 @@ const router = Router();
 const voteSchema = z.object({
   body: z.object({
     candidateId: z.number().positive(),
-    voterIdentifier: z.string().min(1, 'L\'identifiant du votant est requis')
-  })
+    voterIdentifier: z.string().min(8, 'Numéro de téléphone requis'),
+    amount: z.number().int().min(100).refine((v) => v % 100 === 0, 'Montant en multiples de 100 FCFA'),
+    paymentMethod: z.enum(['MTN_MOMO', 'ORANGE_MOMO', 'CARD']),
+  }),
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -59,6 +62,13 @@ const voteSchema = z.object({
  * dates du concours, couleurs du thème, etc.) au démarrage de l'application.
  */
 router.get('/config', getConfig);
+
+/**
+ * @route GET /sponsors
+ * @description Récupère tous les sponsors actifs avec leurs médias.
+ * Utilisé pour afficher les logos et contenus des partenaires sur le site public.
+ */
+router.get('/sponsors', getPublicSponsors);
 
 /**
  * @route GET /categories

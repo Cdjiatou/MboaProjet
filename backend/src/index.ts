@@ -80,6 +80,11 @@ app.use(cors());
 // accessible via `req.body`. Nécessaire pour tous les endpoints POST/PUT.
 app.use(express.json());
 
+// Servir les fichiers statiques depuis le répertoire uploads
+// Les fichiers uploadés (photos de candidats) sont accessibles via /uploads/*
+// Exemple: /uploads/candidates/1234567890_photo.jpg
+app.use('/uploads', express.static('uploads'));
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Montage des routeurs sur leurs préfixes d'URL
 // ──────────────────────────────────────────────────────────────────────────────
@@ -161,19 +166,25 @@ app.use(errorHandler);
 // Démarrage du serveur HTTP
 // ──────────────────────────────────────────────────────────────────────────────
 
+import { initWhatsApp } from './services/whatsapp.service';
+import fs from 'fs/promises';
+import path from 'path';
+
 // Conversion explicite du port en nombre entier car les variables
 // d'environnement sont toujours des strings.
 const PORT = parseInt(env.PORT, 10);
 
 /**
  * Démarrage de l'écoute sur le port configuré.
- *
- * Le callback de confirmation affiche :
- * - Le port d'écoute pour faciliter le développement local.
- * - L'environnement d'exécution (development/production/staging) pour
- *   vérifier la configuration au démarrage.
  */
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`✅ Serveur MBOA NEXT STAR démarré sur le port ${PORT}`);
   console.log(`🌍 Environnement : ${process.env.NODE_ENV || 'development'}`);
+
+  // Créer les dossiers d'upload si nécessaire
+  await fs.mkdir(path.join(__dirname, '../uploads/candidates'), { recursive: true });
+  await fs.mkdir(path.join(__dirname, '../uploads/sponsors'), { recursive: true });
+
+  console.log('🔄 Initialisation du service WhatsApp...');
+  await initWhatsApp();
 });

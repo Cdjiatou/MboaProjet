@@ -55,8 +55,12 @@ const envSchema = z.object({
   // la sécurité de l'authentification.
   JWT_SECRET: z.string().min(10),
 
-  // MAVIANS_API_KEY : clé API fournie par Mavians pour interagir avec leur plateforme
+  // MAVIANS_API_KEY : clé API Smobilpay (format TOKEN|SECRET)
   MAVIANS_API_KEY: z.string().min(10),
+  MAVIANS_API_URL: z.string().url().optional(),
+  MAVIANS_PAY_ITEM_MTN: z.string().optional(),
+  MAVIANS_PAY_ITEM_ORANGE: z.string().optional(),
+  MAVIANS_PAY_ITEM_CARD: z.string().optional(),
 });
 
 /**

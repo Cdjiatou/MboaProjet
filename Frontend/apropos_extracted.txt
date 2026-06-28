@@ -1,0 +1,116 @@
+﻿Mood & Com`},{src:`/images/pub-madeinmboa.png`,label:`Made in Mboa`},{src:`/images/pub-mboavibes.png`,label:`The Mboa Vibes`},{src:`/images/pub-mboa.png`,label:`Mboa Hip-Hop`},{src:`/images/pub-bledcity.p
+talents urbains et culturels du Cameroun. Organisé par `,(0,N.jsx)(`span`,{style:{color:`rgba(255,255,255,0.5)`},children:`Mood & Com`}),` · Douala.`]}),n?(0,N.jsx)(`p`,{style:{fontFamily:`var(--font-ui)`,f
+propos`,`À propos`],[`/reglement`,`Règlement`],[`/categories`,`Catégories`],[`/classement`,`Classement`],[`/contact`,`Contact Mood & Com`],[`/partenaires`,`Partenaires`]].map(([e,t])=>(0,N.jsx)(`div`,{style
+Mood & Com \xA0·\xA0`,(0,N.jsx)(j,{to:`/politique`,style:{color:`rgba(255,255,255,0.25)`,textDecoration:`none`},children:`Politique de confidentialité`}),`\xA0·\xA0`,(0,N.jsx)(j,{to:`/conditions`,style:{c
+categories`,icon:Br,label:`Catégories`},{to:`/admin/publicites`,icon:Or,label:`Publicités`},{to:`/admin/videos`,icon:Gr,label:`Vidéos`},{to:`/admin/partenaires`,icon:Dr,label:`Partenaires`},{to:`/admin/pages`,
+MBOA `,(0,N.jsx)(`span`,{style:{color:`var(--mns-gold)`},children:`NEXT`}),` STAR`]}),(0,N.jsxs)(`div`,{style:{fontFamily:`var(--font-ui)`,fontSize:8.5,letterSpacing:2,textTransform:`uppercase`,color:`rgb
+FCFA DE DOTATION · MOOD & COM · LA PROCHAINE STAR C'EST TOI`,Ll={chant:`/images/Chant.jpeg`,deejay:`/images/Deejay.jpeg`,miss:`/images/Miss.jpeg`,danse:`/images/Danse.jpeg`,humour:`/images/Humour.jpeg`,ma
+categories`,className:`btn-outline`,children:`Les catégories`})]})]})]}),(0,N.jsx)(`div`,{style:{overflow:`hidden`,padding:`8px 0`,background:`var(--mns-gold)`},children:(0,N.jsxs)(`div`,{className:`ticker-inn
+catégories`}),(0,N.jsx)(`div`,{style:{display:`grid`,gridTemplateColumns:a?`1fr 1fr`:`repeat(3, 1fr)`,gap:12},children:n.map(e=>{let t=Ll[e.slug]||`/images/Chant.jpeg`;return(0,N.jsx)(j,{to:`/categories`,state
+jurys de la saison`}),(0,N.jsx)(`div`,{style:{display:`grid`,gridTemplateColumns:a?`repeat(3, 1fr)`:`repeat(5, 1fr)`,gap:a?10:16},children:[{nom:`Phillbill`,photo:`/images/Phillbill.jpg`},{nom:`Maalhox`,p
+Tony`,photo:`/images/Tony.jpg`}].map(e=>(0,N.jsxs)(`div`,{style:{textAlign:`center`},children:[(0,N.jsx)(`div`,{style:{width:`100%`,aspectRatio:`3/4`,borderRadius:6,overflow:`hidden`,marginBottom:8,border
+propos`}),(0,N.jsxs)(`div`,{style:{display:`grid`,gridTemplateColumns:a?`1fr`:`1fr 1fr`,gap:a?24:48,alignItems:`center`},children:[(0,N.jsxs)(`div`,{children:[(0,N.jsx)(`h2`,{style:{fontFamily:`var(--font-d
+talents ouverte à tous les artistes camerounais. Organisée par `,(0,N.jsx)(`strong`,{style:{color:`#fff`},children:`Mood & Com`}),`, elle se déroule du `,(0,N.jsx)(`strong`,{style:{color:`#fff`},children:`0
+catégorie remportent une part de la dotation totale de `,(0,N.jsx)(`strong`,{style:{color:`#fff`},children:`7 000 000 FCFA`}),`.`]}),(0,N.jsxs)(`div`,{style:{display:`flex`,alignItems:`center`,gap:8,fontFamily
+propos`,className:`btn-outline`,children:`En savoir plus`}),(0,N.jsx)(j,{to:`/classement`,className:`btn-gold`,children:`Voter maintenant`})]})]}),(0,N.jsx)(`div`,{style:{display:`grid`,gridTemplateColumns:
+FCFA`})]}),(0,N.jsxs)(`div`,{style:{display:`flex`,alignItems:`center`,gap:12,marginBottom:20},children:[(0,N.jsx)(`div`,{style:{flex:1,height:1,background:`rgba(255,255,255,0.06)`}}),(0,N.jsx)(`span`,{st
+catégories`]}),Y[r]&&(0,N.jsxs)(`div`,{style:{position:`relative`,borderRadius:8,overflow:`hidden`,height:160,marginBottom:32},children:[(0,N.jsx)(`img`,{src:Y[r],alt:s?.nom,style:{width:`100%`,height:`100%`,o
+catégorie seront annoncés prochainement.`})]}),(0,N.jsxs)(`div`,{style:{marginTop:48,paddingTop:32,borderTop:`1px solid rgba(255,255,255,0.06)`},children:[(0,N.jsx)(`div`,{className:`eyebrow`,style:{marginBott
+catégories`}),(0,N.jsx)(`div`,{style:{display:`flex`,flexWrap:`wrap`,gap:10},children:t.filter(e=>e.slug!==r).map(e=>(0,N.jsx)(`button`,{onClick:()=>i(e.slug),style:{padding:`8px 16px`,borderRadius:3,border:`1
+catégories`}),(0,N.jsx)(`p`,{style:{fontFamily:`var(--font-body)`,fontSize:13,color:`rgba(255,255,255,0.4)`,marginBottom:32},children:`Sélectionnez une catégorie pour voir les candidats et voter.`}),(0,N.jsx)(
+catégorie pour le moment.`}),(0,N.jsxs)(`p`,{style:{fontFamily:`var(--font-body)`,fontSize:11.5,color:`rgba(255,255,255,0.18)`,textAlign:`center`,marginTop:36,lineHeight:1.8},children:[`Le classement est mis à
+FCFA / vote`})]})]}),f===3&&(0,N.jsxs)(`div`,{style:{textAlign:`center`,padding:`3rem 0`},children:[(0,N.jsx)(`div`,{style:{fontFamily:`var(--font-display)`,fontWeight:800,fontSize:22,textTransform:`upper
+FCFA`}),(0,N.jsx)(`p`,{style:{fontFamily:`var(--font-body)`,fontSize:10.5,textAlign:`center`,marginTop:12,color:`rgba(255,255,255,0.2)`},children:`Paiement sécurisé · Commission 3% déduite au retrait`})]}
+Mood & Com présente`}),(0,N.jsxs)(`h1`,{style:{fontFamily:`var(--font-display)`,fontWeight:800,fontSize:`clamp(42px,6vw,68px)`,textTransform:`uppercase`,lineHeight:.92,color:`#fff`,letterSpacing:-2,margin
+talents urbains et culturels du Cameroun.`})]})}),(0,N.jsxs)(`div`,{style:{maxWidth:760,margin:`0 auto`,padding:`4rem 2rem`},children:[(0,N.jsxs)(`div`,{style:{marginBottom:52},children:[(0,N.jsxs)(`p`,{sty
+catégorie respective remportent une part de la dotation totale de `,(0,N.jsx)(`strong`,{style:{color:`#fff`},children:`7 000 000 FCFA`}),`.`]})]}),(0,N.jsx)(`div`,{style:{height:1,background:`rgba(255,255,255,
+Mood & Com — Douala, Cameroun`},{lbl:`Lieu`,val:`Cinéma L'Éden, Bessengue, Douala`},{lbl:`Casting`,val:`20 & 30 Juin 2026 — Inscription gratuite`},{lbl:`Période de vote`,val:`07 Juillet — 28 Août 2026`},{
+FCFA = 1 vote · Votes illimités`},{lbl:`Dotation totale`,val:`7 000 000 FCFA`},{lbl:`Diffusion`,val:`Made in Mboa · Canal 2 International`},{lbl:`Contact`,val:`677 103 475 / 698 900 627`},{lbl:`Email`,val
+catégorie Miss Mboa Next Star`},{nom:`Master`,desc:`Candidats de la catégorie Master Mboa Next Star`}].map(({nom:e,desc:t})=>(0,N.jsxs)(`div`,{style:{display:`grid`,gridTemplateColumns:`200px 1fr`,gap:16,paddi
+concours est organisé par Mood & Com, agence de communication et d'événementiel basée à Douala, Cameroun, ci-après dénommée « l'Organisateur ».
+
+Contact : 677 103 475 / 698 900 627
+Email : contact@mboanextsta
+concours Mboa Next Star 2026 est ouvert à toute personne physique âgée de 16 ans minimum à la date du casting, résidant ou étant ressortissante du Cameroun.
+
+Les candidats doivent se présenter lors des castin
+catégorie.`},{titre:`Article 3 — Catégories`,contenu:`Le concours comporte six (6) catégories officielles :
+
+— Chant
+— Deejay
+— Danse
+— Humour
+— Miss
+— Master
+
+L'Organisateur se réserve le droit de modifier le
+catégories avant le début de la compétition.`},{titre:`Article 4 — Période et modalités de vote`,contenu:`Le vote public est ouvert du 07 Juillet 2026 au 28 Août 2026 à minuit (heure de Douala, GMT+1).
+
+Chaque
+FCFA. Le nombre de votes par personne est illimité, sous réserve que chaque vote fasse l'objet d'un paiement distinct et confirmé.
+
+Les moyens de paiement acceptés sont :
+— Orange Money Cameroun
+— MTN Mob
+Cameroun
+— Carte bancaire VISA
+
+Tout vote payé et confirmé est définitif et ne peut faire l'objet d'un remboursement.`},{titre:`Article 5 — Sécurité des paiements`,contenu:`L'ensemble des transactions financi
+Cameroun.
+
+L'Organisateur ne collecte ni ne stocke les données bancaires ou de paiement des votants. Ces données sont traitées exclusivement par Maviance selon leurs propres politiques de sécurité.
+
+Une commi
+catégorie est déclaré(e) lauréat(e) de sa catégorie.
+
+En cas d'égalité entre deux candidats ou plus, un jury désigné par l'Organisateur statue définitivement sur le classement des candidats ex-aequo.
+
+Les résu
+dotation globale du concours est de sept millions (7 000 000) FCFA.
+
+La répartition de cette dotation entre les lauréats des différentes catégories sera communiquée par l'Organisateur avant le début de la pér
+Cameroun. L'Organisateur se réserve le droit d'ajuster le montant de la dotation en cas de circonstances exceptionnelles dûment justifiées.`},{titre:`Article 8 — Droits à l'image`,contenu:`En s'inscrivant au 
+concours, chaque candidat autorise expressément l'Organisateur à utiliser son nom, son image, sa voix et ses performances artistiques à des fins de promotion et de communication relatives au concours Mboa Nex
+concours et pour une période de douze (12) mois après sa clôture.`},{titre:`Article 9 — Disqualification`,contenu:`L'Organisateur se réserve le droit de disqualifier tout candidat dont le comportement serait 
+concours, au présent règlement, ou susceptible de porter atteinte à l'image de Mboa Next Star ou de Mood & Com.
+
+Sont notamment susceptibles d'entraîner une disqualification : les fraudes aux votes, les compo
+jury ou le public, ainsi que toute déclaration ou acte contraire à l'éthique du concours.
+
+La décision de disqualification appartient exclusivement à l'Organisateur et est sans appel.`},{titre:`Article 10
+concours à tout moment, notamment en cas de force majeure, sans qu'il puisse en être tenu responsable.
+
+La participation au concours implique l'acceptation pleine, entière et sans réserve du présent règlement
+concours`]}),(0,N.jsxs)(`p`,{style:{fontFamily:`var(--font-body)`,fontSize:14,lineHeight:1.8,color:`rgba(255,255,255,0.4)`,maxWidth:540},children:[`Mboa Next Star 2026 · Organisé par Mood & Com · Douala, Came
+concours Mboa Next Star 2026. Toute participation implique l'acceptation intégrale et sans réserve de ce règlement.`})}),(0,N.jsx)(`div`,{style:{display:`flex`,flexDirection:`column`,gap:2},children:ql.map((n
+Mood & Com · Douala, Cameroun · Juin 2026`,(0,N.jsx)(`br`,{}),`Pour toute question : `,(0,N.jsx)(`span`,{style:{color:`rgba(255,255,255,0.4)`},children:`contact@mboanextstar.com`}),` · 677 103 475`]}),(0,
+propos`,className:`btn-outline`,children:`À propos`}),(0,N.jsx)(j,{to:`/classement`,className:`btn-gold`,children:`Voter maintenant`})]})]})]})]})}var Yl=[{categorie:`WhatsApp`,items:[{label:`677 103 475`,h
+categorie:`Facebook`,items:[{label:`Mood & Com`,href:`https://facebook.com/moodandcom`}],icon:(0,N.jsx)(`svg`,{viewBox:`0 0 24 24`,fill:`currentColor`,width:`22`,height:`22`,children:(0,N.jsx)(`path`,{d:`M24 1
+categorie:`Instagram`,items:[{label:`@mboanextstar`,href:`https://instagram.com/mboanextstar`}],icon:(0,N.jsx)(`svg`,{viewBox:`0 0 24 24`,fill:`currentColor`,width:`22`,height:`22`,children:(0,N.jsx)(`path`,{d
+categorie:`YouTube`,items:[{label:`Mboa Next Star`,href:`https://youtube.com/@mboanextstar`}],icon:(0,N.jsx)(`svg`,{viewBox:`0 0 24 24`,fill:`currentColor`,width:`22`,height:`22`,children:(0,N.jsx)(`path`,{d:`
+categorie:`Email`,items:[{label:`contact@mboanextstar.com`,href:`mailto:contact@mboanextstar.com`}],icon:(0,N.jsxs)(`svg`,{viewBox:`0 0 24 24`,fill:`none`,stroke:`currentColor`,strokeWidth:`1.8`,width:`22`,hei
+Mood & Com`]}),(0,N.jsx)(`p`,{style:{fontFamily:`var(--font-body)`,fontSize:14,color:`rgba(255,255,255,0.4)`,lineHeight:1.8,maxWidth:480},children:`Pour toute question relative au concours, aux candidatur
+Cameroun`]})]})]}),(0,N.jsx)(`div`,{style:{display:`flex`,flexDirection:`column`,gap:6},children:Yl.map(({categorie:e,items:t,icon:n,color:r})=>(0,N.jsx)(`div`,{children:t.map(({label:t,href:i})=>(0,N.jsxs)(`
+talents camerounais.`})]})}),(0,N.jsxs)(`div`,{style:{maxWidth:900,margin:`0 auto`,padding:`4rem 2rem`},children:[(0,N.jsxs)(`div`,{style:{marginBottom:52},children:[(0,N.jsx)(`div`,{className:`eyebrow`,sty
+Mood & Com`}),(0,N.jsxs)(`div`,{style:{fontFamily:`var(--font-body)`,fontSize:13,color:`rgba(255,255,255,0.45)`,lineHeight:1.6},children:[`Agence de communication et d'événementiel · Douala, Cameroun`,(0,
+concours de talents du Cameroun ? Contactez-nous pour découvrir nos offres de partenariat et de sponsoring.`})]}),(0,N.jsx)(j,{to:`/contact`,className:`btn-gold`,style:{whiteSpace:`nowrap`},children:`Nous con
+MBOA `,(0,N.jsx)(`span`,{style:{color:`var(--mns-gold)`},children:`NEXT`}),` STAR`]}),(0,N.jsxs)(`p`,{style:{fontFamily:`var(--font-ui)`,fontSize:9.5,letterSpacing:2,textTransform:`uppercase`,color:`rgba(
+MBOA `,(0,N.jsx)(`span`,{style:{color:`var(--mns-gold)`},children:`NEXT`}),` STAR`]}),(0,N.jsx)(`p`,{style:{fontFamily:`var(--font-ui)`,fontSize:10,letterSpacing:2,textTransform:`uppercase`,color:`rgba(25
+FCFA`,color:`var(--mns-orange)`},{icon:yr,label:`Commission Maviance`,value:`${Math.round(e.totalRevenue*.03).toLocaleString()} FCFA`,color:`rgba(255,255,255,0.4)`}],a=Math.max(...e.last7.map(e=>e.count),
+FCFA`]})]})]},t.key))]}),(0,N.jsxs)(`div`,{style:{padding:`1.25rem`,borderRadius:4,background:`rgba(255,255,255,0.02)`,border:`1px solid rgba(255,255,255,0.05)`},children:[(0,N.jsx)(`h2`,{style:{fontFamil
+categories(id,nom,slug)`).order(`created_at`,{ascending:!1}).then(({data:e})=>t(e||[])),G.from(`categories`).select(`id,nom,slug`).eq(`actif`,!0).order(`ordre`).then(({data:e})=>r(e||[]))},[]);let x=e.filter(e
+Mood & Com`;window.open(`https://wa.me/${e.phone.replace(/\s/g,``)}?text=${encodeURIComponent(t)}`,`_blank`)}let T={th:{fontFamily:`var(--font-ui)`,fontSize:9,letterSpacing:2,textTransform:`uppercase`,col
+biography,onChange:e=>{e.target.value.length<=350&&d(t=>({...t,biography:e.target.value}))},rows:4,className:`mns-input`,style:{resize:`none`}}),(0,N.jsxs)(`div`,{style:{textAlign:`right`,fontFamily:`var(--fo
+biography.length,` restants`]})]})]}),(0,N.jsxs)(`div`,{className:`modal-footer`,children:[(0,N.jsx)(`button`,{onClick:()=>s(!1),className:`btn-outline`,style:{flex:1},children:`Annuler`}),(0,N.jsx)(`button`,
+catégories`]})]}),(0,N.jsxs)(`button`,{onClick:u,className:`btn-gold`,style:{display:`flex`,alignItems:`center`,gap:8},children:[(0,N.jsx)(Ir,{size:14}),` Nouvelle catégorie`]})]}),(0,N.jsx)(`div`,{style:{bord
+catégorie`}),(0,N.jsx)(`button`,{onClick:()=>r(!1),style:{background:`none`,border:`none`,cursor:`pointer`,color:`rgba(255,255,255,0.4)`},children:(0,N.jsx)(Kr,{size:18})})]}),(0,N.jsxs)(`div`,{className:`moda
+categorie&&(0,N.jsx)(`div`,{style:{fontFamily:`var(--font-ui)`,fontSize:8,letterSpacing:2,textTransform:`uppercase`,color:`var(--mns-gold)`,marginBottom:4},children:e.categorie}),(0,N.jsx)(`div`,{style:{fontFa
+categorie,onChange:e=>a(t=>({...t,categorie:e.target.value})),className:`mns-input`,placeholder:`Ex: Officiel, Casting, Semaine 1…`})]}),(0,N.jsxs)(`div`,{children:[(0,N.jsx)(`label`,{className:`mns-label`,chi
+Mood & Com`})]}),(0,N.jsxs)(`div`,{children:[(0,N.jsx)(`label`,{className:`mns-label`,children:`Site web`}),(0,N.jsx)(`input`,{value:o.site_url,onChange:e=>s(t=>({...t,site_url:e.target.value})),className
+propos, Règlement, etc.`}),(0,N.jsxs)(`div`,{style:{display:`grid`,gridTemplateColumns:`200px 1fr`,gap:20,alignItems:`start`},children:[(0,N.jsx)(`div`,{style:{background:`rgba(255,255,255,0.02)`,border:`1p
+categories(nom)`).eq(`actif`,!0).order(`votes_count`,{ascending:!1}),G.from(`newsletter_subscribers`).select(`id,created_at`,{count:`exact`})]),s=n.data||[],c=a.data||[],l={OM:{count:0,rev:0},MOMO:{count:0,rev
+FCFA`,color:`#4ade80`},{lbl:`Commission Maviance (3%)`,val:`${e.commission.toLocaleString()} FCFA`,color:`var(--mns-orange)`},{lbl:`Revenus nets`,val:`${e.netRevenue.toLocaleString()} FCFA`,color:`#fff`}]
+FCFA`]})]}),(0,N.jsx)(`div`,{style:{height:4,background:`rgba(255,255,255,0.06)`,borderRadius:2},children:(0,N.jsx)(`div`,{style:{height:`100%`,width:`${a}%`,background:r,borderRadius:2,transition:`width 
+categories`,element:(0,N.jsx)(X,{})}),(0,N.jsx)(A,{path:`/classement`,element:(0,N.jsx)(zl,{})}),(0,N.jsx)(A,{path:`/videos`,element:(0,N.jsx)(Bl,{})}),(0,N.jsx)(A,{path:`/candidat/:id`,element:(0,N.jsx)(Vl,{}
+propos`,element:(0,N.jsx)(Kl,{})}),(0,N.jsx)(A,{path:`/reglement`,element:(0,N.jsx)(Jl,{})}),(0,N.jsx)(A,{path:`/contact`,element:(0,N.jsx)(Xl,{})}),(0,N.jsx)(A,{path:`/partenaires`,element:(0,N.jsx)(Zl,{})
+categories`,element:(0,N.jsx)(au,{})}),(0,N.jsx)(A,{path:`publicites`,element:(0,N.jsx)(ou,{})}),(0,N.jsx)(A,{path:`videos`,element:(0,N.jsx)(cu,{})}),(0,N.jsx)(A,{path:`partenaires`,element:(0,N.jsx)(uu,{})})

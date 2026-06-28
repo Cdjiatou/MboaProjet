@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 
 /**
  * Hook personnalisé pour compter les mots d'un texte.
- * Utilisé pour la validation de la biographie (minimum 300 mots).
+ * Utilisé pour la validation de la biographie (maximum 300 mots).
  * La logique est identique à celle du backend pour garantir la cohérence.
  */
 export const useWordCount = (text: string): number => {

@@ -25,8 +25,11 @@ export interface Candidate {
   status: 'PENDING_VERIFICATION' | 'VERIFIED' | 'ACTIVE' | 'SUSPENDED';
   totalVotesCache: number;
   categoryId: number;
+  city?: string | null;
+  country?: string | null;
   category?: Category;
   createdAt: string;
+  updatedAt?: string;
   // Champs optionnels utilisés par certaines pages/components (compatibilité vue/front)
   user?: { firstName?: string; lastName?: string };
   artistName?: string;
@@ -40,7 +43,9 @@ export interface Vote {
   voterIdentifier: string;
   paymentReference: string;
   amount: number;
+  paymentMethod?: string;
   status: 'PENDING' | 'SUCCESS' | 'FAILED';
+  paymentUrl?: string | null;
   createdAt: string;
 }
 

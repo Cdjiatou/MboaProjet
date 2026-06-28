@@ -1,0 +1,108 @@
+{
+  "exportDate": "2026-06-26T09:42:28.029Z",
+  "database": "mboa_db",
+  "tables": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Super Admin",
+        "email": "admin@mboanextstar.com",
+        "password": "$2b$10$E7ee1ZlvS8zyArbgvyihTeY9RZ86MuIOy58fJUpd873h8KEIN7cWG",
+        "role": "SUPER_ADMIN",
+        "createdAt": "2026-06-24T16:00:49.157Z"
+      },
+      {
+        "id": 2,
+        "name": "Super Admin",
+        "email": "admin@gmail.com",
+        "password": "$2b$10$wYvHHxB0GITJJE.faE/j/.A2WykMXPczyVbIDPw4lku9kmFtavzQq",
+        "role": "SUPER_ADMIN",
+        "createdAt": "2026-06-26T09:36:56.951Z"
+      }
+    ],
+    "categories": [
+      {
+        "id": 1,
+        "name": "Chanson",
+        "slug": "chanson"
+      },
+      {
+        "id": 2,
+        "name": "Danse",
+        "slug": "danse"
+      },
+      {
+        "id": 3,
+        "name": "Comédie",
+        "slug": "com-die"
+      },
+      {
+        "id": 4,
+        "name": "Magie",
+        "slug": "magie"
+      }
+    ],
+    "candidates": [
+      {
+        "id": 1,
+        "categoryId": 1,
+        "firstName": "Samuel",
+        "lastName": "Eto",
+        "email": "samuel@test.com",
+        "phone": "+237699112233",
+        "birthDate": null,
+        "city": null,
+        "country": null,
+        "biography": "Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots Ceci est un mot pour atteindre la limite de trois cent mots",
+        "profilePhoto": null,
+        "videoUrl": "https://youtube.com/test",
+        "socialLinks": null,
+        "slug": "samuel-eto",
+        "verificationCode": null,
+        "status": "ACTIVE",
+        "totalVotesCache": 1,
+        "createdAt": "2026-06-24T16:05:02.393Z",
+        "updatedAt": "2026-06-24T16:07:00.428Z"
+      }
+    ],
+    "votes": [
+      {
+        "id": 1,
+        "candidateId": 1,
+        "voterIdentifier": "237699112233",
+        "paymentReference": "VOTE_1_1782317219905_50b93c58",
+        "amount": 100,
+        "status": "SUCCESS",
+        "paidAt": "2026-06-24T16:07:00.425Z",
+        "createdAt": "2026-06-24T16:07:00.410Z"
+      }
+    ],
+    "siteConfiguration": [
+      {
+        "id": 1,
+        "configKey": "PRIMARY_COLOR",
+        "configValue": "#FF0000",
+        "updatedAt": "2026-06-24T16:05:02.992Z"
+      }
+    ],
+    "withdrawals": [
+      {
+        "id": 1,
+        "requestedAmount": 10000,
+        "feeAmount": 300,
+        "netAmount": 9700,
+        "status": "PENDING",
+        "createdAt": "2026-06-24T16:05:03.001Z"
+      }
+    ],
+    "sponsors": []
+  },
+  "statistics": {
+    "usersCount": 2,
+    "categoriesCount": 4,
+    "candidatesCount": 1,
+    "votesCount": 1,
+    "sponsorsCount": 0,
+    "mediaCount": 0
+  }
+}

@@ -1,11 +1,11 @@
 // =============================================================================
-// PAGE LOGIN — Connexion Admin cachée
+// PAGE LOGIN — Connexion Admin Cachée & Sécurisée
 // =============================================================================
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'; // [CORRIGÉ] AnimatePresence est maintenant correctement importé ici
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { LogIn, Shield } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion'; 
+import { LogIn, Shield, Loader2 } from 'lucide-react';
 import { loginAdmin } from '@/services/adminService';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -17,7 +17,7 @@ const Login: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // Redirection si l'utilisateur est déjà connecté
+  // Redirection automatique si session active
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/admin/dashboard', { replace: true });
@@ -26,96 +26,119 @@ const Login: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loginLoading) return;
+    
     setLoginLoading(true);
     setLoginError('');
+    
     try {
       const res = await loginAdmin(email, password);
       if (res.success && res.data) {
         login(res.data.user, res.data.token);
         navigate('/admin/dashboard', { replace: true });
       } else {
-        setLoginError(res.error || 'Erreur lors de la connexion.');
+        setLoginError(res.error || 'Erreur d\'authentification.');
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
-      setLoginError(error.response?.data?.error || 'Identifiants invalides.');
+      setLoginError(error.response?.data?.error || 'Identifiants invalides ou serveur injoignable.');
     } finally {
       setLoginLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-[#050505] relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.1)_0%,transparent_70%)] pointer-events-none"></div>
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#d4af37]/5 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#d4af37]/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#050507] relative overflow-hidden selection:bg-[#d4af37]/30">
+      
+      {/* Gradients d'Ambiance Ultra-Discrets */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.04)_0%,transparent_65%)] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#d4af37]/[0.02] rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#d4af37]/[0.02] rounded-full blur-[140px] pointer-events-none" />
 
+      {/* Carte Centrale */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(212,175,55,0.05)] rounded-3xl p-8 sm:p-12 max-w-md w-full"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full max-w-md bg-neutral-900/40 backdrop-blur-xl border border-white/[0.06] rounded-3xl p-6 sm:p-10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)]"
       >
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-[#d4af37]/20 to-transparent border border-[#d4af37]/30 mb-6">
-            <Shield className="w-8 h-8 text-[#d4af37]" />
+        {/* En-tête de la carte */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/[0.08] text-[#d4af37] mb-5 shadow-inner">
+            <Shield className="w-6 h-6" />
           </div>
-          <h1 className="text-3xl font-black text-white font-heading uppercase tracking-widest mb-2">
-            Espace <span className="bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">Privé</span>
+          <h1 className="text-xl font-bold text-white tracking-tight sm:text-2xl">
+            Espace Confidentiel
           </h1>
-          <p className="text-neutral-400 text-sm">
+          <p className="text-xs text-neutral-400 mt-1.5 font-medium">
             Portail d'administration MBOA NEXT STAR
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        {/* Formulaire */}
+        <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Email Admin</label>
+            {/* Champ Email */}
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="block text-xs font-semibold text-neutral-400">
+                Identifiant professionnel
+              </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@mboanextstar.com"
+                placeholder="nom@mboanextstar.com"
                 required
-                className="w-full px-5 py-4 bg-[#050505] border border-white/10 rounded-xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/50 focus:ring-1 focus:ring-[#d4af37]/50 transition-all"
+                disabled={loginLoading}
+                className="w-full px-4 py-3 bg-neutral-950/60 border border-white/[0.08] rounded-xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/40 focus:ring-1 focus:ring-[#d4af37]/40 disabled:opacity-50 transition-all"
               />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Mot de passe</label>
+
+            {/* Champ Mot de Passe */}
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="block text-xs font-semibold text-neutral-400">
+                Clé de sécurité
+              </label>
               <input
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-5 py-4 bg-[#050505] border border-white/10 rounded-xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/50 focus:ring-1 focus:ring-[#d4af37]/50 transition-all"
+                disabled={loginLoading}
+                className="w-full px-4 py-3 bg-neutral-950/60 border border-white/[0.08] rounded-xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/40 focus:ring-1 focus:ring-[#d4af37]/40 disabled:opacity-50 transition-all"
               />
             </div>
           </div>
 
-          {loginError && (
-            <motion.p 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-red-400 text-sm text-center bg-red-400/10 border border-red-400/20 py-3 px-4 rounded-xl"
-            >
-              {loginError}
-            </motion.p>
-          )}
+          {/* Gestion des erreurs fluide */}
+          <AnimatePresence mode="wait">
+            {loginError && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                className="text-red-400 text-xs font-medium text-center bg-red-500/[0.06] border border-red-500/20 py-3 px-4 rounded-xl"
+              >
+                {loginError}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
+          {/* Bouton Soumettre */}
           <button
             type="submit"
             disabled={loginLoading}
-            className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black uppercase tracking-widest text-sm rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] disabled:opacity-50 transition-all flex items-center justify-center gap-3 mt-8"
+            className="w-full h-12 flex items-center justify-center gap-2 bg-[#d4af37] text-neutral-950 font-bold text-sm rounded-xl hover:bg-[#bfa032] disabled:opacity-40 transition-colors shadow-[0_4px_24px_rgba(212,175,55,0.12)] cursor-pointer disabled:cursor-not-allowed mt-2"
           >
             {loginLoading ? (
-              <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <LogIn className="w-5 h-5" />
-                Accéder au portail
+                <LogIn className="w-4 h-4" />
+                <span>Se connecter</span>
               </>
             )}
           </button>

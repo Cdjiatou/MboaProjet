@@ -79,6 +79,10 @@ model Vote {
   voterIdentifier  String
   paymentReference String     @unique
   amount           Int        @default(100)
+  paymentMethod    String?
+  maviansQuoteId   String?
+  maviansPtn       String?
+  paymentUrl       String?
   status           VoteStatus @default(PENDING)
   paidAt           DateTime?
   createdAt        DateTime   @default(now())
@@ -104,4 +108,52 @@ model Withdrawal {
   netAmount       Int
   status          WithdrawalStatus @default(PENDING)
   createdAt       DateTime         @default(now())
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum SponsorTier {
+  PLATINUM
+  GOLD
+  SILVER
+  BRONZE
+  PARTNER
+}
+
+model Sponsor {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?      @db.Text
+  websiteUrl  String?
+  logoUrl     String?
+  tier        SponsorTier  @default(PARTNER)
+  displayOrder Int         @default(0)
+  isActive    Boolean      @default(true)
+  media       SponsorMedia[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([displayOrder])
+  @@index([isActive])
+}
+
+model SponsorMedia {
+  id          Int       @id @default(autoincrement())
+  sponsorId   Int
+  sponsor     Sponsor   @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  mediaType   MediaType
+  mediaUrl    String
+  thumbnailUrl String?
+  title       String?
+  description String?   @db.Text
+  displayOrder Int      @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([sponsorId])
+  @@index([displayOrder])
 }
