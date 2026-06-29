@@ -109,25 +109,28 @@ export const initWhatsApp = async (clearAuth = false) => {
 
         const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
         const isLoggedOut = statusCode === DisconnectReason.loggedOut;
+        const isUnauthorized = statusCode === 401; // Session invalide ou expirée
         const isNetworkError = !statusCode || statusCode === DisconnectReason.connectionClosed;
 
-        if (isLoggedOut) {
+        if (isLoggedOut || isUnauthorized) {
           qrCodeBase64 = null;
           setState('disconnected');
-          lastError = 'Session déconnectée. Cliquez sur Rafraîchir pour générer un nouveau QR code.';
+          lastError = 'Session déconnectée ou expirée. Cliquez sur Rafraîchir pour générer un nouveau QR code.';
+          console.log('[WhatsApp] Connexion fermée.', { statusCode, shouldReconnect: false });
+          destroySocket();
+          // Ne pas tenter de reconnexion automatique - nécessite un nouveau QR
         } else if (isNetworkError) {
           // Garder le dernier QR affiché pendant les coupures réseau temporaires
           setState(qrCodeBase64 ? 'qr' : 'offline');
           lastError = 'Connexion internet ou accès à WhatsApp indisponible. Vérifiez votre réseau.';
+          console.log('[WhatsApp] Connexion fermée.', { statusCode, shouldReconnect: true });
+          destroySocket();
+          scheduleReconnect(false);
         } else {
           setState(qrCodeBase64 ? 'qr' : 'disconnected');
           lastError = `Connexion fermée (code ${statusCode ?? 'inconnu'}).`;
-        }
-
-        console.log('[WhatsApp] Connexion fermée.', { statusCode, shouldReconnect: !isLoggedOut });
-        destroySocket();
-
-        if (!isLoggedOut) {
+          console.log('[WhatsApp] Connexion fermée.', { statusCode, shouldReconnect: true });
+          destroySocket();
           scheduleReconnect(false);
         }
       } else if (connection === 'open') {
@@ -196,7 +199,21 @@ export const sendWhatsAppMessage = async (phone: string, text: string): Promise<
 
   try {
     const jid = formatPhoneNumber(phone);
-    // Envoi direct sans vérification onWhatsApp préalable (évite les faux négatifs et lenteurs)
+    
+    // Vérifier si le numéro existe sur WhatsApp avant d'envoyer
+    try {
+      const result = await sock.onWhatsApp(jid);
+      if (!result || result.length === 0 || !result[0]?.exists) {
+        console.warn(`[WhatsApp] Le numéro ${phone} n'est pas enregistré sur WhatsApp.`);
+        return false;
+      }
+      console.log(`[WhatsApp] Numéro ${phone} vérifié sur WhatsApp ✓`);
+    } catch (verifyError) {
+      console.warn(`[WhatsApp] Impossible de vérifier le numéro ${phone}:`, verifyError);
+      // On continue quand même l'envoi
+    }
+    
+    // Envoi du message
     await sock.sendMessage(jid, { text });
     console.log(`[WhatsApp] Message envoyé avec succès à ${phone} (${jid})`);
     return true;

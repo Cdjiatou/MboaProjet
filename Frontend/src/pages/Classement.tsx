@@ -1,246 +1,259 @@
 // =============================================================================
-// PAGE CLASSEMENT — Leaderboard interactif avec médailles et vote rapide
+// PAGE CLASSEMENT — Premium Leaderboard (Stats & Classement)
+// Inspiré de vote-for.me — Adapté Dark Mode #d4af37 MBOA NEXT STAR
 // =============================================================================
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Star, Filter, Loader2, Medal, Crown, Award } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { usePublicCandidates } from '@/hooks/usePublicCandidates';
 import { VoteModal } from '@/components/candidate/VoteModal';
-import ShareButtons from '@/components/shared/ShareButtons';
 import type { Candidate } from '@/types';
 import { getMediaUrl } from '@/utils/mediaUrl';
 
-const Classement = () => {
-  const { categories, candidates: allCandidates, loading: isLoading } = usePublicCandidates(15000);
+const CHART_COLORS = [
+  '#d4af37', '#b8952e', '#e5c158', '#C0C0C0', '#CD7F32',
+  '#848c87', '#1ba166', '#883530', '#bacae9', '#9faebb'
+];
+
+// =============================================================================
+// SUB-COMPONENTS
+// =============================================================================
+
+interface RankRowProps {
+  candidate: Candidate;
+  rank: number;
+  onVote: (c: Candidate) => void;
+}
+
+const RankRow: React.FC<RankRowProps> = ({ candidate, rank, onVote }) => {
+  let RankEmoji = null;
+  if (rank === 1) RankEmoji = '🥇';
+  else if (rank === 2) RankEmoji = '🥈';
+  else if (rank === 3) RankEmoji = '🥉';
+  else if (rank <= 10) RankEmoji = '🏎️';
+
+  return (
+    <div
+      onClick={() => onVote(candidate)}
+      className="flex flex-row items-center gap-4 p-3 relative bg-white/[0.03] backdrop-blur-md rounded-xl border border-white/[0.05] hover:bg-white/[0.08] hover:border-white/[0.1] hover:scale-[1.02] hover:-translate-y-0.5 transition-all cursor-pointer mb-2"
+    >
+      {/* Rang et Avatar */}
+      <div className="flex items-center gap-3 w-[60px] md:w-[80px]">
+        <div className="text-white font-bold text-sm md:text-base w-6 text-center">
+          {RankEmoji || rank}
+        </div>
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden shrink-0 border border-white/20">
+          {candidate.profilePhoto ? (
+            <img
+              src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
+              alt={candidate.firstName}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-[#141414] flex items-center justify-center">
+              <span className="text-[#d4af37] font-bold text-xs">{candidate.firstName.charAt(0)}</span>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Nom */}
+      <div className="flex flex-col flex-1 truncate">
+        <span className="text-white text-sm md:text-base font-bold truncate">
+          {candidate.firstName} {candidate.lastName}
+        </span>
+        {candidate.category && (
+          <span className="text-neutral-500 text-[10px] uppercase">{candidate.category.name}</span>
+        )}
+      </div>
+
+      {/* Votes */}
+      <div className="flex flex-col items-end shrink-0">
+        <span className="text-white font-black tabular-nums text-sm md:text-base">
+          {candidate.totalVotesCache.toLocaleString('fr-FR')}
+        </span>
+        <span className="text-neutral-500 text-[10px] uppercase">votes</span>
+      </div>
+    </div>
+  );
+};
+
+// =============================================================================
+// PAGE PRINCIPALE
+// =============================================================================
+
+const Classement: React.FC = () => {
+  const { categories, candidates: allCandidates, loading } = usePublicCandidates(15000);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [search, setSearch] = useState('');
   const [voteCandidate, setVoteCandidate] = useState<Candidate | null>(null);
 
   const filteredCandidates = useMemo(() => {
-    if (selectedCategory === 'all') return allCandidates;
-    return allCandidates.filter((c) => c.category?.slug === selectedCategory);
-  }, [allCandidates, selectedCategory]);
+    let list = selectedCategory === 'all' ? allCandidates : allCandidates.filter(c => c.category?.slug === selectedCategory);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(c =>
+        `${c.firstName} ${c.lastName}`.toLowerCase().includes(q) ||
+        c.category?.name?.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [allCandidates, selectedCategory, search]);
 
-  const getRankStyle = (rank: number) => {
-    if (rank === 1) return { icon: Crown, bg: 'bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/20', border: 'border-[#FFD700]/40', text: 'text-[#FFD700]', shadow: 'shadow-[0_0_20px_rgba(255,215,0,0.15)]' };
-    if (rank === 2) return { icon: Medal, bg: 'bg-gradient-to-r from-[#C0C0C0]/15 to-[#A8A8A8]/15', border: 'border-[#C0C0C0]/30', text: 'text-[#C0C0C0]', shadow: 'shadow-[0_0_15px_rgba(192,192,192,0.1)]' };
-    if (rank === 3) return { icon: Award, bg: 'bg-gradient-to-r from-[#CD7F32]/15 to-[#B87333]/15', border: 'border-[#CD7F32]/30', text: 'text-[#CD7F32]', shadow: 'shadow-[0_0_15px_rgba(205,127,50,0.1)]' };
-    return { icon: null, bg: 'bg-[#0b0b0b]/40', border: 'border-white/5', text: 'text-neutral-500', shadow: '' };
-  };
+  const totalVotesAll = useMemo(() => {
+    return filteredCandidates.reduce((sum, c) => sum + (c.totalVotesCache || 0), 0);
+  }, [filteredCandidates]);
+
+  const maxVotes = useMemo(() => {
+    return Math.max(...filteredCandidates.map(c => c.totalVotesCache || 0), 1); // evite division par 0
+  }, [filteredCandidates]);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#d4af37] selection:text-black pt-24 pb-20">
-      {/* Header */}
-      <section className="relative w-full max-w-6xl mx-auto px-6 mb-12">
-        <div className="absolute top-0 left-0 w-72 h-72 bg-[#d4af37]/8 blur-[120px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#d4af37] selection:text-black relative">
+      
+      {/* Background Image Overlay */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-[2px]" />
+        {/* On pourrait mettre l'image de fond ici, ex: */}
+        {/* <img src="/bg-pattern.jpg" className="w-full h-full object-cover opacity-20" /> */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#d4af37]/5 blur-[150px] rounded-full" />
+      </div>
 
-        <div className="relative z-10 text-center mb-10">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-
-          >
-         
+      <div className="relative z-10 pt-24 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
         
-          </motion.div>
+        {/* En-tête / Filtres */}
+        <div className="mb-10 text-center lg:text-left flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black uppercase tracking-[-0.02em] mb-2">
+              Le <span className="text-[#d4af37]">Classement</span>
+            </h1>
+            <p className="text-neutral-400 text-sm">Les artistes les plus soutenus par le public</p>
+          </div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase font-heading tracking-[-0.02em]"
-          >
-            Le <span className="bg-gradient-to-r from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">Classement</span>
-          </motion.h1>
-          <p className="text-neutral-400 text-sm sm:text-base mt-4 max-w-lg mx-auto">
-            Découvrez en temps réel les artistes les plus soutenus par le public
-          </p>
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <div className="relative flex-1 sm:w-64 shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher..."
+                className="w-full pl-9 pr-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:border-[#d4af37]/50 transition-all"
+              />
+            </div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:border-[#d4af37]/50 appearance-none"
+            >
+              <option value="all">Toutes les catégories</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.slug || ''}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        {/* Filtres catégories */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide justify-center flex-wrap"
-        >
-          <div className="flex items-center gap-2 text-neutral-500 mr-2 shrink-0">
-            <Filter className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-widest">Filtrer</span>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <Loader2 className="w-10 h-10 text-[#d4af37] animate-spin" />
+            <p className="text-sm text-neutral-500 uppercase tracking-widest">Chargement...</p>
           </div>
-
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className={`shrink-0 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-              selectedCategory === 'all'
-                ? 'bg-[#d4af37] text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]'
-                : 'bg-[#0b0b0b] border border-white/10 text-neutral-400 hover:text-white hover:border-white/30'
-            }`}
-          >
-            Toutes
-          </button>
-
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.slug || '')}
-              className={`shrink-0 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                selectedCategory === cat.slug
-                  ? 'bg-[#d4af37] text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]'
-                  : 'bg-[#0b0b0b] border border-white/10 text-neutral-400 hover:text-white hover:border-white/30'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </motion.div>
-      </section>
-
-      {/* Tableau du classement */}
-      <section className="relative w-full max-w-6xl mx-auto px-6">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 opacity-50">
-            <Loader2 className="w-10 h-10 text-[#d4af37] animate-spin mb-4" />
-            <p className="text-sm font-medium tracking-widest uppercase text-[#d4af37]">Chargement du classement...</p>
+        ) : filteredCandidates.length === 0 ? (
+          <div className="text-center py-24 border border-white/[0.05] rounded-2xl bg-white/[0.02]">
+            <p className="text-neutral-500">Aucun candidat trouvé.</p>
           </div>
         ) : (
-          <AnimatePresence mode="popLayout">
-            {filteredCandidates.length > 0 ? (
-              <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+            
+            {/* ── COLONNE GAUCHE : LES STATS ── */}
+            <div className="flex flex-col">
+              <h2 className="text-2xl text-white mb-6 text-center lg:text-left font-bold">Les Stats</h2>
+              
+              <div className="flex flex-col gap-5">
                 {filteredCandidates.map((candidate, index) => {
-                  const rank = index + 1;
-                  const style = getRankStyle(rank);
-                  const RankIcon = style.icon;
-                  const shareUrl = `${window.location.origin}/candidats/${candidate.slug}`;
-                  const shareText = `⭐ Votez pour ${candidate.firstName} ${candidate.lastName} dans la catégorie ${candidate.category?.name || 'Artiste'} sur MBOA NEXT STAR !`;
+                  const percentage = totalVotesAll > 0 ? ((candidate.totalVotesCache || 0) / totalVotesAll) * 100 : 0;
+                  const widthPercent = maxVotes > 0 ? ((candidate.totalVotesCache || 0) / maxVotes) * 100 : 0;
+                  const color = CHART_COLORS[index % CHART_COLORS.length];
 
                   return (
-                    <motion.div
-                      key={candidate.id}
-                      layout
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className={`group flex items-center gap-4 sm:gap-6 p-4 sm:p-5 rounded-2xl border ${style.border} ${style.bg} ${style.shadow} hover:border-[#d4af37]/30 transition-all duration-300`}
-                    >
-                      {/* Rang */}
-                      <div className={`shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-black text-lg ${
-                        rank <= 3 ? `${style.bg} border ${style.border}` : 'bg-white/5 border border-white/10'
-                      }`}>
-                        {RankIcon ? (
-                          <RankIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${style.text}`} />
-                        ) : (
-                          <span className={`text-sm ${style.text}`}>#{rank}</span>
-                        )}
-                      </div>
-
-                      {/* Avatar */}
-                      <div className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-white/10 bg-[#141414]">
-                        {candidate.profilePhoto ? (
-                          <img
-                            src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
-                            alt={`${candidate.firstName} ${candidate.lastName}`}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-lg font-bold bg-gradient-to-br from-[#d4af37] to-[#b8952e] bg-clip-text text-transparent">
-                              {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Infos */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-bold text-sm sm:text-base truncate">
+                    <div key={`stat-${candidate.id}`} className="flex flex-col gap-1.5 group">
+                      <div className="flex justify-between items-end">
+                        <span className="text-xs text-neutral-300 font-medium truncate pr-4">
                           {candidate.firstName} {candidate.lastName}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20">
-                            {candidate.category?.name || 'Artiste'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Votes */}
-                      <div className="shrink-0 text-right hidden sm:block">
-                        <div className="flex items-center gap-2">
-                          <Star className="w-4 h-4 text-[#d4af37] fill-[#d4af37]" />
-                          <span className="text-xl sm:text-2xl font-black bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">
-                            {candidate.totalVotesCache.toLocaleString('fr-FR')}
-                          </span>
-                        </div>
-                        <span className="text-neutral-500 text-[10px] uppercase tracking-widest">votes</span>
-                      </div>
-
-                      {/* Votes mobile */}
-                      <div className="shrink-0 sm:hidden text-right">
-                        <span className="text-lg font-black text-[#d4af37]">
-                          {candidate.totalVotesCache}
+                        </span>
+                        <span className="text-xs font-bold tabular-nums" style={{ color }}>
+                          {percentage.toFixed(1)}%
                         </span>
                       </div>
-
-                      {/* Partage */}
-                      <div className="shrink-0 hidden lg:block">
-                        <ShareButtons url={shareUrl} text={shareText} size="sm" />
+                      <div className="w-full bg-white/[0.05] h-3 rounded-full overflow-hidden relative">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${widthPercent}%` }}
+                          transition={{ duration: 1, ease: 'easeOut', delay: index * 0.05 }}
+                          className="h-full rounded-full"
+                          style={{ backgroundColor: color }}
+                        />
                       </div>
-
-                      {/* Bouton Voter */}
-                      <button
-                        onClick={() => setVoteCandidate(candidate)}
-                        className="shrink-0 px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] active:scale-95 transition-all duration-300"
-                      >
-                        Voter
-                      </button>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-20 text-center bg-[#0b0b0b]/40 rounded-3xl border border-white/5"
-              >
-                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                  <Trophy className="w-8 h-8 text-neutral-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Aucun candidat dans cette catégorie</h3>
-                <p className="text-neutral-500 text-sm max-w-md">
-                  Aucun artiste actif n'a été trouvé pour la catégorie sélectionnée.
-                </p>
-                {selectedCategory !== 'all' && (
-                  <button
-                    onClick={() => setSelectedCategory('all')}
-                    className="mt-6 px-6 py-2.5 border border-[#d4af37]/30 text-[#d4af37] text-xs font-bold uppercase tracking-wider rounded-full hover:bg-[#d4af37]/10 transition-colors"
-                  >
-                    Voir toutes les catégories
-                  </button>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
-      </section>
 
-      {/* Modale de vote */}
+              {/* Légende */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-8 px-2">
+                {filteredCandidates.map((candidate, index) => (
+                  <div key={`leg-${candidate.id}`} className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full shadow-sm"
+                      style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                    />
+                    <span className="text-[10px] text-neutral-400 font-medium">
+                      {candidate.firstName}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── COLONNE DROITE : LE CLASSEMENT ── */}
+            <div className="flex flex-col">
+              <h2 className="text-2xl text-white mb-6 text-center lg:text-left font-bold">Le Classement</h2>
+              
+              {/* Conteneur scrollable (scrollbar-thin) */}
+              <div className="flex flex-col gap-2 max-h-[600px] lg:max-h-[700px] overflow-y-auto pr-2 custom-scrollbar">
+                <AnimatePresence mode="popLayout">
+                  {filteredCandidates.map((candidate, i) => (
+                    <motion.div
+                      key={candidate.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <RankRow
+                        candidate={candidate}
+                        rank={i + 1}
+                        onVote={setVoteCandidate}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+
+          </div>
+        )}
+      </div>
+
+      {/* ── VoteModal ── */}
       {voteCandidate && (
         <VoteModal
           candidate={voteCandidate}
           isOpen={!!voteCandidate}
           onClose={() => setVoteCandidate(null)}
-          onVoteSuccess={() => {
-            setAllCandidates((prev) =>
-              prev
-                .map((c) =>
-                  c.id === voteCandidate.id
-                    ? { ...c, totalVotesCache: c.totalVotesCache + 1 }
-                    : c
-                )
-                .sort((a, b) => b.totalVotesCache - a.totalVotesCache)
-            );
-          }}
+          onVoteSuccess={() => setVoteCandidate(null)}
         />
       )}
     </div>

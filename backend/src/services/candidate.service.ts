@@ -22,7 +22,6 @@ import prisma from '../utils/prisma';
 
 // Service externe pour l'envoi de codes OTP via WhatsApp
 import { sendWhatsAppOTP } from './external.service';
-import { sendOtpEmail } from './email.service';
 import { getWhatsAppStatus } from './whatsapp.service';
 
 // Utilitaire de génération de tokens JWT pour l'authentification des candidats
@@ -30,6 +29,9 @@ import { generateToken } from '../utils/jwt';
 
 // Classe d'erreur personnalisée avec code HTTP pour le middleware d'erreurs
 import { AppError } from '../utils/AppError';
+
+// Utilitaire de formatage de numéros de téléphone (ajout automatique de +237)
+import { formatPhoneNumber, extractDigits } from '../utils/phoneFormatter';
 
 // =============================================================================
 // FONCTION : createCandidateByCoach
@@ -68,7 +70,8 @@ export const createCandidateByCoach = async (data: {
   socialLinks?: Record<string, string>;
 }) => {
   const normalizedEmail = data.email.trim().toLowerCase();
-  const phoneDigits = data.phone.replace(/\D/g, '');
+  const formattedPhone = formatPhoneNumber(data.phone);
+  const phoneDigits = extractDigits(formattedPhone);
 
   const existingByEmail = await prisma.candidate.findFirst({
     where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
@@ -86,12 +89,12 @@ export const createCandidateByCoach = async (data: {
   });
 
   const existingByPhone = candidates.find(
-    (c) => c.phone.replace(/\D/g, '') === phoneDigits
+    (c) => extractDigits(c.phone) === phoneDigits
   );
 
   if (existingByPhone) {
     throw new AppError(
-      `Le numéro « ${data.phone} » est déjà utilisé par ${existingByPhone.firstName} ${existingByPhone.lastName}.`,
+      `Le numéro « ${formattedPhone} » est déjà utilisé par ${existingByPhone.firstName} ${existingByPhone.lastName}.`,
       409
     );
   }
@@ -102,7 +105,7 @@ export const createCandidateByCoach = async (data: {
     data: {
       ...data,
       email: normalizedEmail,
-      phone: phoneDigits ? `+${phoneDigits}` : data.phone.trim(),
+      phone: formattedPhone,
       verificationCode: otp,
       status: 'PENDING_VERIFICATION',
     },
@@ -123,14 +126,15 @@ export const createCandidateByCoach = async (data: {
  * Renvoie le code OTP à un candidat en attente de vérification.
  */
 export const resendCandidateOtp = async (phone: string) => {
-  const phoneDigits = phone.replace(/\D/g, '');
+  const formattedPhone = formatPhoneNumber(phone);
+  const phoneDigits = extractDigits(formattedPhone);
 
   const candidates = await prisma.candidate.findMany({
     where: { status: { in: ['PENDING_VERIFICATION', 'VERIFIED'] } },
   });
 
   const candidate = candidates.find(
-    (c) => c.phone.replace(/\D/g, '') === phoneDigits
+    (c) => extractDigits(c.phone) === phoneDigits
   );
 
   if (!candidate) {
@@ -158,14 +162,11 @@ export const resendCandidateOtp = async (phone: string) => {
     }
   }
 
-  // Tenter l'envoi par e-mail
-  const emailSent = await sendOtpEmail(candidate.email, `${candidate.firstName} ${candidate.lastName}`, otp);
-
-  if (!otpSent && !emailSent) {
-    throw new AppError('Impossible d\'envoyer le code. Vérifiez les connexions WhatsApp et e-mail.', 503);
+  if (!otpSent) {
+    throw new AppError('Impossible d\'envoyer le code via WhatsApp. Assurez-vous que le service WhatsApp est connecté.', 503);
   }
 
-  return { otpSent: true, phone: candidate.phone, emailSent };
+  return { otpSent: true, phone: candidate.phone };
 };
 
 // =============================================================================
@@ -187,14 +188,15 @@ export const resendCandidateOtp = async (phone: string) => {
  * @throws {AppError} 400 — Si le code OTP fourni ne correspond pas à celui stocké en base.
  */
 export const verifyCandidateOtp = async (phone: string, otp: string) => {
-  const phoneDigits = phone.replace(/\D/g, '');
+  const formattedPhone = formatPhoneNumber(phone);
+  const phoneDigits = extractDigits(formattedPhone);
 
   const candidates = await prisma.candidate.findMany({
     where: { status: { in: ['PENDING_VERIFICATION', 'VERIFIED'] } },
   });
 
   const candidate = candidates.find(
-    (c) => c.phone.replace(/\D/g, '') === phoneDigits
+    (c) => extractDigits(c.phone) === phoneDigits
   );
 
   // Vérification de l'existence du candidat
@@ -328,12 +330,13 @@ export const updateCandidateByAdmin = async (
   }
 
   if (data.phone) {
-    const phoneDigits = data.phone.replace(/\D/g, '');
+    const formattedPhone = formatPhoneNumber(data.phone);
+    const phoneDigits = extractDigits(formattedPhone);
     const all = await prisma.candidate.findMany({ where: { id: { not: candidateId } }, select: { phone: true } });
-    if (all.some((c) => c.phone.replace(/\D/g, '') === phoneDigits)) {
-      throw new AppError(`Le numéro « ${data.phone} » est déjà utilisé.`, 409);
+    if (all.some((c) => extractDigits(c.phone) === phoneDigits)) {
+      throw new AppError(`Le numéro « ${formattedPhone} » est déjà utilisé.`, 409);
     }
-    data.phone = phoneDigits ? `+${phoneDigits}` : data.phone.trim();
+    data.phone = formattedPhone;
   }
 
   if (data.biography !== undefined) {

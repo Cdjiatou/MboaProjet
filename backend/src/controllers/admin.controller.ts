@@ -17,7 +17,7 @@ import { Request, Response } from 'express';
 // Services métier du domaine administratif : chaque service encapsule une
 // responsabilité unique (Single Responsibility Principle) pour faciliter
 // les tests unitaires et la maintenance.
-import { getDashboardStats, updateSiteConfig, initiateWithdrawal, updateWithdrawalStatus, listCandidates, getSponsorsConfig, saveSponsorsConfig, repairSponsorsConfigIfNeeded } from '../services/admin.service';
+import { getDashboardStats, updateSiteConfig, initiateWithdrawal, updateWithdrawalStatus, listWithdrawals, listCandidates, getSponsorsConfig, saveSponsorsConfig, repairSponsorsConfigIfNeeded } from '../services/admin.service';
 
 // La création de candidat est dans le service candidate plutôt que admin
 // car la logique de création (génération OTP, envoi WhatsApp) appartient
@@ -40,6 +40,11 @@ import prisma from '../utils/prisma';
 // File system pour la suppression de fichiers
 import fs from 'fs/promises';
 import path from 'path';
+
+// Import de la fonction helper pour uploader vers Cloudinary
+import { uploadToCloudinaryAndCleanup } from '../middlewares/upload.middleware';
+import { deleteFromCloudinary } from '../config/cloudinary';
+import bcrypt from 'bcrypt';
 
 /**
  * Crée un nouveau candidat dans le système via l'interface coach/admin.
@@ -75,8 +80,14 @@ export const createCandidate = catchAsync(async (req: Request, res: Response) =>
   if (req.body.city?.trim()) candidateData.city = req.body.city.trim();
   if (req.body.country?.trim()) candidateData.country = req.body.country.trim();
 
+  // Upload vers Cloudinary au lieu du stockage local
   if (req.file) {
-    candidateData.profilePhoto = `uploads/candidates/${req.file.filename}`;
+    const cloudinaryUrl = await uploadToCloudinaryAndCleanup(
+      req.file.path,
+      'candidates',
+      'image'
+    );
+    candidateData.profilePhoto = cloudinaryUrl;
   }
 
   if (typeof req.body.socialLinks === 'string') {
@@ -210,6 +221,24 @@ export const patchWithdrawalStatus = catchAsync(async (req: Request, res: Respon
   res.json({ success: true, message: 'Statut du retrait mis à jour avec succès.', withdrawal });
 });
 
+/**
+ * Récupère la liste de tous les retraits.
+ *
+ * @route GET /api/admin/withdrawals
+ * @param {Request} req - Requête HTTP (aucun paramètre requis).
+ * @param {Response} res - Réponse contenant la liste des retraits.
+ * @returns {void} Renvoie tous les retraits triés par date décroissante.
+ *
+ * @description
+ * Ce endpoint fournit l'historique complet des retraits pour affichage
+ * dans le tableau de bord financier. Les retraits sont triés du plus
+ * récent au plus ancien pour faciliter le suivi.
+ */
+export const getWithdrawals = catchAsync(async (req: Request, res: Response) => {
+  const withdrawals = await listWithdrawals();
+  res.json({ success: true, data: withdrawals });
+});
+
 
 /**
  * Exporte l'historique complet des votes au format CSV.
@@ -271,9 +300,9 @@ export const exportWithdrawals = catchAsync(async (req: Request, res: Response) 
  * @returns {void} Renvoie le candidat avec la nouvelle URL de photo.
  *
  * @description
- * Ce endpoint gère l'upload de photo via multer. Le middleware multer
- * a déjà traité le fichier et l'a sauvegardé dans backend/uploads/candidates/.
- * Le chemin relatif du fichier est stocké dans profilePhoto.
+ * Ce endpoint gère l'upload de photo via multer. Le fichier est d'abord
+ * sauvegardé temporairement, puis uploadé vers Cloudinary CDN pour un
+ * chargement rapide et optimisé. Le fichier temporaire est automatiquement supprimé.
  */
 export const uploadCandidatePhoto = catchAsync(async (req: Request, res: Response) => {
   const candidateId = parseInt(req.params.id, 10);
@@ -292,31 +321,40 @@ export const uploadCandidatePhoto = catchAsync(async (req: Request, res: Respons
     throw new AppError('Aucun fichier fourni.', 400);
   }
 
-  // Supprimer l'ancienne photo si elle existe
-  if (candidate.profilePhoto) {
-    const oldPhotoPath = path.join(__dirname, '../../', candidate.profilePhoto);
+  // Supprimer l'ancienne photo de Cloudinary si elle existe
+  if (candidate.profilePhoto && candidate.profilePhoto.includes('cloudinary.com')) {
     try {
-      await fs.unlink(oldPhotoPath);
+      // Extraire le public_id de l'URL Cloudinary
+      const urlParts = candidate.profilePhoto.split('/');
+      const uploadIndex = urlParts.findIndex(part => part === 'upload');
+      if (uploadIndex !== -1) {
+        const publicIdWithExt = urlParts.slice(uploadIndex + 2).join('/');
+        const publicId = publicIdWithExt.substring(0, publicIdWithExt.lastIndexOf('.'));
+        await deleteFromCloudinary(publicId, 'image');
+      }
     } catch (error) {
-      // Ignorer l'erreur si le fichier n'existe pas
-      console.warn(`Impossible de supprimer l'ancienne photo: ${oldPhotoPath}`);
+      console.warn('Impossible de supprimer l\'ancienne photo de Cloudinary:', error);
     }
   }
 
-  // Construire le chemin relatif pour le stockage en base
-  const photoPath = `uploads/candidates/${req.file.filename}`;
+  // Upload vers Cloudinary
+  const cloudinaryUrl = await uploadToCloudinaryAndCleanup(
+    req.file.path,
+    'candidates',
+    'image'
+  );
 
-  // Mettre à jour le candidat avec le nouveau chemin de photo
+  // Mettre à jour le candidat avec la nouvelle URL Cloudinary
   const updatedCandidate = await prisma.candidate.update({
     where: { id: candidateId },
-    data: { profilePhoto: photoPath },
+    data: { profilePhoto: cloudinaryUrl },
     include: { category: true },
   });
 
   res.json({
     success: true,
-    message: 'Photo mise à jour avec succès.',
-    candidate: updatedCandidate,
+    message: 'Photo mise à jour avec succès sur Cloudinary.',
+    data: { candidate: updatedCandidate },
   });
 });
 
@@ -329,8 +367,7 @@ export const uploadCandidatePhoto = catchAsync(async (req: Request, res: Respons
  * @returns {void} Confirme la suppression de la photo.
  *
  * @description
- * Supprime à la fois le fichier physique du système de fichiers
- * et le champ profilePhoto de la base de données.
+ * Supprime la photo de Cloudinary et met à jour la base de données.
  */
 export const deleteCandidatePhoto = catchAsync(async (req: Request, res: Response) => {
   const candidateId = parseInt(req.params.id, 10);
@@ -348,13 +385,20 @@ export const deleteCandidatePhoto = catchAsync(async (req: Request, res: Respons
     throw new AppError('Aucune photo à supprimer.', 400);
   }
 
-  // Supprimer le fichier physique
-  const photoPath = path.join(__dirname, '../../', candidate.profilePhoto);
-  try {
-    await fs.unlink(photoPath);
-  } catch (error) {
-    console.warn(`Impossible de supprimer le fichier photo: ${photoPath}`);
-    // Continuer quand même pour nettoyer la base de données
+  // Supprimer de Cloudinary si c'est une URL Cloudinary
+  if (candidate.profilePhoto.includes('cloudinary.com')) {
+    try {
+      // Extraire le public_id de l'URL Cloudinary
+      const urlParts = candidate.profilePhoto.split('/');
+      const uploadIndex = urlParts.findIndex(part => part === 'upload');
+      if (uploadIndex !== -1) {
+        const publicIdWithExt = urlParts.slice(uploadIndex + 2).join('/');
+        const publicId = publicIdWithExt.substring(0, publicIdWithExt.lastIndexOf('.'));
+        await deleteFromCloudinary(publicId, 'image');
+      }
+    } catch (error) {
+      console.warn('Impossible de supprimer la photo de Cloudinary:', error);
+    }
   }
 
   const updatedCandidate = await prisma.candidate.update({
@@ -365,7 +409,7 @@ export const deleteCandidatePhoto = catchAsync(async (req: Request, res: Respons
 
   res.json({
     success: true,
-    message: 'Photo supprimée avec succès.',
+    message: 'Photo supprimée avec succès de Cloudinary.',
     candidate: updatedCandidate,
   });
 });
@@ -435,17 +479,24 @@ export const logoutWhatsAppSession = catchAsync(async (req: Request, res: Respon
 });
 
 /**
- * Upload le logo d'un sponsor et retourne l'URL publique
+ * Upload le logo d'un sponsor vers Cloudinary et retourne l'URL publique
  */
 export const uploadSponsorLogoController = catchAsync(async (req: Request, res: Response) => {
   if (!req.file) {
     throw new AppError('Aucun fichier fourni.', 400);
   }
-  const logoUrl = `/uploads/sponsors/${req.file.filename}`;
+  
+  // Upload vers Cloudinary
+  const logoUrl = await uploadToCloudinaryAndCleanup(
+    req.file.path,
+    'sponsors',
+    'image'
+  );
+  
   res.status(201).json({
     success: true,
-    message: 'Logo téléversé avec succès.',
-    logoUrl,
+    message: 'Logo téléversé avec succès sur Cloudinary.',
+    data: { logoUrl },
   });
 });
 
@@ -477,4 +528,73 @@ export const saveSponsorsConfigController = catchAsync(async (req: Request, res:
 
   const saved = await saveSponsorsConfig(normalized, replaceAll !== false);
   res.json({ success: true, data: saved, message: `${saved.length} sponsor(s) enregistré(s).` });
+});
+
+/**
+ * Upload un média générique (image ou vidéo) vers Cloudinary et retourne l'URL publique
+ */
+export const uploadMediaController = catchAsync(async (req: Request, res: Response) => {
+  if (!req.file) {
+    throw new AppError('Aucun fichier fourni.', 400);
+  }
+  
+  // Déterminer si c'est une image ou une vidéo
+  const isVideo = req.file.mimetype.startsWith('video/');
+  const resourceType = isVideo ? 'video' : 'image';
+  
+  // Upload vers Cloudinary
+  const fileUrl = await uploadToCloudinaryAndCleanup(
+    req.file.path,
+    'site-media',
+    resourceType
+  );
+  
+  res.status(201).json({
+    success: true,
+    message: `${isVideo ? 'Vidéo' : 'Image'} téléversée avec succès sur Cloudinary CDN.`,
+    data: { fileUrl },
+  });
+});
+
+/**
+ * Met à jour le profil de l'administrateur (email, mot de passe)
+ */
+export const updateAdminProfile = catchAsync(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const adminId = (req as any).user?.id;
+
+  if (!adminId) {
+    throw new AppError('Non autorisé.', 401);
+  }
+
+  const updateData: any = {};
+  if (email) {
+    updateData.email = email;
+  }
+
+  if (password) {
+    const salt = await bcrypt.genSalt(10);
+    updateData.password = await bcrypt.hash(password, salt);
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    throw new AppError('Aucune donnée à mettre à jour.', 400);
+  }
+
+  const updatedAdmin = await prisma.user.update({
+    where: { id: adminId },
+    data: updateData,
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      createdAt: true,
+    }
+  });
+
+  res.json({
+    success: true,
+    message: 'Profil administrateur mis à jour avec succès.',
+    data: { admin: updatedAdmin }
+  });
 });

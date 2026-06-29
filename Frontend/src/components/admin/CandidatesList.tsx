@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
-import { getAdminCandidates } from '@/services/adminService';
+import { getAdminCandidates, deleteAdminCandidate } from '@/services/adminService';
 import { Users, Search, Loader2, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Candidate } from '@/types';
 import { getMediaUrl } from '@/utils/mediaUrl';
 import { CandidateEditModal } from './CandidateEditModal';
-import { deleteAdminCandidate } from '@/services/adminService';
 import { useToastStore } from '@/store/useToastStore';
 import { getApiErrorMessage } from '@/utils/apiError';
 import { notifyCandidatesUpdated } from '@/hooks/usePublicCandidates';
+import { AdminCard } from './AdminUI';
 
 const STATUS_LABELS: Record<string, { label: string; className: string; dot: string }> = {
-  ACTIVE: { label: 'Actif', className: 'bg-emerald-500/10 text-emerald-400', dot: 'bg-emerald-400' },
-  PENDING_VERIFICATION: { label: 'En attente', className: 'bg-orange-500/10 text-orange-400', dot: 'bg-orange-400' },
-  VERIFIED: { label: 'Vérifié', className: 'bg-blue-500/10 text-blue-400', dot: 'bg-blue-400' },
-  SUSPENDED: { label: 'Suspendu', className: 'bg-red-500/10 text-red-400', dot: 'bg-red-400' },
+  ACTIVE: { label: 'Actif', className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-400' },
+  PENDING_VERIFICATION: { label: 'En attente', className: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-400' },
+  VERIFIED: { label: 'Vérifié', className: 'bg-blue-500/10 text-blue-400 border-blue-500/20', dot: 'bg-blue-400' },
+  SUSPENDED: { label: 'Suspendu', className: 'bg-red-500/10 text-red-400 border-red-500/20', dot: 'bg-red-400' },
 };
 
 interface Props {
@@ -55,13 +55,13 @@ export const CandidatesList = ({ refreshKey = 0, onChange }: Props) => {
   };
 
   const handleQuickDelete = async (cand: Candidate) => {
-    if (!window.confirm(`Supprimer ${cand.firstName} ${cand.lastName} ?`)) return;
+    if (!window.confirm(`Supprimer définitivement ${cand.firstName} ${cand.lastName} ?`)) return;
     try {
       const res = await deleteAdminCandidate(cand.id);
       if (res.success) {
         notifyCandidatesUpdated();
         onChange?.();
-        toast.show({ variant: 'success', title: 'Supprimé', message: 'Candidat retiré.' });
+        toast.show({ variant: 'success', title: 'Suppression réussie', message: 'Le candidat a été retiré.' });
         fetchCandidates(search);
       }
     } catch (err) {
@@ -71,93 +71,111 @@ export const CandidatesList = ({ refreshKey = 0, onChange }: Props) => {
 
   return (
     <>
-      <div className="bg-[#0a0a0f]/80 border border-white/[0.06] rounded-2xl p-5 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <Users className="w-5 h-5 text-[#d4af37]" />
+      <AdminCard>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/5">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-white/[0.02] flex items-center justify-center border border-white/5 shadow-inner">
+              <Users className="w-6 h-6 text-neutral-400" />
+            </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Gestion des candidats</h2>
-              <p className="text-xs text-neutral-500">{total} candidat(s) · Modifier, supprimer, changer le statut</p>
+              <h2 className="text-xl font-bold text-white tracking-wide font-heading">Gestion des candidats</h2>
+              <p className="text-xs text-neutral-400 mt-1">{total} candidat(s) répertorié(s)</p>
             </div>
           </div>
 
           <form onSubmit={handleSearch} className="relative">
-            <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher..."
-              className="w-full sm:w-64 bg-white/[0.03] border border-white/[0.06] rounded-xl py-2 pl-10 pr-4 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/40 transition-all"
+              placeholder="Rechercher par nom, ville..."
+              className="w-full sm:w-72 bg-[#111116] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-white/20 transition-all"
             />
           </form>
         </div>
 
         {loading ? (
           <div className="py-12 text-center text-neutral-500">
-            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3" />
-            Chargement des candidats...
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-neutral-400" />
+            <span className="text-sm font-medium">Chargement de la liste...</span>
           </div>
         ) : candidates.length === 0 ? (
-          <div className="py-12 text-center text-neutral-600 text-sm">Aucun candidat trouvé.</div>
+          <div className="py-12 text-center text-neutral-500">
+            <p className="text-sm">Aucun candidat trouvé.</p>
+          </div>
         ) : (
-          <div className="overflow-x-auto -mx-2">
-            <table className="w-full text-left">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
               <thead>
-                <tr className="text-neutral-600 text-[11px] uppercase tracking-wider">
-                  <th className="pb-3 px-2 font-medium">Candidat</th>
-                  <th className="pb-3 px-2 font-medium hidden md:table-cell">Contact</th>
-                  <th className="pb-3 px-2 font-medium hidden sm:table-cell">Catégorie</th>
-                  <th className="pb-3 px-2 font-medium">Votes</th>
-                  <th className="pb-3 px-2 font-medium">Statut</th>
-                  <th className="pb-3 px-2 font-medium w-28">Actions</th>
+                <tr className="border-b border-white/10 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+                  <th className="py-3 px-4">Candidat</th>
+                  <th className="py-3 px-4">Catégorie</th>
+                  <th className="py-3 px-4">Votes</th>
+                  <th className="py-3 px-4">Statut</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="text-sm">
+              <tbody className="divide-y divide-white/5">
                 {candidates.map((cand) => {
-                  const statusInfo = STATUS_LABELS[cand.status] || STATUS_LABELS.PENDING_VERIFICATION;
+                  const st = STATUS_LABELS[cand.status] || STATUS_LABELS.PENDING_VERIFICATION;
+                  const photoUrl = cand.profilePhoto ? getMediaUrl(cand.profilePhoto) : null;
                   return (
-                    <tr key={cand.id} className="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 px-2">
+                    <tr key={cand.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          {cand.profilePhoto ? (
-                            <img src={getMediaUrl(cand.profilePhoto, cand.updatedAt)} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" />
-                          ) : (
-                            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-neutral-700 to-neutral-800 flex items-center justify-center text-xs font-bold text-white shrink-0">
-                              {cand.firstName?.charAt(0)}{cand.lastName?.charAt(0)}
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-white font-medium truncate">{cand.firstName} {cand.lastName}</p>
-                            <p className="text-neutral-600 text-xs hidden sm:block">{new Date(cand.createdAt).toLocaleDateString('fr-FR')}</p>
+                          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                            {photoUrl ? (
+                              <img src={photoUrl} alt={cand.firstName} className="w-full h-full object-cover" />
+                            ) : (
+                              <Users className="w-5 h-5 text-neutral-500" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-white group-hover:text-neutral-300 transition-colors">
+                              {cand.firstName} {cand.lastName}
+                            </p>
+                            <p className="text-xs text-neutral-500">{cand.phone || cand.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-2 hidden md:table-cell">
-                        <p className="text-neutral-400 text-xs truncate max-w-[180px]">{cand.email}</p>
-                        <p className="text-neutral-600 text-xs">{cand.phone}</p>
+                      <td className="py-3.5 px-4 text-neutral-300 font-medium">
+                        {cand.category?.name || 'Non spécifié'}
                       </td>
-                      <td className="py-3 px-2 text-neutral-500 hidden sm:table-cell">{cand.category?.name || '—'}</td>
-                      <td className="py-3 px-2 text-white font-semibold">{cand.totalVotesCache || 0}</td>
-                      <td className="py-3 px-2">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusInfo.className}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`} />
-                          {statusInfo.label}
+                      <td className="py-3.5 px-4 font-bold text-neutral-300">
+                        {cand.totalVotesCache || 0}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${st.className}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                          {st.label}
                         </span>
                       </td>
-                      <td className="py-3 px-2">
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => setEditing(cand)} className="p-1.5 text-neutral-500 hover:text-[#d4af37] transition-colors" title="Modifier">
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            to={`/candidats/${cand.id}`}
+                            target="_blank"
+                            className="p-2 rounded-xl bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                            title="Voir profil"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Link>
+                          <button
+                            onClick={() => setEditing(cand)}
+                            className="p-2 rounded-xl bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                            title="Modifier"
+                          >
                             <Pencil className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleQuickDelete(cand)} className="p-1.5 text-neutral-500 hover:text-red-400 transition-colors" title="Supprimer">
+                          <button
+                            onClick={() => handleQuickDelete(cand)}
+                            className="p-2 rounded-xl bg-white/5 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Supprimer"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                          {cand.slug && (
-                            <Link to={`/candidats/${cand.slug}`} target="_blank" className="p-1.5 text-neutral-500 hover:text-[#d4af37] transition-colors" title="Voir le profil">
-                              <ExternalLink className="w-4 h-4" />
-                            </Link>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -167,14 +185,23 @@ export const CandidatesList = ({ refreshKey = 0, onChange }: Props) => {
             </table>
           </div>
         )}
-      </div>
+      </AdminCard>
 
+      {/* Modal d'édition */}
       {editing && (
         <CandidateEditModal
           candidate={editing}
           onClose={() => setEditing(null)}
-          onSaved={() => { fetchCandidates(search); onChange?.(); }}
-          onDeleted={() => { fetchCandidates(search); onChange?.(); }}
+          onSaved={() => {
+            setEditing(null);
+            fetchCandidates(search);
+            onChange?.();
+          }}
+          onDeleted={() => {
+            setEditing(null);
+            fetchCandidates(search);
+            onChange?.();
+          }}
         />
       )}
     </>

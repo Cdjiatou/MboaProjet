@@ -5,15 +5,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import ReactPlayer from 'react-player';
-const Player = ReactPlayer as unknown as React.ComponentType<{
-  url?: string | null;
-  width?: string;
-  height?: string;
-  controls?: boolean;
-  playing?: boolean;
-  light?: boolean;
-}>;
 import { ArrowLeft, Star, Trophy } from 'lucide-react';
 import ShareButtons from '@/components/shared/ShareButtons';
 import { BiographyDisplay } from '@/components/shared/BiographyDisplay';
@@ -22,6 +13,22 @@ import { getCandidateBySlug } from '@/services/adminService';
 import { VoteModal } from '@/components/candidate/VoteModal';
 import { CANDIDATES_REFRESH_EVENT } from '@/hooks/usePublicCandidates';
 import type { Candidate } from '@/types';
+
+// Détecte si l'URL est une vidéo YouTube
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const patterns = [
+    /youtu\.be\/([^?&\s]+)/,
+    /youtube\.com\/watch\?v=([^&\s]+)/,
+    /youtube\.com\/embed\/([^?&\s]+)/,
+    /youtube\.com\/shorts\/([^?&\s]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
 
 const CandidateProfile = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -70,8 +77,14 @@ const CandidateProfile = () => {
     );
   }
 
+  // Résolution de la vidéo
+  const rawVideoUrl = candidate.videoUrl || '';
+  const isYt = /youtube\.com|youtu\.be/.test(rawVideoUrl);
+  const ytId = isYt ? getYouTubeId(rawVideoUrl) : null;
+  const resolvedVideoUrl = rawVideoUrl ? getMediaUrl(rawVideoUrl, candidate.updatedAt) : '';
+
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-[#050505] text-white relative overflow-hidden">
+    <div className="min-h-screen pt-24 pb-32 sm:pb-16 bg-[#050505] text-white relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.08)_0%,transparent_70%)] pointer-events-none"></div>
       <div className="absolute top-1/4 right-0 w-[50%] h-[50%] bg-[#d4af37]/5 rounded-full blur-[150px] pointer-events-none"></div>
@@ -86,7 +99,7 @@ const CandidateProfile = () => {
           Retour à la liste
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
           {/* ===== Section Vidéo & Bio (3/5 de l'espace) ===== */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -95,20 +108,30 @@ const CandidateProfile = () => {
             className="lg:col-span-3 space-y-6"
           >
             {/* Lecteur Vidéo */}
-            <div className="relative aspect-video rounded-3xl overflow-hidden bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(212,175,55,0.05)] p-2">
-              <div className="w-full h-full rounded-2xl overflow-hidden bg-black relative group">
-                {candidate.videoUrl ? (
-                  <Player
-                    url={candidate.videoUrl}
-                    width="100%"
-                    height="100%"
-                    controls
-                    playing={false}
-                    light
-                  />
+            <div className="relative aspect-video rounded-2xl sm:rounded-3xl overflow-hidden bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(212,175,55,0.05)] p-1.5 sm:p-2">
+              <div className="w-full h-full rounded-xl sm:rounded-2xl overflow-hidden bg-black relative group">
+                {rawVideoUrl ? (
+                  isYt && ytId ? (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&playsinline=1`}
+                      className="w-full h-full border-0"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                      title={`Prestation de ${candidate.firstName}`}
+                    />
+                  ) : (
+                    <video
+                      src={resolvedVideoUrl}
+                      className="w-full h-full object-contain"
+                      controls
+                      preload="auto"
+                      playsInline
+                      crossOrigin="anonymous"
+                    />
+                  )
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-                    <Star className="w-16 h-16 text-primary/20 mb-4 animate-pulse" />
+                    <Star className="w-12 h-12 sm:w-16 sm:h-16 text-[#d4af37]/20 mb-4 animate-pulse" />
                     <p className="text-neutral-500 text-sm">Vidéo de prestation bientôt disponible</p>
                   </div>
                 )}
@@ -116,8 +139,8 @@ const CandidateProfile = () => {
             </div>
 
             {/* Biographie */}
-            <div className="bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-10 shadow-[0_0_50px_rgba(212,175,55,0.02)]">
-              <h2 className="text-xl font-black text-white mb-6 font-heading uppercase tracking-widest border-b border-white/10 pb-4 inline-block">
+            <div className="bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-10 shadow-[0_0_50px_rgba(212,175,55,0.02)]">
+              <h2 className="text-lg sm:text-xl font-black text-white mb-4 sm:mb-6 font-heading uppercase tracking-widest border-b border-white/10 pb-4 inline-block">
                 Biographie
               </h2>
               {candidate.biography ? (
@@ -136,12 +159,12 @@ const CandidateProfile = () => {
             className="lg:col-span-2 space-y-6"
           >
             {/* Carte de profil */}
-            <div className="bg-[#0b0b0b]/60 backdrop-blur-xl border border-[#d4af37]/20 shadow-[0_0_50px_rgba(212,175,55,0.08)] rounded-3xl p-6 sm:p-10 text-center space-y-8 relative overflow-hidden">
+            <div className="bg-[#0b0b0b]/60 backdrop-blur-xl border border-[#d4af37]/20 shadow-[0_0_50px_rgba(212,175,55,0.08)] rounded-2xl sm:rounded-3xl p-5 sm:p-10 text-center space-y-6 sm:space-y-8 relative overflow-hidden">
               {/* Decorative top gradient */}
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#d4af37] via-[#fff3c4] to-[#b8952e]"></div>
 
               {/* Avatar */}
-              <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-[#0b0b0b] shadow-[0_0_0_2px_rgba(212,175,55,0.5)] bg-[#141414] relative z-10">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full overflow-hidden border-4 border-[#0b0b0b] shadow-[0_0_0_2px_rgba(212,175,55,0.5)] bg-[#141414] relative z-10">
                 {candidate.profilePhoto ? (
                   <img
                     src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
@@ -150,7 +173,7 @@ const CandidateProfile = () => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-5xl font-extrabold bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">
+                    <span className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">
                       {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
                     </span>
                   </div>
@@ -158,7 +181,7 @@ const CandidateProfile = () => {
               </div>
 
               <div className="space-y-2">
-                <h1 className="text-3xl font-black text-white font-heading tracking-wider uppercase">
+                <h1 className="text-2xl sm:text-3xl font-black text-white font-heading tracking-wider uppercase">
                   {candidate.firstName} {candidate.lastName}
                 </h1>
                 <p className="inline-block px-4 py-1 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20 text-[#d4af37] text-xs font-bold tracking-widest uppercase">
@@ -167,9 +190,9 @@ const CandidateProfile = () => {
               </div>
 
               {/* Compteur de votes */}
-              <div className="flex items-center justify-center gap-3 bg-[#050505] py-4 px-6 rounded-2xl border border-white/5">
-                <Trophy className="w-6 h-6 text-[#d4af37]" />
-                <span className="text-3xl font-black bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">
+              <div className="flex items-center justify-center gap-3 bg-[#050505] py-3 sm:py-4 px-6 rounded-2xl border border-white/5">
+                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37]" />
+                <span className="text-2xl sm:text-3xl font-black bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">
                   {candidate.totalVotesCache}
                 </span>
                 <span className="text-neutral-500 text-xs font-bold uppercase tracking-wider">votes</span>
@@ -179,7 +202,7 @@ const CandidateProfile = () => {
               <div className="space-y-4 pt-2">
                 <button
                   onClick={() => setIsVoteModalOpen(true)}
-                  className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 text-sm uppercase tracking-wider flex items-center justify-center gap-2"
+                  className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 text-sm uppercase tracking-wider flex items-center justify-center gap-2"
                 >
                   <Star className="w-5 h-5 fill-black" /> Voter pour {candidate.firstName}
                 </button>
@@ -194,6 +217,16 @@ const CandidateProfile = () => {
             </div>
           </motion.div>
         </div>
+      </div>
+
+      {/* ===== Bouton de vote flottant (mobile) ===== */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black via-black/95 to-transparent lg:hidden">
+        <button
+          onClick={() => setIsVoteModalOpen(true)}
+          className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black rounded-2xl shadow-[0_-4px_30px_rgba(212,175,55,0.3)] text-sm uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-transform"
+        >
+          <Star className="w-5 h-5 fill-black" /> Voter pour {candidate.firstName}
+        </button>
       </div>
 
       {/* Modale de vote/paiement */}

@@ -11,11 +11,11 @@ const SponsorLogo = ({ sponsor }: { sponsor: { name: string; logo: string | null
     <img
       src={getMediaUrl(sponsor.logo)}
       alt={sponsor.name}
-      className="max-h-full w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.05)] group-hover:drop-shadow-[0_0_15px_rgba(212,175,55,0.3)] rounded-md"
+      className="h-10 sm:h-12 w-auto max-w-[120px] sm:max-w-[160px] object-contain drop-shadow-[0_2px_8px_rgba(255,255,255,0.06)] group-hover:drop-shadow-[0_4px_12px_rgba(212,175,55,0.25)] rounded-md transition-all duration-300"
       onError={(e) => {
         (e.target as HTMLImageElement).style.display = 'none';
         const parent = (e.target as HTMLImageElement).parentElement;
-        if (parent) parent.innerHTML = `<span class="text-neutral-400 text-xs sm:text-sm font-bold tracking-[0.2em] uppercase whitespace-nowrap hover:text-[#d4af37]">${sponsor.name}</span>`;
+        if (parent) parent.innerHTML = `<span class="text-neutral-400 text-xs sm:text-sm font-bold tracking-[0.2em] uppercase whitespace-nowrap group-hover:text-[#d4af37] transition-colors">${sponsor.name}</span>`;
       }}
     />
   ) : (
@@ -28,14 +28,14 @@ const SponsorLogo = ({ sponsor }: { sponsor: { name: string; logo: string | null
   );
 
   const content = (
-    <div className="h-12 sm:h-14 flex items-center justify-center transition-all duration-300 hover:scale-105">
+    <div className="h-16 flex items-center justify-center transition-all duration-300 group-hover:scale-105">
       {imgEl}
     </div>
   );
 
   if (sponsor.url) {
     return (
-      <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="block">
+      <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="block outline-none">
         {content}
       </a>
     );

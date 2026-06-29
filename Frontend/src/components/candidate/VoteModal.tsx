@@ -1,42 +1,38 @@
 // =============================================================================
-// COMPOSANT VoteModal — Paiement Mavians (MTN / Orange / Carte) dès 100 FCFA
+// COMPOSANT VoteModal — Formulaire simplifié avec détection d'opérateur
 // =============================================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, CheckCircle, AlertTriangle, Loader2, CreditCard, Minus, Plus } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, Loader2, CreditCard, Smartphone } from 'lucide-react';
 import { initiateVote, checkVoteStatus, type PaymentMethod } from '@/services/voteService';
+import { getMediaUrl } from '@/utils/mediaUrl';
 import type { Candidate } from '@/types';
 
-const MIN_AMOUNT = 100;
+const RATE_PER_VOTE = 100;
 
-const PAYMENT_OPTIONS: {
-  id: PaymentMethod;
-  label: string;
-  sublabel: string;
-  logo: string;
-}[] = [
-  {
-    id: 'MTN_MOMO',
-    label: 'MTN Mobile Money',
-    sublabel: 'Paiement via MoMo',
-    logo: '/images/payments/mtn-momo.svg',
-  },
-  {
-    id: 'ORANGE_MOMO',
-    label: 'Orange Money',
-    sublabel: 'Paiement via Orange',
-    logo: '/images/payments/orange-money.svg',
-  },
-  {
-    id: 'CARD',
-    label: 'Carte bancaire',
-    sublabel: 'Visa / Mastercard',
-    logo: '/images/payments/card.svg',
-  },
-];
+// Logique de détection d'opérateur mobile au Cameroun
+const detectOperator = (phone: string): 'MTN_MOMO' | 'ORANGE_MOMO' | null => {
+  const cleanPhone = phone.replace(/\D/g, '');
+  if (cleanPhone.length >= 2) {
+    const prefix2 = cleanPhone.substring(0, 2);
+    const prefix3 = cleanPhone.substring(0, 3);
+    
+    // MTN: 67, 68, 650-654
+    if (['67', '68'].includes(prefix2) || ['650', '651', '652', '653', '654'].includes(prefix3)) {
+      return 'MTN_MOMO';
+    }
+    
+    // Orange: 69, 655-659
+    if (['69'].includes(prefix2) || ['655', '656', '657', '658', '659'].includes(prefix3)) {
+      return 'ORANGE_MOMO';
+    }
+  }
+  return null;
+};
 
-const PRESET_AMOUNTS = [100, 200, 500, 1000, 2000];
+type PaymentTab = 'mobile' | 'card';
+type Step = 'form' | 'processing' | 'success' | 'error';
 
 interface Props {
   candidate: Candidate;
@@ -46,42 +42,47 @@ interface Props {
 }
 
 export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteSuccess }) => {
-  const [amount, setAmount] = useState(MIN_AMOUNT);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [step, setStep] = useState<Step>('form');
+  const [tab, setTab] = useState<PaymentTab>('mobile');
+  
   const [voterPhone, setVoterPhone] = useState('');
-  const [voteStatus, setVoteStatus] = useState<'idle' | 'loading' | 'polling' | 'success' | 'error'>('idle');
-  const [voteMessage, setVoteMessage] = useState('');
+  const [amountStr, setAmountStr] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const votesCount = Math.floor(amount / MIN_AMOUNT);
-  const needsPhone = paymentMethod !== 'CARD';
+  const amount = parseInt(amountStr) || 0;
+  const votesCount = Math.floor(amount / RATE_PER_VOTE);
+  const operator = detectOperator(voterPhone);
 
+  // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setAmount(MIN_AMOUNT);
-      setPaymentMethod(null);
+      setStep('form');
+      setTab('mobile');
       setVoterPhone('');
-      setVoteStatus('idle');
-      setVoteMessage('');
+      setAmountStr('');
+      setStatusMessage('');
+      if (pollingRef.current) clearInterval(pollingRef.current);
     }
   }, [isOpen]);
 
-  const adjustAmount = (delta: number) => {
-    setAmount((prev) => Math.max(MIN_AMOUNT, prev + delta));
-  };
-
   const startPolling = (paymentReference: string) => {
-    setVoteStatus('polling');
-    setVoteMessage('Paiement initié ! Validez la transaction sur votre téléphone ou suivez les instructions...');
+    setStep('processing');
+    setStatusMessage(
+      tab === 'card'
+        ? 'Finalisez le paiement dans la fenêtre sécurisée...'
+        : 'Validez la transaction sur votre téléphone...'
+    );
 
     let attempts = 0;
-    const maxAttempts = 25;
+    const maxAttempts = 30;
 
-    const intervalId = setInterval(async () => {
+    pollingRef.current = setInterval(async () => {
       attempts++;
       if (attempts > maxAttempts) {
-        clearInterval(intervalId);
-        setVoteStatus('error');
-        setVoteMessage('Délai dépassé. Vérifiez si le paiement a été débité avant de réessayer.');
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        setStep('error');
+        setStatusMessage('Délai dépassé. Vérifiez votre téléphone ou réessayez.');
         return;
       }
 
@@ -90,242 +91,276 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
         if (statusRes.success && statusRes.data) {
           const paymentStatus = statusRes.data.status;
           if (paymentStatus === 'SUCCESS') {
-            clearInterval(intervalId);
-            setVoteStatus('success');
-            setVoteMessage(
-              votesCount > 1
-                ? `Merci ! ${votesCount} votes enregistrés pour ${candidate.firstName}.`
-                : 'Félicitations ! Votre vote a été enregistré avec succès.'
-            );
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            setStep('success');
+            setStatusMessage(`Vos ${votesCount} votes ont été enregistrés avec succès !`);
             onVoteSuccess();
           } else if (paymentStatus === 'FAILED') {
-            clearInterval(intervalId);
-            setVoteStatus('error');
-            setVoteMessage('Le paiement a échoué ou a été annulé.');
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            setStep('error');
+            setStatusMessage('Le paiement a échoué ou a été annulé.');
           }
         }
-      } catch (pollErr) {
-        console.error('Erreur polling vote:', pollErr);
+      } catch {
+        // silently retry
       }
     }, 3000);
   };
 
-  const handleVote = async () => {
-    if (!paymentMethod) return;
-    if (needsPhone && voterPhone.replace(/\D/g, '').length < 9) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (votesCount < 1) return;
+    
+    let paymentMethod: PaymentMethod = 'CARD';
+    if (tab === 'mobile') {
+      if (!operator) {
+        setStep('error');
+        setStatusMessage("Opérateur non reconnu. Vérifiez le numéro.");
+        return;
+      }
+      paymentMethod = operator;
+      if (voterPhone.replace(/\D/g, '').length < 9) return;
+    }
 
-    setVoteStatus('loading');
-    setVoteMessage('Connexion à Mavians (Smobilpay)...');
+    setStep('processing');
+    setStatusMessage('Connexion sécurisée en cours...');
 
     try {
       const res = await initiateVote({
         candidateId: candidate.id,
-        voterIdentifier: needsPhone ? voterPhone : `card_${Date.now()}`,
+        voterIdentifier: tab === 'mobile' ? voterPhone : `card_${Date.now()}`,
         amount,
         paymentMethod,
       });
 
       if (res.success && res.data?.vote) {
         const { vote, paymentUrl } = res.data;
-
         if (paymentMethod === 'CARD' && paymentUrl) {
           window.open(paymentUrl, '_blank', 'noopener,noreferrer');
         }
-
         startPolling(vote.paymentReference);
       } else {
-        setVoteStatus('error');
-        setVoteMessage(res.message || 'Une erreur est survenue.');
+        setStep('error');
+        setStatusMessage(res.message || 'Une erreur est survenue.');
       }
     } catch (err: unknown) {
-      setVoteStatus('error');
+      setStep('error');
       const error = err as { response?: { data?: { message?: string; error?: string } } };
-      setVoteMessage(error.response?.data?.message || error.response?.data?.error || 'Erreur de connexion.');
+      setStatusMessage(error.response?.data?.message || error.response?.data?.error || 'Erreur de connexion.');
     }
   };
 
-  const canSubmit =
-    paymentMethod &&
-    amount >= MIN_AMOUNT &&
-    amount % MIN_AMOUNT === 0 &&
-    (!needsPhone || voterPhone.replace(/\D/g, '').length >= 9);
+  const candidateName = `${candidate.firstName} ${candidate.lastName || ''}`.trim();
+  const candidatePhoto = getMediaUrl(candidate.profilePhoto, candidate.updatedAt);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
-          <div className="absolute inset-0" onClick={onClose} />
-
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+          {/* Backdrop */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl bg-[#0b0b0b]/95 border border-[#d4af37]/20 p-6 text-white max-h-[90vh] overflow-y-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+            onClick={onClose}
+          />
+
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.97 }}
+            className="relative z-10 w-full max-w-[400px] bg-[#0c0c0c] rounded-t-3xl sm:rounded-3xl border border-white/[0.06] shadow-2xl overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-5 border-b border-white/10 pb-3">
-              <div>
-                <h3 className="text-lg font-bold">Voter pour {candidate.firstName}</h3>
-                <p className="text-xs text-neutral-500 mt-0.5">Paiement sécurisé via Mavians</p>
+            {/* Header Candidat */}
+            <div className="px-5 pt-5 pb-4 border-b border-white/[0.06] flex items-center gap-4 bg-white/[0.02]">
+              <div className="w-12 h-12 rounded-xl overflow-hidden bg-neutral-800 flex-shrink-0">
+                {candidatePhoto ? (
+                  <img src={candidatePhoto} alt={candidateName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#d4af37] font-black">
+                    {candidate.firstName?.[0]}
+                  </div>
+                )}
               </div>
-              <button onClick={onClose} className="p-1 hover:text-[#d4af37] transition-colors">
-                <X className="w-5 h-5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-bold text-base truncate">{candidateName}</h3>
+                <p className="text-neutral-400 text-xs">Voter pour soutenir ce candidat</p>
+              </div>
+              <button onClick={onClose} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 transition-all">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {voteStatus === 'success' ? (
-              <div className="text-center py-6 space-y-4">
-                <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto" />
-                <p className="text-emerald-400 font-semibold">{voteMessage}</p>
-                <button
-                  onClick={onClose}
-                  className="px-6 py-2.5 bg-[#d4af37] text-black font-bold rounded-xl hover:bg-[#b8952e] transition-colors"
-                >
-                  Fermer
-                </button>
-              </div>
-            ) : voteStatus === 'loading' || voteStatus === 'polling' ? (
-              <div className="text-center py-8 space-y-4">
-                <Loader2 className="w-12 h-12 text-[#d4af37] animate-spin mx-auto" />
-                <p className="text-sm text-neutral-400 animate-pulse">{voteMessage}</p>
-                {paymentMethod === 'CARD' && voteStatus === 'polling' && (
-                  <p className="text-xs text-neutral-500">Finalisez le paiement dans l'onglet ouvert, puis revenez ici.</p>
-                )}
-              </div>
-            ) : voteStatus === 'error' ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-red-400">
-                  <AlertTriangle className="w-5 h-5 shrink-0" />
-                  <p className="text-sm">{voteMessage}</p>
-                </div>
-                <button
-                  onClick={() => setVoteStatus('idle')}
-                  className="w-full py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
-                >
-                  Réessayer
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-5">
-                {/* Montant */}
-                <div>
-                  <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3 block">
-                    Montant du vote (min. 100 FCFA)
-                  </label>
-                  <div className="flex items-center justify-center gap-4 mb-3">
-                    <button
-                      type="button"
-                      onClick={() => adjustAmount(-100)}
-                      disabled={amount <= MIN_AMOUNT}
-                      className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center disabled:opacity-30 hover:bg-white/10"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <div className="text-center">
-                      <span className="text-3xl font-black bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">
-                        {amount.toLocaleString('fr-FR')}
-                      </span>
-                      <span className="text-neutral-500 text-sm ml-1">FCFA</span>
-                      <p className="text-[10px] text-neutral-600 mt-1">
-                        = {votesCount} vote{votesCount > 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => adjustAmount(100)}
-                      className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {PRESET_AMOUNTS.map((preset) => (
+            {/* Contenu */}
+            <div className="p-5">
+              <AnimatePresence mode="wait">
+                {step === 'form' && (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
+                    {/* Choix Mode Paiement */}
+                    <div className="flex p-1 bg-[#050505] border border-white/[0.06] rounded-xl">
                       <button
-                        key={preset}
                         type="button"
-                        onClick={() => setAmount(preset)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                          amount === preset
-                            ? 'bg-[#d4af37] text-black'
-                            : 'bg-white/5 text-neutral-400 hover:bg-white/10'
+                        onClick={() => setTab('mobile')}
+                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                          tab === 'mobile' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-white'
                         }`}
                       >
-                        {preset} F
+                        <Smartphone className="w-4 h-4" />
+                        Mobile Money
                       </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Mode de paiement */}
-                <div>
-                  <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3 block">
-                    Mode de paiement
-                  </label>
-                  <div className="space-y-2">
-                    {PAYMENT_OPTIONS.map((opt) => (
                       <button
-                        key={opt.id}
                         type="button"
-                        onClick={() => setPaymentMethod(opt.id)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                          paymentMethod === opt.id
-                            ? 'border-[#d4af37] bg-[#d4af37]/10'
-                            : 'border-white/10 bg-white/[0.03] hover:border-white/20'
+                        onClick={() => setTab('card')}
+                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                          tab === 'card' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-white'
                         }`}
                       >
-                        <img
-                          src={opt.logo}
-                          alt={opt.label}
-                          className="h-10 w-24 object-contain object-left shrink-0"
-                        />
-                        <div className="text-left flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-white">{opt.label}</p>
-                          <p className="text-[10px] text-neutral-500">{opt.sublabel}</p>
+                        <CreditCard className="w-4 h-4" />
+                        Carte Bancaire
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      
+                      {/* Section Téléphone (Si Mobile Money) */}
+                      {tab === 'mobile' && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-neutral-400">Numéro de téléphone</label>
+                          <div className="relative group">
+                            <input
+                              type="tel"
+                              value={voterPhone}
+                              onChange={(e) => setVoterPhone(e.target.value)}
+                              placeholder="Ex: 6XXXXXXXX"
+                              maxLength={9}
+                              required
+                              className="w-full bg-[#050505] border border-white/[0.08] focus:border-[#d4af37]/50 rounded-xl pl-5 pr-20 py-4 text-white text-lg font-medium outline-none transition-all focus:ring-4 focus:ring-[#d4af37]/10"
+                            />
+                            
+                            {/* Affichage du logo Opérateur détecté à l'intérieur du champ */}
+                            <AnimatePresence>
+                              {operator && voterPhone.length === 9 && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.8, x: 10 }}
+                                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                                  exit={{ opacity: 0, scale: 0.8, x: 10 }}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center p-1 bg-white/5 border border-white/10 rounded-lg backdrop-blur-md"
+                                >
+                                  {operator === 'MTN_MOMO' ? (
+                                    <img src="/images/operateurs/mtn.png" alt="MTN Mobile Money" className="h-8 w-12 object-contain rounded-sm drop-shadow-md" />
+                                  ) : (
+                                    <img src="/images/operateurs/orange.png" alt="Orange Money" className="h-8 w-12 object-contain rounded-sm drop-shadow-md" />
+                                  )}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
-                        {opt.id === 'CARD' && (
-                          <CreditCard className="w-5 h-5 text-neutral-500 shrink-0" />
-                        )}
+                      )}
+
+                      {/* Section Montant */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-neutral-400">Montant à payer (FCFA)</label>
+                        <input
+                          type="text"
+                          value={amountStr}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '');
+                            setAmountStr(val);
+                          }}
+                          placeholder="Ex: 500"
+                          required
+                          className="w-full bg-[#050505] border border-white/[0.08] focus:border-[#d4af37]/50 rounded-xl px-5 py-4 text-white text-lg font-bold outline-none transition-all focus:ring-4 focus:ring-[#d4af37]/10"
+                        />
+                      </div>
+
+                      {/* Récapitulatif du nombre de votes */}
+                      <div className="bg-[#111] border border-white/5 rounded-xl p-4 flex items-center justify-between">
+                        <span className="text-neutral-400 text-sm">Votes équivalents :</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-black text-[#d4af37]">{votesCount}</span>
+                          <span className="text-xs text-neutral-500 uppercase font-bold mt-1">Vote{votesCount > 1 ? 's' : ''}</span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={votesCount < 1 || (tab === 'mobile' && (!operator || voterPhone.length < 9))}
+                        className="w-full py-4 rounded-xl bg-[#d4af37] text-black font-bold text-sm uppercase tracking-wider hover:bg-[#e5c048] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        Voter maintenant
                       </button>
-                    ))}
-                  </div>
-                </div>
 
-                {/* Téléphone Mobile Money */}
-                {paymentMethod && needsPhone && (
-                  <div>
-                    <label className="text-sm font-semibold text-neutral-400 mb-2 block">
-                      Numéro {paymentMethod === 'MTN_MOMO' ? 'MTN MoMo' : 'Orange Money'}
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-                      <input
-                        type="tel"
-                        placeholder="Ex: 677123456"
-                        value={voterPhone}
-                        onChange={(e) => setVoterPhone(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-[#050505] border border-white/10 rounded-xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/50"
-                      />
+                    </form>
+                  </motion.div>
+                )}
+
+                {/* Processing */}
+                {step === 'processing' && (
+                  <motion.div
+                    key="processing"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="py-12 flex flex-col items-center text-center space-y-4"
+                  >
+                    <Loader2 className="w-10 h-10 text-[#d4af37] animate-spin" />
+                    <p className="text-sm text-neutral-300">{statusMessage}</p>
+                  </motion.div>
+                )}
+
+                {/* Success */}
+                {step === 'success' && (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="py-10 flex flex-col items-center text-center space-y-4"
+                  >
+                    <CheckCircle className="w-12 h-12 text-emerald-500" />
+                    <p className="text-lg text-white font-bold">Paiement Réussi !</p>
+                    <p className="text-sm text-emerald-400">{statusMessage}</p>
+                    <button
+                      onClick={onClose}
+                      className="w-full mt-4 py-3 rounded-xl bg-white/10 text-white font-bold text-sm transition-all hover:bg-white/20"
+                    >
+                      Terminer
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* Error */}
+                {step === 'error' && (
+                  <motion.div
+                    key="error"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="py-8 space-y-5"
+                  >
+                    <div className="flex flex-col items-center text-center gap-3 bg-red-500/10 p-5 rounded-xl border border-red-500/20">
+                      <AlertTriangle className="w-8 h-8 text-red-400" />
+                      <p className="text-sm text-red-400 font-medium">{statusMessage}</p>
                     </div>
-                    <p className="text-[10px] text-neutral-600 mt-2">
-                      Vous recevrez une demande de confirmation sur ce numéro.
-                    </p>
-                  </div>
+                    <button
+                      onClick={() => setStep('form')}
+                      className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-bold hover:bg-white/10 transition-all"
+                    >
+                      Réessayer
+                    </button>
+                  </motion.div>
                 )}
-
-                {paymentMethod === 'CARD' && (
-                  <p className="text-xs text-neutral-500 bg-white/[0.03] border border-white/10 rounded-xl p-3">
-                    Vous serez redirigé vers la page de paiement sécurisée Mavians pour saisir votre carte bancaire.
-                  </p>
-                )}
-
-                <button
-                  onClick={handleVote}
-                  disabled={!canSubmit}
-                  className="w-full py-3.5 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black uppercase tracking-wider text-sm rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.3)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                >
-                  Payer {amount.toLocaleString('fr-FR')} FCFA
-                </button>
-              </div>
-            )}
+              </AnimatePresence>
+            </div>
           </motion.div>
         </div>
       )}

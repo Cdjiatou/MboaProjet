@@ -19,6 +19,15 @@ export const loginAdmin = async (
   };
 };
 
+/** Mise à jour du profil administrateur (email, password) */
+export const updateAdminProfile = async (
+  email?: string,
+  password?: string
+): Promise<ApiResponse> => {
+  const response = await api.patch('/admin/profile', { email, password });
+  return response.data;
+};
+
 /** Récupération des statistiques globales */
 export const getDashboardStats = async (): Promise<ApiResponse<DashboardStats>> => {
   const response = await api.get('/admin/dashboard/stats');
@@ -193,6 +202,25 @@ export const uploadAdminCandidatePhoto = async (id: number, file: File): Promise
   formData.append('profilePhoto', file);
   const response = await api.post(`/admin/candidates/${id}/photo`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+/** Upload un média générique (image ou vidéo) avec suivi de progression */
+export const uploadMediaFile = async (
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<ApiResponse<{ fileUrl: string }>> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post('/admin/media/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: (progressEvent) => {
+      if (onProgress && progressEvent.total) {
+        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onProgress(percent);
+      }
+    },
   });
   return response.data;
 };

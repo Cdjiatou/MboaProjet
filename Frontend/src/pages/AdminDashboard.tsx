@@ -18,7 +18,10 @@ import { CandidatesList } from '@/components/admin/CandidatesList';
 import { ContentSitePanel } from '@/components/admin/ContentSitePanel';
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager';
 import { FinanceSection } from '@/components/admin/FinanceSection';
+import { maskVoterIdentifier } from '@/utils/maskIdentifier';
+import { formatRelativeTime } from '@/utils/relativeTime';
 import { useAdminDashboardSync, notifyAdminDashboardUpdated } from '@/hooks/useAdminDashboardSync';
+import { AdminProfileModal } from '@/components/admin/AdminProfileModal';
 
 // =============================================================================
 // TYPES
@@ -54,6 +57,7 @@ const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [candidatesRefreshKey, setCandidatesRefreshKey] = useState(0);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -206,13 +210,24 @@ const AdminDashboard = () => {
             <p className="text-xs text-neutral-500">Connecté en tant que</p>
             <p className="text-sm font-semibold text-white truncate">Administrateur</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-red-400/80 hover:text-red-400 hover:bg-red-500/[0.06] rounded-xl transition-all duration-200 text-sm font-medium"
-          >
-            <LogOut className="w-[18px] h-[18px]" />
-            <span>Déconnexion</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsProfileModalOpen(true)}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-neutral-400 hover:text-white hover:bg-white/[0.06] rounded-xl transition-all duration-200 text-sm font-medium border border-white/5 hover:border-white/10"
+              title="Mon Profil"
+            >
+              <Settings className="w-[18px] h-[18px]" />
+              <span>Profil</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-red-400/80 hover:text-red-400 hover:bg-red-500/[0.06] rounded-xl transition-all duration-200 text-sm font-medium border border-red-500/10 hover:border-red-500/20"
+              title="Déconnexion"
+            >
+              <LogOut className="w-[18px] h-[18px]" />
+              <span>Quitter</span>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -374,24 +389,78 @@ const AdminDashboard = () => {
                   <div className="lg:col-span-2 bg-[#0a0a0f]/80 border border-white/[0.06] rounded-2xl p-5 sm:p-6">
                     <div className="flex items-center gap-2 mb-5">
                       <Trophy className="w-4 h-4 text-[#d4af37]" />
-                      <h3 className="text-white font-semibold text-sm">Derniers Votes</h3>
+                      <h3 className="text-white font-semibold text-sm">Flux de Votes</h3>
                     </div>
                     <div className="space-y-2.5">
                       {stats?.recentVotes && stats.recentVotes.length > 0 ? (
                         stats.recentVotes.map((vote: any, i: number) => {
                           const candName = vote.candidate ? `${vote.candidate.firstName} ${vote.candidate.lastName.charAt(0)}.` : 'Inconnu';
-                          const time = new Date(vote.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                          const userStr = vote.voterIdentifier || '';
-                          const maskedUser = userStr.length > 6 ? `${userStr.substring(0, 3)}***${userStr.substring(userStr.length - 3)}` : userStr;
+                          const maskedUser = maskVoterIdentifier(vote.voterIdentifier || '');
+                          const relativeTime = formatRelativeTime(vote.createdAt);
+                          
+                          // Status color indicators (Requirement 4.6)
+                          const statusConfig = {
+                            SUCCESS: { 
+                              bg: 'bg-emerald-500/10', 
+                              text: 'text-emerald-400', 
+                              dot: 'bg-emerald-400',
+                              label: 'Réussi'
+                            },
+                            PENDING: { 
+                              bg: 'bg-amber-500/10', 
+                              text: 'text-amber-400', 
+                              dot: 'bg-amber-400',
+                              label: 'En attente'
+                            },
+                            FAILED: { 
+                              bg: 'bg-red-500/10', 
+                              text: 'text-red-400', 
+                              dot: 'bg-red-400',
+                              label: 'Échoué'
+                            }
+                          };
+                          const status = statusConfig[vote.status as keyof typeof statusConfig] || statusConfig.PENDING;
+                          
                           return (
-                            <div key={vote.id || i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-colors">
-                              <div className="min-w-0">
-                                <p className="text-white text-sm font-medium truncate">{maskedUser}</p>
-                                <p className="text-neutral-500 text-xs">{candName}</p>
+                            <div 
+                              key={vote.id || i} 
+                              className="flex flex-col gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-colors"
+                            >
+                              {/* Top row: Voter + Amount */}
+                              <div className="flex items-center justify-between">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-white text-sm font-medium truncate" title={maskedUser}>
+                                    {maskedUser}
+                                  </p>
+                                  <p className="text-neutral-500 text-xs truncate">{candName}</p>
+                                </div>
+                                <div className="text-right shrink-0 ml-3">
+                                  <p className={`text-sm font-bold ${vote.status === 'SUCCESS' ? 'text-emerald-400' : vote.status === 'FAILED' ? 'text-red-400' : 'text-amber-400'}`}>
+                                    {vote.status === 'SUCCESS' ? '+' : ''}{vote.amount}
+                                  </p>
+                                </div>
                               </div>
-                              <div className="text-right shrink-0 ml-3">
-                                <p className="text-emerald-400 text-sm font-bold">+{vote.amount}</p>
-                                <p className="text-neutral-600 text-[10px]">{time}</p>
+                              
+                              {/* Bottom row: Status + Time + Reference */}
+                              <div className="flex items-center justify-between text-[10px]">
+                                <div className="flex items-center gap-2">
+                                  {/* Status badge with color indicator (Requirement 4.6) */}
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${status.bg} ${status.text} font-bold uppercase tracking-wider`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                                    {status.label}
+                                  </span>
+                                  {/* Relative time (Requirement 4.3) */}
+                                  <span className="text-neutral-600">{relativeTime}</span>
+                                </div>
+                                {/* Payment reference for traceability (Requirement 4.5) */}
+                                {vote.paymentReference && (
+                                  <span 
+                                    className="text-neutral-600 font-mono truncate max-w-[120px]" 
+                                    title={vote.paymentReference}
+                                  >
+                                    {vote.paymentReference.substring(0, 12)}...
+                                  </span>
+                                )}
                               </div>
                             </div>
                           );
@@ -464,6 +533,12 @@ const AdminDashboard = () => {
           </div>
         </main>
       </div>
+
+      <AdminProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        // We could pass current admin email here if we had it in state, but it's optional
+      />
     </div>
   );
 };

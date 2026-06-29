@@ -121,7 +121,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Test recent votes sorting and masking
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-- [ ] 7. Implement vote monitoring functionality
+- [x] 7. Implement vote monitoring functionality
   - [x] 7.1 Create vote masking utility function
     - Implement maskVoterIdentifier(identifier: string)
     - Preserve first 3 and last 3 characters
@@ -137,7 +137,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Verify middle contains only asterisks
     - Run 100 iterations
   
-  - [ ] 7.3 Update dashboard to display vote feed with masking
+  - [x] 7.3 Update dashboard to display vote feed with masking
     - Apply maskVoterIdentifier to all displayed voter IDs
     - Format timestamps as "Il y a X min/h" relative time
     - Sort votes by createdAt descending
@@ -145,7 +145,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Show payment reference for traceability
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-- [ ] 8. Implement financial management features
+- [x] 8. Implement financial management features
   - [x] 8.1 Create withdrawal fee calculation utility
     - Implement calculateWithdrawalFees(amount: number)
     - Calculate feeAmount = floor(amount * 0.03)
@@ -171,7 +171,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Return withdrawal record with all fields
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
   
-  - [ ] 8.4 Add withdrawal status update endpoint
+  - [x] 8.4 Add withdrawal status update endpoint
     - PATCH /api/admin/withdrawals/:id - update status to COMPLETED
     - Validate withdrawal exists
     - Only allow PENDING → COMPLETED transition
@@ -187,7 +187,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
 - [ ] 9. Implement FinanceSection component
-  - [ ] 9.1 Create withdrawal initiation form
+  - [-] 9.1 Create withdrawal initiation form
     - Add amount input with FCFA currency display
     - Show real-time fee calculation preview (3%)
     - Show net amount calculation
@@ -195,7 +195,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Call POST /api/admin/withdrawals on submit
     - _Requirements: 5.1, 5.2, 5.3_
   
-  - [ ] 9.2 Create withdrawals history table
+  - [-] 9.2 Create withdrawals history table
     - Display columns: ID, Montant Brut, Frais 3%, Montant Net, Statut, Date
     - Format amounts with FCFA currency
     - Show status badges (PENDING = orange, COMPLETED = green)
@@ -203,14 +203,14 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Add status update button for SUPER_ADMIN role
     - _Requirements: 5.6, 5.7_
   
-  - [ ] 9.3 Display revenue statistics
+  - [x] 9.3 Display revenue statistics
     - Show total revenue from successful votes
     - Show pending withdrawals count
     - Show completed withdrawals total
     - Calculate and display platform net revenue
     - _Requirements: 2.5, 2.6, 5.8_
 
-- [ ] 10. Checkpoint - Verify financial features
+- [~] 10. Checkpoint - Verify financial features
   - Test withdrawal initiation with various amounts
   - Test fee calculation accuracy
   - Test withdrawal status updates
@@ -263,7 +263,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Run 100 iterations
 
 - [ ] 12. Add export UI to admin dashboard
-  - [ ] 12.1 Create export buttons in dashboard
+  - [~] 12.1 Create export buttons in dashboard
     - Add "Exporter Votes (CSV)" button
     - Add "Exporter Retraits (CSV)" button
     - Trigger download on button click
@@ -271,7 +271,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Display success/error notifications
     - _Requirements: 6.1, 6.8_
   
-  - [ ] 12.2 Add date range filter for exports (optional enhancement)
+  - [~] 12.2 Add date range filter for exports (optional enhancement)
     - Add date range picker component
     - Pass date filters to export endpoints as query params
     - Update backend to support date filtering
@@ -312,7 +312,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
 - [ ] 14. Create ContentForm component for site configuration
-  - [ ] 14.1 Build configuration editor UI
+  - [~] 14.1 Build configuration editor UI
     - Display all configuration keys in editable form
     - Add key-value pair input fields
     - Support adding new configuration keys
@@ -320,7 +320,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Validate configuration before submission
     - _Requirements: 7.1, 7.7_
   
-  - [ ] 14.2 Implement configuration submission
+  - [~] 14.2 Implement configuration submission
     - Build config array from form state
     - Call POST /api/admin/config with batch data
     - Display success/error feedback
@@ -328,7 +328,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Handle transaction rollback errors appropriately
     - _Requirements: 7.4, 7.5, 7.8_
   
-  - [ ] 14.3 Add common configuration presets
+  - [~] 14.3 Add common configuration presets
     - Add preset fields for votingStartDate, votingEndDate
     - Add preset for votePrice with FCFA display
     - Add preset for maintenanceMode toggle
@@ -336,7 +336,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Show validation hints for each field
     - _Requirements: 7.7_
 
-- [ ] 15. Checkpoint - Verify export and configuration features
+- [~] 15. Checkpoint - Verify export and configuration features
   - Test CSV exports with various data
   - Verify UTF-8 BOM in Excel
   - Test configuration batch updates
@@ -345,13 +345,13 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
   - Ask user if questions arise
 
 - [ ] 16. Implement admin authentication enhancements
-  - [ ] 16.1 Ensure JWT tokens include role and type
+  - [~] 16.1 Ensure JWT tokens include role and type
     - Verify Auth_Token payload contains userId, role, type
     - Verify token expiration is configured correctly
     - Test token validation in authenticateAdmin middleware
     - _Requirements: 1.1, 1.4, 1.6_
   
-  - [ ] 16.2 Add role-based access control
+  - [~] 16.2 Add role-based access control
     - Create authorization middleware for SUPER_ADMIN-only routes
     - Restrict withdrawal updates to SUPER_ADMIN
     - Restrict configuration updates to SUPER_ADMIN
@@ -368,13 +368,13 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 1.1, 1.2, 1.3, 1.5_
 
 - [ ] 17. Implement frontend logout functionality
-  - [ ] 17.1 Create logout handler in useAuth hook
+  - [~] 17.1 Create logout handler in useAuth hook
     - Clear Auth_Token from localStorage
     - Clear auth state in context
     - Redirect to home page
     - _Requirements: 1.7_
   
-  - [ ] 17.2 Add logout button to admin sidebar
+  - [~] 17.2 Add logout button to admin sidebar
     - Display logout button with icon
     - Call logout handler on click
     - Show confirmation dialog (optional)
@@ -382,27 +382,27 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 1.7, 8.3_
 
 - [ ] 18. Enhance UI navigation and layout
-  - [ ] 18.1 Improve sidebar navigation
+  - [~] 18.1 Improve sidebar navigation
     - Ensure sidebar displays all sections (Vue d'ensemble, Candidats, Votes & Catégories, Finances, Paramètres)
     - Highlight active navigation section
     - Test navigation on mobile and tablet
     - Ensure responsive behavior
     - _Requirements: 8.1, 8.2, 8.8_
   
-  - [ ] 18.2 Add search functionality to top bar
+  - [~] 18.2 Add search functionality to top bar
     - Implement search input handler
     - Filter candidates by name, category, or status
     - Display search results dynamically
     - Clear search results when input is empty
     - _Requirements: 8.6_
   
-  - [ ] 18.3 Add notification indicator
+  - [~] 18.3 Add notification indicator
     - Display notification icon with badge count
     - Show pending actions (e.g., pending candidate verifications)
     - Update badge count dynamically
     - _Requirements: 8.7_
   
-  - [ ] 18.4 Implement loading and error states
+  - [~] 18.4 Implement loading and error states
     - Add loading spinners for async operations
     - Display user-friendly error messages on API failures
     - Use toast notifications for success/error feedback
@@ -410,7 +410,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 8.9, 8.10_
 
 - [ ] 19. Implement candidate table display
-  - [ ] 19.1 Create candidate table component
+  - [~] 19.1 Create candidate table component
     - Display columns: Nom, Catégorie, Votes, Statut
     - Concatenate firstName and lastName for name display
     - Display category name from joined data
@@ -418,15 +418,15 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Show status badges with colors (green=Actif, orange=En attente)
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
   
-  - [ ] 19.2 Add sorting and filtering
+  - [~] 19.2 Add sorting and filtering
     - Support sorting by vote count
     - Add hover effect on table rows
     - Display recent candidates section (last 5)
     - Add "Voir tout" link to full candidates page
     - _Requirements: 9.6, 9.7, 9.8, 9.9_
 
-- [ ] 20. Enhance vote activity feed
-  - [ ] 20.1 Update Derniers Votes panel
+- [~] 20. Enhance vote activity feed
+  - [~] 20.1 Update Derniers Votes panel
     - Display 4 most recent votes
     - Show masked voter identifier
     - Show vote amount with + prefix and FCFA
@@ -434,19 +434,19 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Format time as relative (Il y a X min/h)
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
   
-  - [ ] 20.2 Style vote entries
+  - [~] 20.2 Style vote entries
     - Use rounded cards with border
     - Apply color coding (emerald for successful votes)
     - Limit to 4 entries to avoid clutter
     - _Requirements: 10.6, 10.7_
   
-  - [ ] 20.3 Add real-time updates (optional enhancement)
+  - [~] 20.3 Add real-time updates (optional enhancement)
     - Implement WebSocket or polling for live vote feed
     - Update feed automatically when new votes arrive
     - _Requirements: 10.8_
 
-- [ ] 21. Implement error handling and validation
-  - [ ] 21.1 Create comprehensive validation middleware
+- [~] 21. Implement error handling and validation
+  - [~] 21.1 Create comprehensive validation middleware
     - Validate required fields in all requests
     - Return 400 with descriptive error messages
     - Validate email format using regex
@@ -473,7 +473,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Test E.164 format (+237691234567)
     - Run 100 iterations
   
-  - [ ] 21.4 Enhance error handler middleware
+  - [~] 21.4 Enhance error handler middleware
     - Handle 409 conflicts (duplicate email/phone)
     - Handle 404 not found (resource doesn't exist)
     - Handle 403 forbidden (unauthorized action)
@@ -489,8 +489,8 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Test validation error formatting
     - Test error logging without detail exposure
 
-- [ ] 22. Implement candidate verification workflow
-  - [ ] 22.1 Create OTP verification endpoint
+- [~] 22. Implement candidate verification workflow
+  - [~] 22.1 Create OTP verification endpoint
     - POST /api/candidates/verify-otp
     - Accept candidateId and verificationCode
     - Validate OTP code matches database
@@ -498,7 +498,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Clear verificationCode after successful verification
     - _Requirements: 3.9_
   
-  - [ ] 22.2 Create profile completion endpoint
+  - [~] 22.2 Create profile completion endpoint
     - PATCH /api/candidates/:id/complete-profile
     - Accept biography, birthDate, city, country, socialLinks
     - Validate candidate status is VERIFIED
@@ -513,7 +513,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Test profile completion with all fields
     - _Requirements: 3.9, 3.10_
 
-- [ ] 23. Add integration tests for critical flows
+- [~] 23. Add integration tests for critical flows
   - [ ]* 23.1 Write integration test for candidate creation flow
     - Test end-to-end candidate creation with photo
     - Test OTP generation and delivery
@@ -538,50 +538,50 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Verify CSV format and encoding
     - Verify masking applied correctly
 
-- [ ] 24. Security hardening
-  - [ ] 24.1 Add rate limiting middleware
+- [~] 24. Security hardening
+  - [~] 24.1 Add rate limiting middleware
     - Install and configure express-rate-limit
     - Apply rate limits to auth endpoints (5 attempts per 15 min)
     - Apply rate limits to admin endpoints (100 requests per 15 min)
     - Return 429 Too Many Requests when exceeded
   
-  - [ ] 24.2 Add request sanitization
+  - [~] 24.2 Add request sanitization
     - Install and configure express-validator
     - Sanitize all user inputs to prevent XSS
     - Validate and sanitize file uploads
     - Strip HTML tags from text inputs
   
-  - [ ] 24.3 Add CSRF protection
+  - [~] 24.3 Add CSRF protection
     - Configure CORS to restrict origins in production
     - Add CSRF token validation for state-changing operations
     - Set secure cookie flags (httpOnly, secure, sameSite)
   
-  - [ ] 24.4 Add security headers
+  - [~] 24.4 Add security headers
     - Install and configure helmet middleware
     - Set Content-Security-Policy headers
     - Set X-Frame-Options, X-Content-Type-Options
     - Disable X-Powered-By header
 
-- [ ] 25. Performance optimizations
-  - [ ] 25.1 Add database query optimizations
+- [~] 25. Performance optimizations
+  - [~] 25.1 Add database query optimizations
     - Add indexes for frequently queried fields (slug, categoryId, status)
     - Use Prisma select to fetch only needed fields
     - Implement cursor-based pagination for large datasets
     - Cache dashboard statistics with short TTL (5 minutes)
   
-  - [ ] 25.2 Add API response caching
+  - [~] 25.2 Add API response caching
     - Install and configure node-cache
     - Cache public configuration endpoint
     - Cache category list endpoint
     - Invalidate cache on updates
   
-  - [ ] 25.3 Optimize frontend bundle size
+  - [~] 25.3 Optimize frontend bundle size
     - Code-split admin routes with React.lazy
     - Lazy-load heavy components (charts, tables)
     - Optimize images with next-gen formats (WebP)
     - Remove unused dependencies
 
-- [ ] 26. Final checkpoint - End-to-end verification
+- [~] 26. Final checkpoint - End-to-end verification
   - Run all unit tests and property-based tests
   - Run all integration tests
   - Test complete admin workflow from login to export
@@ -628,13 +628,13 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 ### Phase 8: Frontend - Dashboard
 
 - [ ] 21. Implement dashboard statistics display
-  - [ ] 21.1 Create dashboard page component
+  - [~] 21.1 Create dashboard page component
     - Fetch dashboard stats from /api/admin/dashboard/stats
     - Display loading indicators while fetching
     - Handle API errors with user-friendly messages
     - _Requirements: 8.9, 8.10_
   
-  - [ ] 21.2 Create statistics cards component
+  - [~] 21.2 Create statistics cards component
     - Card for totalCandidates with icon
     - Card for totalVotes with icon
     - Card for totalRevenue with FCFA formatting
@@ -642,7 +642,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Color-coded visual indicators
     - _Requirements: 8.4, 8.5_
   
-  - [ ] 21.3 Implement recent candidates table
+  - [~] 21.3 Implement recent candidates table
     - Display columns: Nom, Catégorie, Votes, Statut
     - Concatenate firstName and lastName
     - Display category name
@@ -653,7 +653,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.9_
 
 
-  - [ ] 21.4 Implement recent votes activity feed
+  - [~] 21.4 Implement recent votes activity feed
     - Display "Derniers Votes" panel
     - Show masked voter identifier, amount, candidate name, time elapsed
     - Format amounts with + prefix and FCFA suffix
@@ -680,14 +680,14 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 ### Phase 9: Frontend - Candidate Management
 
 - [ ] 23. Implement candidate creation form
-  - [ ] 23.1 Create candidate form component
+  - [~] 23.1 Create candidate form component
     - Input fields: firstName, lastName, email, phone, categoryId
     - Optional fields: city, country, biography, videoUrl, socialLinks
     - Photo upload with preview
     - Form validation (required fields, email format, phone format)
     - _Requirements: 3.1, 12.8, 12.9_
   
-  - [ ] 23.2 Implement form submission
+  - [~] 23.2 Implement form submission
     - POST to /api/admin/candidates
     - Handle success response (201)
     - Handle duplicate email/phone error (409)
@@ -696,7 +696,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
 
-  - [ ] 23.3 Implement photo upload component
+  - [~] 23.3 Implement photo upload component
     - Drag-and-drop or file selector
     - Image preview before upload
     - File size validation
@@ -711,7 +711,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 3.1, 3.2, 3.3_
 
 - [ ] 24. Implement candidate listing and management
-  - [ ] 24.1 Create candidates table component
+  - [~] 24.1 Create candidates table component
     - Display all candidates with columns: Photo, Nom, Catégorie, Votes, Statut
     - Pagination support
     - Search by name functionality
@@ -719,14 +719,14 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Filter by status
     - _Requirements: 3.8, 9.1, 9.6_
   
-  - [ ] 24.2 Implement candidate row actions
+  - [~] 24.2 Implement candidate row actions
     - View candidate details button
     - Edit candidate button
     - Activate/deactivate candidate button
     - Delete candidate button (with confirmation)
     - _Requirements: 3.10_
   
-  - [ ] 24.3 Create candidate detail/edit modal
+  - [~] 24.3 Create candidate detail/edit modal
     - Display full candidate information
     - Allow editing profile fields
     - Status management dropdown
@@ -750,25 +750,25 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 ### Phase 10: Frontend - Vote Monitoring
 
 - [ ] 26. Implement vote monitoring page
-  - [ ] 26.1 Create votes table component
+  - [~] 26.1 Create votes table component
     - Display columns: Votant (masked), Candidat, Montant, Référence, Statut, Date
     - Fetch from /api/admin/votes endpoint
     - Sort by date descending (most recent first)
     - Pagination support
     - _Requirements: 4.1, 4.4, 4.5_
   
-  - [ ] 26.2 Implement vote status indicators
+  - [~] 26.2 Implement vote status indicators
     - Color-coded badges for PENDING, SUCCESS, FAILED
     - Visual icons for each status
     - _Requirements: 4.6_
   
-  - [ ] 26.3 Add vote filtering controls
+  - [~] 26.3 Add vote filtering controls
     - Filter by status dropdown (All, PENDING, SUCCESS, FAILED)
     - Filter by candidate dropdown
     - Date range filter
     - _Requirements: 4.7_
   
-  - [ ] 26.4 Display payment reference and details
+  - [~] 26.4 Display payment reference and details
     - Show Payment_Reference in table
     - Click to view full vote details modal
     - _Requirements: 4.5_
@@ -781,13 +781,13 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 
 
 - [ ] 27. Implement live vote activity feed
-  - [ ] 27.1 Create live feed component
+  - [~] 27.1 Create live feed component
     - Display most recent votes in real-time style feed
     - Auto-refresh every 30 seconds (polling)
     - Limit to 10-20 most recent votes
     - _Requirements: 10.8_
   
-  - [ ] 27.2 Add vote entry cards
+  - [~] 27.2 Add vote entry cards
     - Masked voter identifier
     - Candidate name with photo thumbnail
     - Amount with + prefix and color
@@ -800,7 +800,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Test time elapsed formatting
     - _Requirements: 10.1, 10.5_
 
-- [ ] 28. Checkpoint - Verify vote monitoring UI
+- [~] 28. Checkpoint - Verify vote monitoring UI
   - Ensure vote table displays correctly
   - Test filtering and status indicators
   - Verify live feed updates
@@ -809,14 +809,14 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 ### Phase 11: Frontend - Financial Management
 
 - [ ] 29. Implement withdrawal management page
-  - [ ] 29.1 Create withdrawal initiation form
+  - [~] 29.1 Create withdrawal initiation form
     - Input field for requested amount
     - Real-time fee calculation preview (3%)
     - Display net amount after fee
     - Submit to POST /api/admin/withdrawals
     - _Requirements: 5.1, 5.2, 5.3_
   
-  - [ ] 29.2 Implement withdrawal history table
+  - [~] 29.2 Implement withdrawal history table
     - Display columns: ID, Montant Brut, Frais 3%, Montant Net, Statut, Date
     - Fetch from GET /api/admin/withdrawals
     - Sort by date descending
@@ -824,13 +824,13 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 5.6_
 
 
-  - [ ] 29.3 Add withdrawal status management
+  - [~] 29.3 Add withdrawal status management
     - Button to mark withdrawal as COMPLETED
     - Confirmation dialog before status change
     - PATCH /api/admin/withdrawals/:id/status
     - _Requirements: 5.7_
   
-  - [ ] 29.4 Display revenue statistics
+  - [~] 29.4 Display revenue statistics
     - Total revenue card (sum of SUCCESS votes)
     - Total withdrawals card
     - Net balance calculation
@@ -842,7 +842,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Test status update functionality
     - _Requirements: 5.1, 5.2, 5.3, 5.6, 5.7_
 
-- [ ] 30. Checkpoint - Verify financial management UI
+- [~] 30. Checkpoint - Verify financial management UI
   - Ensure withdrawal form calculates fees correctly
   - Test withdrawal creation and history display
   - Verify revenue statistics accuracy
@@ -851,14 +851,14 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 ### Phase 12: Frontend - Configuration Management
 
 - [ ] 31. Implement configuration editor page
-  - [ ] 31.1 Create configuration list/editor component
+  - [~] 31.1 Create configuration list/editor component
     - Display all configuration key-value pairs in table
     - Fetch from GET /api/admin/config
     - Editable input fields for each value
     - Add new config button
     - _Requirements: 7.1_
   
-  - [ ] 31.2 Implement batch update functionality
+  - [~] 31.2 Implement batch update functionality
     - Collect all modified configs
     - Submit batch update to POST /api/admin/config
     - Transaction-based save (all or nothing)
@@ -866,13 +866,13 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 7.1, 7.4, 7.5, 7.8_
 
 
-  - [ ] 31.3 Add configuration validation
+  - [~] 31.3 Add configuration validation
     - Validate configKey is non-empty
     - Validate configValue based on type (dates, numbers, JSON)
     - Display validation errors inline
     - _Requirements: 11.5, 11.6_
   
-  - [ ] 31.4 Create preset configuration templates
+  - [~] 31.4 Create preset configuration templates
     - Voting period settings (start/end dates)
     - Vote price configuration
     - Maintenance mode toggle
@@ -885,7 +885,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Test transaction rollback on error
     - _Requirements: 7.1, 7.4, 7.5_
 
-- [ ] 32. Checkpoint - Verify configuration editor
+- [~] 32. Checkpoint - Verify configuration editor
   - Ensure config editor displays all settings
   - Test batch update functionality
   - Verify transaction behavior (all or nothing)
@@ -894,13 +894,13 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 ### Phase 13: Frontend - Data Export
 
 - [ ] 33. Implement data export functionality
-  - [ ] 33.1 Create export buttons on dashboard
+  - [~] 33.1 Create export buttons on dashboard
     - "Exporter les Votes" button
     - "Exporter les Retraits" button
     - Display download progress/status
     - _Requirements: 6.1, 6.8_
   
-  - [ ] 33.2 Implement CSV download handlers
+  - [~] 33.2 Implement CSV download handlers
     - GET /api/admin/exports/votes for votes export
     - GET /api/admin/exports/withdrawals for withdrawals export
     - Trigger browser file download
@@ -908,7 +908,7 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - _Requirements: 6.10, 6.11_
 
 
-  - [ ] 33.3 Add export date range filtering
+  - [~] 33.3 Add export date range filtering
     - Allow selecting date range for exports
     - Update export endpoints to accept date parameters
     - _Requirements: 6.12_
@@ -922,27 +922,27 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 ### Phase 14: Integration and Polish
 
 - [ ] 34. Implement validation middleware
-  - [ ] 34.1 Create Zod schemas for all endpoints
+  - [~] 34.1 Create Zod schemas for all endpoints
     - Login request schema
     - Candidate creation schema
     - Withdrawal request schema
     - Configuration update schema
     - _Requirements: 12.1, 12.7_
   
-  - [ ] 34.2 Apply validation middleware to routes
+  - [~] 34.2 Apply validation middleware to routes
     - Use validate(schema) middleware on all POST/PATCH/PUT endpoints
     - Return 400 with structured validation errors
     - _Requirements: 12.1, 12.10_
 
 - [ ] 35. Implement role-based access control
-  - [ ] 35.1 Add role checks to protected routes
+  - [~] 35.1 Add role checks to protected routes
     - SUPER_ADMIN can access all endpoints
     - COACH can access candidate and vote endpoints
     - COACH cannot access financial or config endpoints
     - Return 403 for unauthorized access
     - _Requirements: 12.3_
   
-  - [ ] 35.2 Update frontend to show/hide features by role
+  - [~] 35.2 Update frontend to show/hide features by role
     - Hide financial section for COACH users
     - Hide configuration section for COACH users
     - Display appropriate navigation items
@@ -950,40 +950,40 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 
 
 - [ ] 36. Add responsive design improvements
-  - [ ] 36.1 Optimize layout for mobile devices
+  - [~] 36.1 Optimize layout for mobile devices
     - Collapsible sidebar on mobile
     - Stack statistics cards vertically
     - Responsive table with horizontal scroll
     - Touch-friendly buttons and inputs
     - _Requirements: 8.8_
   
-  - [ ] 36.2 Add loading states and skeletons
+  - [~] 36.2 Add loading states and skeletons
     - Skeleton loaders for tables
     - Spinner for button actions
     - Progress bars for file uploads
     - _Requirements: 8.9_
   
-  - [ ] 36.3 Improve error messaging
+  - [~] 36.3 Improve error messaging
     - User-friendly error messages
     - Toast notifications for success/error
     - Retry buttons for failed requests
     - _Requirements: 8.10_
 
 - [ ] 37. Implement hover and interaction states
-  - [ ] 37.1 Add hover effects to interactive elements
+  - [~] 37.1 Add hover effects to interactive elements
     - Table row hover highlighting
     - Button hover states
     - Card hover elevation
     - _Requirements: 9.8_
   
-  - [ ] 37.2 Add focus states for accessibility
+  - [~] 37.2 Add focus states for accessibility
     - Keyboard navigation support
     - Focus indicators on form fields
     - Skip to content links
     - _Requirements: 8.8_
 
 - [ ] 38. Add search functionality
-  - [ ] 38.1 Implement global search in top bar
+  - [~] 38.1 Implement global search in top bar
     - Search candidates by name
     - Search votes by reference
     - Display search results dropdown
@@ -992,18 +992,18 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 
 
 - [ ] 39. Implement notification system
-  - [ ] 39.1 Create notification dropdown in top bar
+  - [~] 39.1 Create notification dropdown in top bar
     - Display pending actions count
     - List recent notifications (new candidates, pending withdrawals)
     - Mark as read functionality
     - _Requirements: 8.7_
   
-  - [ ] 39.2 Add notification badge indicators
+  - [~] 39.2 Add notification badge indicators
     - Badge on notification icon showing count
     - Update badge when new notifications arrive
     - _Requirements: 8.7_
 
-- [ ] 40. Final checkpoint - Integration testing
+- [~] 40. Final checkpoint - Integration testing
   - Run full end-to-end test suite
   - Test all user flows (login, create candidate, initiate withdrawal, export data)
   - Verify all API endpoints return correct responses
@@ -1015,32 +1015,32 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
 ### Phase 15: Documentation and Deployment Preparation
 
 - [ ] 41. Create API documentation
-  - [ ] 41.1 Document all API endpoints
+  - [~] 41.1 Document all API endpoints
     - Request/response formats
     - Authentication requirements
     - Error codes and messages
     - Example requests and responses
   
-  - [ ] 41.2 Add inline code documentation
+  - [~] 41.2 Add inline code documentation
     - JSDoc comments for service functions
     - Type definitions for all interfaces
     - Explain complex business logic
 
 - [ ] 42. Create deployment guides
-  - [ ] 42.1 Write backend deployment guide
+  - [~] 42.1 Write backend deployment guide
     - Environment variables setup
     - Database migration instructions
     - Production build steps
     - Health check endpoint
   
-  - [ ] 42.2 Write frontend deployment guide
+  - [~] 42.2 Write frontend deployment guide
     - Build configuration
     - Environment variables
     - CDN/static hosting setup
 
 
 - [ ] 43. Create user documentation
-  - [ ] 43.1 Write admin user guide
+  - [~] 43.1 Write admin user guide
     - Login instructions
     - Dashboard overview
     - Candidate management guide
@@ -1049,12 +1049,12 @@ This implementation plan covers the complete Admin System for the MBOA NEXT STAR
     - Configuration management guide
     - Data export guide
   
-  - [ ] 43.2 Create coach user guide
+  - [~] 43.2 Create coach user guide
     - Limited feature set documentation
     - Candidate creation walkthrough
     - Vote monitoring overview
 
-- [ ] 44. Final verification and handoff
+- [~] 44. Final verification and handoff
   - Ensure all tests pass (unit, integration, property-based)
   - Verify all 12 requirements are fully implemented
   - Review code quality and consistency

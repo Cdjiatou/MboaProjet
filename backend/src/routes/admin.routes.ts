@@ -26,6 +26,7 @@ import {
   uploadCandidatePhoto,
   deleteCandidatePhoto,
   patchWithdrawalStatus,
+  getWithdrawals,
   uploadSponsorLogoController,
   getCandidatesList,
   updateCandidateAdmin,
@@ -35,13 +36,15 @@ import {
   refreshWhatsAppSession,
   getSponsorsConfigController,
   saveSponsorsConfigController,
+  uploadMediaController,
+  updateAdminProfile,
 } from '../controllers/admin.controller';
 
 // Import des routes sponsors
 import sponsorRoutes from './sponsor.routes';
 
 // Import du middleware upload
-import { uploadCandidatePhoto as uploadMiddleware, uploadSponsorLogo, handleMulterError } from '../middlewares/upload.middleware';
+import { uploadCandidatePhoto as uploadMiddleware, uploadSponsorLogo, uploadMedia, handleMulterError } from '../middlewares/upload.middleware';
 
 // Middleware d'authentification vérifiant la présence et la validité d'un
 // JWT admin dans le header Authorization. Rejette avec 401 si absent ou invalide.
@@ -151,6 +154,13 @@ const updateCandidateSchema = z.object({
   }),
 });
 
+const updateAdminProfileSchema = z.object({
+  body: z.object({
+    email: z.string().email('Email invalide').optional(),
+    password: z.string().min(6, 'Le mot de passe doit faire au moins 6 caractères').optional(),
+  })
+});
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Définition des routes du back-office admin
 // ──────────────────────────────────────────────────────────────────────────────
@@ -218,6 +228,12 @@ router.delete('/candidates/:id', deleteCandidateAdmin);
 router.post('/sponsors/upload-logo', uploadSponsorLogo, handleMulterError, uploadSponsorLogoController);
 
 /**
+ * @route POST /media/upload
+ * @description Upload un média générique (image/vidéo) pour le carousel/prestations/bannière.
+ */
+router.post('/media/upload', uploadMedia, handleMulterError, uploadMediaController);
+
+/**
  * @route GET /sponsors/config
  * @description Récupère la liste complète des sponsors enregistrés.
  */
@@ -235,6 +251,12 @@ router.post('/sponsors/config', saveSponsorsConfigController);
  * Pas de validation nécessaire car c'est un GET sans paramètres.
  */
 router.get('/dashboard/stats', getStats);
+
+/**
+ * @route PATCH /profile
+ * @description Met à jour le profil de l'administrateur (email, password).
+ */
+router.patch('/profile', validate(updateAdminProfileSchema), updateAdminProfile);
 
 /**
  * @route POST /config

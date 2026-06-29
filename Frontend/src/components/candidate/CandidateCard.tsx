@@ -65,16 +65,19 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
             </div>
           </div>
         )}
-
-        {/* Boutons de partage social au hover */}
-        <div className="absolute bottom-3 left-3 z-10 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-          <ShareButtons
-            url={`${window.location.origin}/candidats/${candidate.slug}`}
-            text={`⭐ Votez pour ${candidate.firstName} ${candidate.lastName} sur MBOA NEXT STAR !`}
-            size="sm"
-          />
-        </div>
       </Link>
+
+      {/* Boutons de partage social au hover - HORS du Link pour éviter l'imbrication de <a> */}
+      <div 
+        className="absolute bottom-3 left-3 z-10 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ShareButtons
+          url={`${window.location.origin}/candidats/${candidate.slug}`}
+          text={`⭐ Votez pour ${candidate.firstName} ${candidate.lastName} sur MBOA NEXT STAR !`}
+          size="sm"
+        />
+      </div>
 
       {/* Bloc d'informations en bas */}
       <div className="p-4">

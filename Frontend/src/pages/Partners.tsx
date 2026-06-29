@@ -84,7 +84,7 @@ const Partners = () => {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {partners.map((partner: { name: string; image: string; url?: string }, pIndex: number) => {
             const CardWrapper = partner.url ? 'a' : 'div';
             const cardProps = partner.url
@@ -97,34 +97,49 @@ const Partners = () => {
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
-                transition={{ delay: pIndex * 0.08 }}
+                transition={{ delay: (pIndex % 4) * 0.1 }}
+                className="h-full"
               >
                 <CardWrapper
                   {...cardProps}
-                  className="group relative overflow-hidden bg-neutral-900/40 backdrop-blur-xl border border-white/5 rounded-3xl p-8 flex flex-col items-center justify-center text-center h-[300px] transition-all duration-500 hover:border-[#d4af37]/30 hover:bg-neutral-900/60 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] block"
+                  className={`
+                    group relative overflow-hidden bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/5 
+                    rounded-3xl p-6 flex flex-col items-center justify-between text-center h-[260px] 
+                    transition-all duration-500 hover:bg-[#0f0f15]/80 hover:border-[#d4af37]/30 
+                    hover:shadow-[0_20px_40px_rgba(212,175,55,0.05)] block w-full
+                  `}
                 >
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#d4af37]/5 blur-[60px] rounded-full group-hover:bg-[#d4af37]/15 transition-all duration-700 pointer-events-none" />
+                  {/* Effet lumineux de fond */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#d4af37]/[0.03] blur-[40px] rounded-full group-hover:bg-[#d4af37]/10 transition-all duration-700 pointer-events-none" />
 
-                  <div className="relative z-10 w-full h-28 flex items-center justify-center mb-6">
+                  {/* Conteneur de l'image (centré, taille fixe) */}
+                  <div className="relative z-10 w-full flex-1 flex items-center justify-center min-h-[120px] mb-4">
                     <img
                       src={getMediaUrl(partner.image)}
                       alt={partner.name}
-                      className="max-w-[80%] max-h-full object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+                      className="max-w-[85%] max-h-[100px] object-contain group-hover:scale-105 transition-transform duration-700 drop-shadow-[0_4px_12px_rgba(255,255,255,0.03)] group-hover:drop-shadow-[0_4px_15px_rgba(212,175,55,0.15)] rounded-md"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
+                        const parent = (e.target as HTMLImageElement).parentElement;
+                        if (parent) parent.innerHTML = `<span class="text-neutral-500 text-sm font-bold tracking-widest uppercase">${partner.name}</span>`;
                       }}
                     />
                   </div>
 
-                  <h3 className="relative z-10 text-white font-bold uppercase tracking-widest text-sm mb-2 group-hover:text-[#d4af37] transition-colors">
-                    {partner.name}
-                  </h3>
+                  {/* Textes en bas */}
+                  <div className="relative z-10 mt-auto w-full">
+                    <h3 className="text-white font-bold uppercase tracking-widest text-xs mb-1.5 group-hover:text-[#d4af37] transition-colors line-clamp-1 px-2">
+                      {partner.name}
+                    </h3>
 
-                  {partner.url && (
-                    <span className="relative z-10 flex items-center gap-2 text-xs font-bold text-neutral-400 group-hover:text-[#d4af37] uppercase tracking-wider transition-colors">
-                      Visiter le site <ExternalLink className="w-3 h-3" />
-                    </span>
-                  )}
+                    {partner.url ? (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-neutral-500 group-hover:text-[#d4af37]/80 uppercase tracking-wider transition-colors">
+                        Visiter <ExternalLink className="w-3 h-3" />
+                      </span>
+                    ) : (
+                      <span className="inline-block h-4" /> 
+                    )}
+                  </div>
                 </CardWrapper>
               </motion.div>
             );

@@ -10,6 +10,7 @@ import ToastContainer from './components/shared/ToastContainer';
 import AppRoutes from './routes/AppRoutes';
 import { getPublicConfig } from '@/services/adminService';
 import { useThemeStore } from '@/store/useThemeStore';
+import { FooterAdBanner } from '@/components/shared/AdBanner';
 
 const App: React.FC = () => {
   const location = useLocation();
@@ -23,8 +24,11 @@ const App: React.FC = () => {
     const loadConfig = async () => {
       try {
         const response = await getPublicConfig();
+        console.log('🔧 Config chargée depuis le backend:', response);
         if (response.success && response.data) {
           const configData = response.data;
+          console.log('📦 Données de config:', configData);
+          console.log('🎨 Logo reçu:', configData.logo_url || configData.site_logo || 'PAS DE LOGO');
           const primary = configData.primary_color || '#d4af37';
           const secondary = configData.secondary_color || '#1a1a2e';
           const background = configData.background_color || '#0a0a0a';
@@ -40,7 +44,7 @@ const App: React.FC = () => {
           document.documentElement.style.setProperty('--background-color', background);
         }
       } catch (err) {
-        console.warn('Config backend non disponible, valeurs par défaut utilisées.');
+        console.warn('Config backend non disponible, valeurs par défaut utilisées.', err);
       }
     };
 
@@ -58,13 +62,14 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-[#ffffff] font-sans selection:bg-primary selection:text-black">
+    <div className="flex flex-col min-h-screen relative font-sans antialiased text-white bg-[var(--background-color)]">
       <ToastContainer />
       <Header />
-      <main className="flex-grow flex flex-col">
+      <main className="flex-grow">
         <AppRoutes />
       </main>
       <Footer />
+      <FooterAdBanner />
     </div>
   );
 };

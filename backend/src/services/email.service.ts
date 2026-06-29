@@ -50,16 +50,43 @@ const getTransporter = async () => {
 export const sendOtpEmail = async (email: string, candidateName: string, otp: string): Promise<boolean> => {
   const subject = 'Votre code de validation MBOA NEXT STAR 🌟';
   const html = `
-    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; background-color: #0c0c12; color: #ffffff;">
-      <h2 style="color: #d4af37; text-align: center;">MBOA NEXT STAR</h2>
-      <hr style="border: 0; border-top: 1px solid #d4af37; margin: 20px 0;" />
-      <p>Bonjour <strong>${candidateName}</strong>,</p>
-      <p>Bienvenue dans l'aventure MBOA NEXT STAR ! Afin de valider votre inscription et votre numéro de téléphone, veuillez utiliser le code de vérification à usage unique (OTP) ci-dessous :</p>
-      <div style="background-color: rgba(212, 175, 55, 0.1); border: 1px dashed #d4af37; padding: 15px; border-radius: 8px; text-align: center; margin: 25px 0;">
-        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #d4af37;">${otp}</span>
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; padding: 40px 30px; border: 1px solid #1a1a1a; border-radius: 16px; background-color: #050505; color: #ffffff;">
+      
+      <!-- En-tête -->
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #d4af37; font-size: 24px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; margin: 0;">MBOA NEXT STAR</h1>
+        <p style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;">Validation de candidature</p>
       </div>
-      <p style="font-size: 13px; color: #a0a0a8;">Ce code est strictement personnel et confidentiel. Ne le partagez avec personne.</p>
-      <p style="margin-top: 30px;">L'équipe MBOA NEXT STAR</p>
+
+      <hr style="border: 0; border-top: 1px solid rgba(212, 175, 55, 0.2); margin: 0 0 30px 0;" />
+      
+      <!-- Corps du message -->
+      <p style="font-size: 16px; color: #e5e5e5; line-height: 1.6; margin-bottom: 20px;">Bonjour <strong style="color: #ffffff;">${candidateName}</strong>,</p>
+      
+      <p style="font-size: 15px; color: #a3a3a3; line-height: 1.6; margin-bottom: 30px;">
+        Félicitations pour votre inscription à la nouvelle édition de <strong>MBOA NEXT STAR</strong>. 
+        Pour des raisons de sécurité et afin de valider définitivement votre profil, veuillez saisir le code d'authentification ci-dessous.
+      </p>
+      
+      <!-- Boîte du Code -->
+      <div style="background: linear-gradient(145deg, #111111 0%, #0a0a0a 100%); border: 1px solid rgba(212, 175, 55, 0.3); padding: 25px; border-radius: 12px; text-align: center; margin: 35px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <span style="font-size: 12px; color: #888888; text-transform: uppercase; letter-spacing: 2px; display: block; margin-bottom: 10px;">Votre code de sécurité</span>
+        <span style="font-size: 38px; font-weight: 900; letter-spacing: 8px; color: #d4af37; text-shadow: 0 2px 10px rgba(212,175,55,0.2);">${otp}</span>
+      </div>
+      
+      <!-- Avertissement -->
+      <p style="font-size: 13px; color: #666666; line-height: 1.5; text-align: center; margin-bottom: 40px;">
+        Veuillez noter que ce code expirera sous peu.<br />
+        Il est strictement personnel et ne doit en aucun cas être partagé.
+      </p>
+      
+      <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.05); margin: 30px 0;" />
+      
+      <!-- Signature -->
+      <p style="font-size: 14px; color: #888888; margin: 0;">
+        Cordialement,<br />
+        <strong style="color: #d4af37; font-weight: 600;">L'équipe MBOA NEXT STAR</strong>
+      </p>
     </div>
   `;
 

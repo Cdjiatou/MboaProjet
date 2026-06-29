@@ -75,15 +75,16 @@ export const getDashboardStats = async () => {
     }
   });
 
-  // 6. Recent Votes (last 5)
+  // 6. Recent Votes (last 10, all statuses for monitoring)
   const recentVotes = await prisma.vote.findMany({
-    where: { status: 'SUCCESS' },
     orderBy: { createdAt: 'desc' },
-    take: 5,
+    take: 10,
     select: {
       id: true,
       voterIdentifier: true,
       amount: true,
+      status: true,
+      paymentReference: true,
       createdAt: true,
       candidate: {
         select: { firstName: true, lastName: true }
@@ -359,4 +360,24 @@ export const updateWithdrawalStatus = async (withdrawalId: number) => {
   });
 
   return updatedWithdrawal;
+};
+
+// =============================================================================
+// FONCTION : listWithdrawals
+// =============================================================================
+
+/**
+ * Liste tous les retraits, triés par date de création décroissante.
+ *
+ * Cette fonction récupère l'historique complet des retraits pour affichage
+ * dans le tableau de bord administrateur. Les retraits sont triés du plus
+ * récent au plus ancien pour faciliter le suivi.
+ *
+ * @returns Un tableau de tous les retraits avec leurs détails financiers.
+ */
+export const listWithdrawals = async () => {
+  const withdrawals = await prisma.withdrawal.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
+  return withdrawals;
 };

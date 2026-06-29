@@ -6,7 +6,6 @@ import { Mail, Phone, MapPin, Send, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useThemeStore } from '@/store/useThemeStore';
-import FooterAdBanner from './AdBanner';
 
 const navLinks = [
   { label: 'Accueil', href: '/' },
@@ -23,6 +22,14 @@ export const Footer = () => {
   const [email, setEmail] = useState('');
   const assets = useThemeStore((state) => state.assets);
   const logoUrl = assets.logo_url || assets.site_logo;
+
+  // Debug log pour vérifier la valeur du logo
+  console.log('🎨 Logo Debug - Footer:', {
+    'assets': assets,
+    'logo_url': assets?.logo_url,
+    'site_logo': assets?.site_logo,
+    'logoUrl utilisé': logoUrl
+  });
 
   return (
     <footer className="w-full bg-[#050505] border-t border-neutral-900 mt-auto">
@@ -154,11 +161,6 @@ export const Footer = () => {
           </div>
         </div>
       </div>
-
-      {/* ================================================================
-          SECTION PUBLICITAIRE INTELLIGENTE
-          ================================================================ */}
-      <FooterAdBanner />
 
       {/* Barre inférieure — Copyright */}
       <div className="border-t border-neutral-900/60 bg-neutral-950/40">

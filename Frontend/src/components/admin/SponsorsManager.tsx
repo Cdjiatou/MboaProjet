@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSponsorsConfig, saveSponsorsConfig, uploadSponsorLogo } from '@/services/adminService';
-import { Image as ImageIcon, Plus, Trash2, Loader2, Save, Upload, Link as LinkIcon, ExternalLink, RotateCcw } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Image as ImageIcon, Plus, Trash2, Loader2, Save, Link as LinkIcon, ExternalLink, RotateCcw, UploadCloud, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRefreshSiteConfig } from '@/hooks/useRefreshSiteConfig';
 import { getMediaUrl } from '@/utils/mediaUrl';
-import { AdminButton } from './AdminUI';
+import { AdminButton, AdminCard } from './AdminUI';
 import { useToastStore } from '@/store/useToastStore';
 import {
   DEFAULT_SPONSORS,
@@ -39,7 +39,7 @@ export const SponsorsManager = () => {
       toast.show({
         variant: 'warning',
         title: 'Backend indisponible',
-        message: 'Partenaires par défaut affichés. Vérifiez que le serveur backend tourne sur le port 3000.',
+        message: 'Partenaires par défaut affichés.',
       });
     } finally {
       setLoading(false);
@@ -61,42 +61,66 @@ export const SponsorsManager = () => {
   const handleFileUpload = async (index: number, file: File) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowed.includes(file.type)) {
-      toast.show({ variant: 'error', title: 'Format non supporté', message: 'Utilisez JPEG, PNG ou WebP.' });
+      toast.show({ variant: 'error', title: 'Format invalide', message: 'Utilisez JPEG, PNG ou WebP.' });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.show({ variant: 'error', title: 'Fichier trop volumineux', message: 'Limite : 5 Mo.' });
+      toast.show({ variant: 'error', title: 'Fichier trop volumineux', message: 'La limite est de 5 Mo.' });
       return;
     }
 
     setUploadingIndex(index);
     try {
       const res = await uploadSponsorLogo(file);
-      if (res.success && (res as { logoUrl?: string }).logoUrl) {
-        updateSponsor(index, 'image', (res as { logoUrl: string }).logoUrl);
-        toast.show({ variant: 'success', title: 'Logo importé', message: 'Le logo a été téléversé avec succès.' });
+      if (res.success && res.data?.logoUrl) {
+        const newLogoUrl = res.data.logoUrl;
+        
+        // Mettre à jour immédiatement l'état local
+        setSponsors((prev) => {
+          const next = [...prev];
+          next[index] = { ...next[index], image: newLogoUrl };
+          return next;
+        });
+
+        toast.show({ variant: 'success', title: 'Logo mis à jour', message: 'Le nouveau logo a été téléversé.' });
+        
+        // Répercuter dynamiquement en temps réel si le partenaire est valide
+        const target = sponsors[index];
+        if (target && target.name.trim()) {
+          const updatedList = sponsors.map((s, i) => i === index ? { ...s, image: newLogoUrl } : s);
+          await saveSponsorsConfig(updatedList, true);
+          await refreshConfig();
+        }
       } else {
-        toast.show({ variant: 'error', title: 'Échec', message: 'Impossible de téléverser le logo.' });
+        toast.show({ variant: 'error', title: 'Erreur', message: 'Impossible de téléverser le logo.' });
       }
     } catch (err: unknown) {
       const msg = err && typeof err === 'object' && 'response' in err
         ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
         : undefined;
-      toast.show({ variant: 'error', title: 'Erreur upload', message: msg || 'Erreur lors de l\'import.' });
+      toast.show({ variant: 'error', title: 'Erreur', message: msg || 'Erreur lors de l\'import.' });
     } finally {
       setUploadingIndex(null);
     }
   };
 
   const handleSave = async () => {
+    const hasIncomplete = sponsors.some(s => !s.name.trim() || !s.image.trim());
+    if (hasIncomplete) {
+      toast.show({
+        variant: 'error',
+        title: 'Action requise',
+        message: 'Veuillez renseigner le nom et ajouter un logo pour tous les partenaires, ou supprimez ceux qui sont vides.'
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const serverRes = await getSponsorsConfig();
       const serverList: SponsorItem[] = serverRes.success && Array.isArray(serverRes.data) ? serverRes.data : [];
 
-      const validUi = sponsors
-        .filter((s) => s.name.trim() && s.image.trim())
-        .map((s) => ({ ...s, id: s.id || generateSponsorId() }));
+      const validUi = sponsors.map((s) => ({ ...s, id: s.id || generateSponsorId() }));
 
       const uiIdSet = new Set(sponsors.map((s) => s.id).filter(Boolean));
       const deletedIds = new Set([...loadedIds].filter((id) => !uiIdSet.has(id)));
@@ -111,8 +135,8 @@ export const SponsorsManager = () => {
         setLoadedIds(new Set(saved.map((s) => s.id)));
         toast.show({
           variant: 'success',
-          title: 'Sponsors enregistrés',
-          message: `${saved.length} partenaire(s) publié(s) sur le site.`,
+          title: 'Sauvegarde réussie',
+          message: 'Les partenaires ont été mis à jour sur le site.',
         });
         await refreshConfig();
       } else {
@@ -131,112 +155,104 @@ export const SponsorsManager = () => {
   const handleRestoreDefaults = () => {
     const merged = mergeSponsors(sponsors, DEFAULT_SPONSORS);
     setSponsors(merged);
-    toast.show({ variant: 'info', title: 'Partenaires par défaut', message: 'Les sponsors par défaut ont été ajoutés à la liste. Cliquez sur Enregistrer pour publier.' });
+    toast.show({ variant: 'info', title: 'Importation', message: 'Partenaires par défaut réintégrés.' });
   };
 
   const handleAdd = () => {
-    setSponsors((prev) => [...prev, { id: generateSponsorId(), name: '', url: '', image: '' }]);
+    setSponsors((prev) => [{ id: generateSponsorId(), name: '', url: '', image: '' }, ...prev]);
   };
-
-  const activeSponsors = sponsors.filter((s) => s.name.trim() && s.image.trim());
 
   if (loading) {
     return (
-      <div className="p-10 text-center text-neutral-500">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#d4af37]" /> Chargement des sponsors...
+      <div className="p-12 text-center text-neutral-500">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#d4af37]" />
+        <span className="text-sm font-medium">Chargement des partenaires...</span>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#0a0a0f]/80 border border-white/[0.06] rounded-2xl p-5 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <ImageIcon className="w-6 h-6 text-[#d4af37]" />
+    <AdminCard>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/5">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-white/[0.02] flex items-center justify-center border border-white/5 shadow-inner">
+            <ImageIcon className="w-6 h-6 text-neutral-400" />
+          </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Gestion des Sponsors</h2>
-            <p className="text-xs text-neutral-500 mt-0.5">{activeSponsors.length} partenaire(s) actif(s) · {sponsors.length} entrée(s) au total</p>
+            <h2 className="text-xl font-bold text-white tracking-wide font-heading">Gestion des sponsors</h2>
+            <p className="text-xs text-neutral-400 mt-1">{sponsors.length} partenaire(s) référencé(s)</p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <AdminButton variant="secondary" size="sm" icon={RotateCcw} onClick={handleRestoreDefaults} className="normal-case tracking-normal">
-            Importer défauts
+        <div className="flex flex-wrap items-center gap-3">
+          <AdminButton variant="secondary" size="sm" icon={RotateCcw} onClick={handleRestoreDefaults}>
+            réinitialiser
           </AdminButton>
           <AdminButton icon={Save} onClick={handleSave} loading={saving}>
-            Enregistrer tout
+            enregistrer
           </AdminButton>
         </div>
       </div>
 
-      {activeSponsors.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-4">Aperçu sur le site</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {activeSponsors.map((s) => (
-              <div
-                key={s.id}
-                className="group relative bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 flex flex-col items-center gap-3 hover:border-[#d4af37]/30 transition-colors"
-              >
-                <div className="w-full h-16 flex items-center justify-center">
-                  <img src={getMediaUrl(s.image)} alt={s.name} className="max-h-full max-w-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                </div>
-                <p className="text-xs text-white font-medium text-center truncate w-full">{s.name}</p>
-                {s.url && (
-                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] text-[#d4af37] hover:underline">
-                    <ExternalLink className="w-3 h-3" /> Site web
-                  </a>
-                )}
-              </div>
-            ))}
+      <div className="space-y-6">
+        <button
+          onClick={handleAdd}
+          className="w-full group relative overflow-hidden bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 rounded-3xl py-6 flex flex-col items-center justify-center gap-2.5"
+        >
+          <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <Plus className="w-5 h-5 text-neutral-400" />
           </div>
-        </div>
-      )}
+          <span className="text-sm font-medium text-neutral-400 group-hover:text-white transition-colors">
+            ajouter un partenaire
+          </span>
+        </button>
 
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-neutral-400 uppercase tracking-wider">Tous les partenaires</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <AnimatePresence>
+            {sponsors.map((s, index) => (
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                key={s.id}
+                className="bg-white/[0.02] rounded-3xl overflow-hidden shadow-xl group hover:bg-white/[0.04] transition-all duration-300"
+              >
+                {/* Image Upload Area */}
+                <div 
+                  className="relative w-full h-40 bg-black/40 cursor-pointer overflow-hidden flex items-center justify-center"
+                  onClick={() => fileInputRefs.current[index]?.click()}
+                >
+                  {s.image ? (
+                    <img 
+                      src={getMediaUrl(s.image)} 
+                      alt={s.name} 
+                      className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" 
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2.5 text-neutral-500 group-hover:text-neutral-300 transition-colors">
+                      <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 group-hover:border-white/20 transition-all">
+                        <UploadCloud className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-medium">ajouter un logo</span>
+                    </div>
+                  )}
 
-        {sponsors.map((s, index) => (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            key={s.id}
-            className="bg-white/[0.03] p-4 rounded-xl border border-white/[0.06] space-y-4"
-          >
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="w-full sm:w-24 h-24 rounded-xl bg-white/5 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center p-2">
-                {s.image ? (
-                  <img src={getMediaUrl(s.image)} alt={s.name} className="max-w-full max-h-full object-contain" />
-                ) : (
-                  <ImageIcon className="w-8 h-8 text-neutral-600" />
-                )}
-              </div>
+                  {uploadingIndex === index && (
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center">
+                      <Loader2 className="w-7 h-7 animate-spin text-[#d4af37] mb-2" />
+                      <span className="text-xs text-white font-medium">Téléversement...</span>
+                    </div>
+                  )}
 
-              <div className="flex-1 space-y-3">
-                <input
-                  type="text"
-                  value={s.name}
-                  onChange={(e) => updateSponsor(index, 'name', e.target.value)}
-                  placeholder="Nom du partenaire"
-                  className="w-full bg-[#0b0b0b] border border-white/[0.06] rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#d4af37]/40 transition-all"
-                />
-                <div className="flex items-center gap-2">
-                  <LinkIcon className="w-4 h-4 text-neutral-500 shrink-0" />
-                  <input
-                    type="url"
-                    value={s.url}
-                    onChange={(e) => updateSponsor(index, 'url', e.target.value)}
-                    placeholder="https://site-du-partenaire.com"
-                    className="flex-1 bg-[#0b0b0b] border border-white/[0.06] rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#d4af37]/40 transition-all"
-                  />
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    value={s.image}
-                    onChange={(e) => updateSponsor(index, 'image', e.target.value)}
-                    placeholder="URL du logo ou importer depuis le PC"
-                    className="flex-1 bg-[#0b0b0b] border border-white/[0.06] rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#d4af37]/40 transition-all"
-                  />
+                  {s.image && uploadingIndex !== index && (
+                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                      <span className="text-xs text-white font-medium flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded-xl border border-white/10">
+                        <UploadCloud className="w-4 h-4 text-[#d4af37]" /> Changer le logo
+                      </span>
+                    </div>
+                  )}
+                  
                   <input
                     ref={(el) => { fileInputRefs.current[index] = el; }}
                     type="file"
@@ -248,37 +264,60 @@ export const SponsorsManager = () => {
                       e.target.value = '';
                     }}
                   />
-                  <AdminButton
-                    variant="secondary"
-                    size="sm"
-                    icon={Upload}
-                    loading={uploadingIndex === index}
-                    onClick={() => fileInputRefs.current[index]?.click()}
-                    className="shrink-0 normal-case tracking-normal"
-                  >
-                    Importer
-                  </AdminButton>
                 </div>
-              </div>
 
-              <button
-                onClick={() => setSponsors(sponsors.filter((_, i) => i !== index))}
-                className="self-start p-2.5 text-red-400 hover:text-red-300 bg-red-400/10 hover:bg-red-400/20 rounded-xl transition-colors"
-                title="Supprimer ce partenaire"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        ))}
+                {/* Form Fields */}
+                <div className="p-5 space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-400 mb-1.5">Nom du partenaire</label>
+                    <input
+                          type="text"
+                          value={s.name}
+                          onChange={(e) => updateSponsor(index, 'name', e.target.value)}
+                          placeholder="Nom du partenaire"
+                          className="w-full bg-white/[0.03] rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:bg-white/[0.06] transition-colors"
+                        />
+                    {!s.name.trim() && (
+                      <p className="flex items-center gap-1 text-red-400 text-xs mt-1.5">
+                        <AlertCircle className="w-3.5 h-3.5" /> Champ obligatoire
+                      </p>
+                    )}
+                  </div>
 
-        <button
-          onClick={handleAdd}
-          className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-white/[0.06] text-neutral-400 hover:text-white hover:border-[#d4af37] hover:bg-[#d4af37]/5 transition-all rounded-xl text-sm font-semibold"
-        >
-          <Plus className="w-4 h-4" /> Ajouter un partenaire
-        </button>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-400 mb-1.5">Lien site web (optionnel)</label>
+                    <div className="relative">
+                      <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                      <input
+                          type="url"
+                          value={s.url}
+                          onChange={(e) => updateSponsor(index, 'url', e.target.value)}
+                          placeholder="https://..."
+                          className="w-full bg-white/[0.03] rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:bg-white/[0.06] transition-colors"
+                        />
+                      {s.url && (
+                        <a href={s.url} target="_blank" rel="noopener noreferrer" className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors">
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Footer / Actions */}
+                <div className="px-5 py-3 border-t border-white/5 flex items-center justify-end bg-white/[0.01]">
+                  <button
+                    onClick={() => setSponsors(sponsors.filter((_, i) => i !== index))}
+                    className="flex items-center gap-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-1.5 rounded-xl transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Supprimer
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
+    </AdminCard>
   );
 };

@@ -8,8 +8,14 @@ import { Link } from 'react-router-dom';
 import { Star, ChevronRight, Phone, Mail } from 'lucide-react';
 import { CandidateCard } from '@/components/candidate/CandidateCard';
 import SponsorMarquee from '@/components/shared/SponsorMarquee';
+
+import PerformancesSection from '@/components/home/PerformancesSection';
 import { usePublicCandidates } from '@/hooks/usePublicCandidates';
 import { useThemeStore } from '@/store/useThemeStore';
+import { resolvePublicSponsors } from '@/utils/sponsors';
+import { getMediaUrl } from '@/utils/mediaUrl';
+import { VoteModal } from '@/components/candidate/VoteModal';
+import type { Candidate } from '@/types';
 
 // =============================================================================
 // DONNÉES STATIQUES & FALLBACKS
@@ -94,22 +100,85 @@ const STATS = [
 //   return null;
 // };
 
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const patterns = [
+    /youtu\.be\/([^?&\s]+)/,
+    /youtube\.com\/watch\?v=([^&\s]+)/,
+    /youtube\.com\/embed\/([^?&\s]+)/,
+    /youtube\.com\/shorts\/([^?&\s]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function getFacebookVideoId(url: string): string | null {
+  if (!url) return null;
+  
+  // Nettoyer l'URL (supprimer les espaces et les paramètres inutiles)
+  const cleanUrl = url.trim();
+  
+  // Patterns Facebook : fb.watch, facebook.com/watch, facebook.com/videos, facebook.com/share
+  const patterns = [
+    /facebook\.com\/watch\/?\?v=(\d+)/,           // facebook.com/watch?v=123456
+    /facebook\.com\/.*\/videos\/(\d+)/,           // facebook.com/username/videos/123456
+    /fb\.watch\/([^/?]+)/,                        // fb.watch/abc123
+    /facebook\.com\/video\.php\?v=(\d+)/,         // facebook.com/video.php?v=123456
+    /facebook\.com\/share\/v\/([^/?]+)/,          // facebook.com/share/v/abc123 (nouveau format)
+    /facebook\.com\/reel\/(\d+)/,                 // facebook.com/reel/123456
+  ];
+  
+  for (const pattern of patterns) {
+    const match = cleanUrl.match(pattern);
+    if (match) {
+      console.log('[Home] Facebook video ID détecté:', match[1], 'depuis URL:', cleanUrl);
+      return match[1];
+    }
+  }
+  
+  // Si aucun pattern ne matche, retourner l'URL complète pour utilisation directe
+  console.log('[Home] Aucun ID Facebook extrait, utilisation de l\'URL complète:', cleanUrl);
+  return cleanUrl;
+}
+
 const Home = () => {
   const { candidates: allCandidates } = usePublicCandidates(15000);
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [playingVideoIndex, setPlayingVideoIndex] = useState<number | null>(null);
+  const [voteCandidate, setVoteCandidate] = useState<Candidate | null>(null);
 
   const assets = useThemeStore((state) => state.assets);
+  const sponsors = resolvePublicSponsors(assets?.sponsors);
 
   const heroImages: string[] = (() => {
+    const DEFAULT_IMAGES = [
+      "https://media.base44.com/images/public/user_6a3c07aa9ffa3b12fd326efb/e4c4da7ff_WhatsAppImage2026-06-24at122312.jpg",
+      "https://media.base44.com/images/public/user_6a3c07aa9ffa3b12fd326efb/ef6237930_WhatsAppImage2026-06-24at122313.jpg",
+      "https://media.base44.com/images/public/user_6a3c07aa9ffa3b12fd326efb/65bd1e076_WhatsAppImage2026-06-24at122314.jpeg",
+      "https://media.base44.com/images/public/user_6a3c07aa9ffa3b12fd326efb/cca43cfe1_WhatsAppImage2026-06-24at122315.jpg",
+      "https://media.base44.com/images/public/user_6a3c07aa9ffa3b12fd326efb/9f593dbde_WhatsAppImage2026-06-24at122316.jpg",
+    ];
+
     try {
       if (assets.hero_images) {
         const parsed = JSON.parse(assets.hero_images);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Filtrer les images vides et retourner toutes les images valides
+          const validImages = parsed.filter((img): img is string => typeof img === 'string' && img.trim().length > 0);
+          if (validImages.length > 0) {
+            return validImages;
+          }
+        }
       }
     } catch (e) {
       console.error('Error parsing hero_images', e);
     }
-    // Fallback aux anciens champs ou aux images par défaut
+
+    // Fallback complet : anciens champs individuels ou images par défaut
     const fromAssets = [
       assets.hero_image_1,
       assets.hero_image_2,
@@ -117,17 +186,44 @@ const Home = () => {
       assets.hero_image_4,
       assets.hero_image_5,
     ].filter((img): img is string => typeof img === 'string' && img.length > 0);
-    return fromAssets.length > 0 ? fromAssets : DEFAULT_HERO_IMAGES;
+    
+    return fromAssets.length > 0 ? fromAssets : DEFAULT_IMAGES;
   })();
+
+  // Précharger les images du carousel pour éviter le flou
+  useEffect(() => {
+    const preloadImages = async () => {
+      const imagePromises = heroImages.map((src) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = () => {
+            console.warn('Échec préchargement:', src);
+            resolve(null); // Continue même si une image échoue
+          };
+          // Convertir les chemins relatifs en chemins absolus
+          img.src = src.startsWith('/uploads/') 
+            ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${src}`
+            : src;
+        });
+      });
+
+      await Promise.all(imagePromises);
+      setImagesLoaded(true);
+    };
+
+    preloadImages();
+  }, [heroImages]);
 
   const videos: {title: string, url: string}[] = (() => {
     try {
       if (assets.videos) {
         const parsed = JSON.parse(assets.videos);
+        console.log('[Home] Vidéos chargées depuis assets:', parsed);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {
-      console.error('Error parsing videos', e);
+      console.error('[Home] Error parsing videos', e);
     }
     return [];
   })();
@@ -135,7 +231,8 @@ const Home = () => {
   const youtubeChannel = assets.youtube_channel || 'https://youtube.com/@mboanextstar237';
 
   const heroLiveBadge = assets.hero_live_badge || "Saison 2026 — Du 07 Juillet au 28 Août";
-  const heroTitle = assets.hero_title || "La Prochaine\nStar C'est Toi";
+  const rawTitle = assets.hero_title || "La Prochaine\nStar C'est Toi";
+  const heroTitle = rawTitle.replace(/PROCHAINESTAR/ig, 'PROCHAINE STAR');
   const heroDesc = assets.hero_desc || "Découvrez les talents qui façonneront la culture africaine. Votez, soutenez, et propulsez vos artistes préférés vers les étoiles.";
 
   const statsList = (() => {
@@ -187,25 +284,44 @@ const Home = () => {
           1. HERO SECTION
           ===================================================================== */}
       <section className="relative w-full h-dvh min-h-[750px] flex items-center justify-center overflow-hidden">
+        {/* Container d'image avec effet de zoom et de flou minimal */}
         <div className="absolute inset-0 z-0">
           <AnimatePresence mode="wait">
-            <motion.img
+            <motion.div
               key={currentHeroSlide}
-              src={heroImages[currentHeroSlide]}
-              alt={`MBOA NEXT STAR Slide ${currentHeroSlide + 1}`}
-              initial={{ opacity: 0, scale: 1.05 }}
+              initial={{ opacity: 0, scale: 1.08 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1.2, ease: 'easeInOut' }}
-              className="absolute inset-0 w-full h-full object-cover object-center brightness-75"
-            />
+              transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 w-full h-full"
+            >
+              <img
+                src={
+                  heroImages[currentHeroSlide]?.startsWith('/uploads/')
+                    ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${heroImages[currentHeroSlide]}`
+                    : heroImages[currentHeroSlide]
+                }
+                alt={`MBOA NEXT STAR Slide ${currentHeroSlide + 1}`}
+                className="absolute inset-0 w-full h-full object-cover object-center"
+                style={{
+                  imageRendering: 'crisp-edges',
+                  filter: 'brightness(0.7) contrast(1.05)',
+                }}
+                loading="eager"
+                onError={(e) => {
+                  console.error('Erreur de chargement image carousel:', heroImages[currentHeroSlide]);
+                  // Fallback vers une image placeholder si l'image ne charge pas
+                  (e.target as HTMLImageElement).src = 'https://placehold.co/1920x1080/0a0a0a/666666?text=MBOA+NEXT+STAR';
+                }}
+              />
+            </motion.div>
           </AnimatePresence>
         </div>
 
         {/* Overlays : Gradient pour lisibilité sans trop de lumière */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/90 via-[#050505]/50 to-[#050505] z-[1]" />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center flex flex-col items-center mt-8">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center flex flex-col items-center mt-2 sm:mt-0 -translate-y-6 sm:-translate-y-12">
           
           {/* Badge Saison */}
           <motion.div
@@ -218,9 +334,7 @@ const Home = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#d4af37] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#d4af37]"></span>
             </span>
-            <span className="text-white text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em]">
-              {heroLiveBadge}
-            </span>
+            <span className="text-white text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em]">{heroLiveBadge}</span>
           </motion.div>
 
           {/* Titre Principal */}
@@ -232,13 +346,24 @@ const Home = () => {
           >
             {(() => {
               const parts = heroTitle.split('\n');
+              // Colorize specific words: La, Star in gold
+              const colorizeWords = (text: string) => {
+                return text.split(/\b/).map((word, i) => {
+                  const lower = word.toLowerCase().trim();
+                  if (lower === 'la' || lower === 'star') {
+                    return <span key={i} className="text-[#d4af37]">{word}</span>;
+                  }
+                  return <span key={i} className="text-white">{word}</span>;
+                });
+              };
               return (
                 <>
-                  <span className="text-white">{parts[0]}</span> <br />
+                  <span>{colorizeWords(parts[0])}</span>
                   {parts[1] && (
-                    <span className="text-[#d4af37]">
-                      {parts[1]}
-                    </span>
+                    <>
+                      <br />
+                      <span>{colorizeWords(parts[1])}</span>
+                    </>
                   )}
                 </>
               );
@@ -279,23 +404,57 @@ const Home = () => {
         </div>
 
         {/* Sponsor overlay on Carousel */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 1 }}
-          className="absolute bottom-16 left-0 right-0 z-10 px-6 hidden sm:block"
-        >
-          <div className="max-w-4xl mx-auto">
-            <p className="text-center text-[10px] text-neutral-400 font-bold uppercase tracking-[0.3em] mb-4">Avec le soutien de</p>
-            <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-12 opacity-60 hover:opacity-100 transition-opacity">
-              <img src="/images/partners/mtn.png" alt="MTN" className="h-6 sm:h-8 object-contain filter grayscale hover:grayscale-0 transition-all" />
-              <img src="/images/partners/crtv.png" alt="CRTV" className="h-6 sm:h-8 object-contain filter grayscale hover:grayscale-0 transition-all" />
-              <img src="/images/partners/mboa-vibes.png" alt="Mboa Vibes" className="h-6 sm:h-8 object-contain filter grayscale hover:grayscale-0 transition-all" />
-              <img src="/images/partners/bled-city.png" alt="Bled City" className="h-6 sm:h-8 object-contain filter grayscale hover:grayscale-0 transition-all" />
-              <img src="/images/partners/nash-concept.png" alt="Nash Concept" className="h-6 sm:h-8 object-contain filter grayscale hover:grayscale-0 transition-all" />
+        {sponsors.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 1 }}
+            className="absolute bottom-12 left-0 right-0 z-10 px-6 hidden sm:block"
+          >
+            <div className="max-w-4xl mx-auto backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl py-5 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#d4af37]/50"></div>
+                <p className="text-center text-[10px] sm:text-xs text-[#d4af37] font-black uppercase tracking-[0.3em]">
+                  Avec le soutien de
+                </p>
+                <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#d4af37]/50"></div>
+              </div>
+              
+              {/* Marquee horizontal défilant */}
+              <div className="relative overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white/5 to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white/5 to-transparent z-10 pointer-events-none" />
+                <div className="flex items-center gap-12 animate-[sponsorScroll_20s_linear_infinite] hover:[animation-play-state:paused] w-max">
+                  {[...sponsors, ...sponsors, ...sponsors].map((sponsor, idx) => (
+                    <div key={idx} className="h-12 sm:h-16 flex items-center justify-center shrink-0">
+                      {sponsor.image ? (
+                        <img 
+                          src={getMediaUrl(sponsor.image)} 
+                          alt={sponsor.name} 
+                          className="h-full w-auto max-w-[140px] sm:max-w-[180px] object-contain drop-shadow-lg" 
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            const parent = (e.target as HTMLImageElement).parentElement;
+                            if (parent) parent.innerHTML = `
+                              <span class="text-white text-sm font-bold tracking-[0.15em] uppercase whitespace-nowrap">${sponsor.name}</span>
+                            `;
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-[#d4af37] rotate-45 shrink-0" />
+                          <span className="text-white text-sm font-bold tracking-[0.15em] uppercase whitespace-nowrap">
+                            {sponsor.name}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* Indicateurs de Slide modifiés */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-3">
@@ -315,14 +474,7 @@ const Home = () => {
       </section>
 
       {/* =====================================================================
-          2. BANDE SPONSORS HAUT
-          ===================================================================== */}
-      <div className="w-full bg-neutral-950 border-y border-neutral-900 py-3.5">
-        <SponsorMarquee />
-      </div>
-
-      {/* =====================================================================
-          3. SECTION STATS (Ajusté pour être centré et fluide sur mobile)
+          4. SECTION STATS (Ajusté pour être centré et fluide sur mobile)
           ===================================================================== */}
       <section className="py-16 px-6 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -343,7 +495,14 @@ const Home = () => {
       </section>
 
       {/* =====================================================================
-          4. À PROPOS
+          5. SECTION TALENTS EN SCÈNE (Vidéos prestations)
+          ===================================================================== */}
+      <div className="w-full bg-[#050505] border-y border-white/[0.04]">
+        <PerformancesSection />
+      </div>
+
+      {/* =====================================================================
+          6. À PROPOS
           ===================================================================== */}
       <section id="about" className="py-20 px-6 max-w-4xl mx-auto w-full text-center">
         <span className="text-[#d4af37] text-xs font-bold uppercase tracking-[0.25em] block mb-3">
@@ -376,16 +535,16 @@ const Home = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full">
             {topFavorites.map((candidate, i) => (
-              <CandidateCard key={candidate.id} candidate={candidate} rank={i + 1} />
+              <CandidateCard 
+                key={candidate.id} 
+                candidate={candidate} 
+                rank={i + 1} 
+                onVoteClick={(c) => setVoteCandidate(c)}
+              />
             ))}
           </div>
         </section>
       )}
-
-      {/* =====================================================================
-          5. LES CATÉGORIES (Design Premium Bento + Posters)
-          ===================================================================== */}
-     
 
       {/* =====================================================================
           5b. LE JURY — Membres du jury officiel
@@ -453,9 +612,9 @@ const Home = () => {
       </section>
 
       {/* =====================================================================
-          5c. MBOA NEXT STAR TV — Vidéos promotionnelles
+          5c. MBOA NEXT STAR TV — Vidéos promotionnelles (Dynamique)
           ===================================================================== */}
-      <section className="py-20 px-6 max-w-7xl mx-auto w-full">
+      <section className="py-20 px-6 max-w-7xl mx-auto w-full border-t border-[#d4af37]/10">
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -477,95 +636,152 @@ const Home = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            { title: 'Bande-annonce MBOA NEXT STAR 2026', thumbnail: null },
-            { title: 'Les coulisses des auditions', thumbnail: null },
-            { title: 'Moments forts — Saison 2026', thumbnail: null },
-          ].map((video, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group relative aspect-video rounded-2xl overflow-hidden bg-[#0b0b0b] border border-white/5 hover:border-[#d4af37]/30 transition-all duration-500"
-            >
-              {/* Placeholder visuel */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#1a1610] via-[#0d0b08] to-[#050505] flex flex-col items-center justify-center">
-                <div className="w-16 h-16 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20 flex items-center justify-center mb-4 group-hover:bg-[#d4af37] group-hover:border-[#d4af37] transition-all duration-500">
-                  <svg className="w-6 h-6 text-[#d4af37] group-hover:text-black transition-colors duration-500 ml-1" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-                <p className="text-neutral-400 text-xs font-bold uppercase tracking-wider text-center px-4 group-hover:text-white transition-colors">
-                  {video.title}
-                </p>
-                <p className="text-neutral-600 text-[10px] uppercase tracking-widest mt-2">
-                  Bientôt disponible
-                </p>
-              </div>
+          {(() => {
+            const list = [...videos];
+            const defaultPlaceholders = [
+              { title: 'Bande-annonce MBOA NEXT STAR 2026', url: '' },
+              { title: 'Les coulisses des auditions', url: '' },
+              { title: 'Moments forts — Saison 2026', url: '' },
+            ];
+            while (list.length < 3) {
+              list.push(defaultPlaceholders[list.length]);
+            }
+            return list.slice(0, 6);
+          })().map((video, index) => {
+            const hasVideo = !!video.url;
+            const ytId = hasVideo ? getYouTubeId(video.url) : null;
+            const fbId = hasVideo ? getFacebookVideoId(video.url) : null;
+            const isDirectVideo = hasVideo && (video.url.startsWith('/uploads/') || video.url.includes('cloudinary.com'));
+            const isYouTubeVideo = hasVideo && ytId;
+            const isFacebookVideo = hasVideo && !isYouTubeVideo && !isDirectVideo && (
+              video.url.includes('facebook.com') || 
+              video.url.includes('fb.watch') ||
+              fbId !== null
+            );
 
-              {/* Glow effect au hover */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#d4af37]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            </motion.div>
-          ))}
+            const videoUrl = hasVideo && video.url.startsWith('/uploads/')
+              ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${video.url}`
+              : video.url;
+
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="group relative aspect-video rounded-2xl overflow-hidden bg-[#0b0b0b] border border-white/5 transition-all duration-500 shadow-lg"
+              >
+                {/* Badge d'indication visuelle (désactivé aux événements de souris pour ne pas bloquer les iframes) */}
+                {hasVideo && (
+                  <div className="absolute top-3 left-3 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#d4af37] rounded-lg shadow-lg">
+                      <svg className="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                      </svg>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-black">
+                        {isYouTubeVideo ? 'YouTube' : isFacebookVideo ? 'Facebook' : 'Vidéo'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="absolute inset-0">
+                  {isYouTubeVideo ? (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1`}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={video.title}
+                    />
+                  ) : isFacebookVideo ? (
+                    <iframe
+                      src={`https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(video.url)}&show_text=false&width=auto`}
+                      className="w-full h-full"
+                      style={{ border: 'none', overflow: 'hidden' }}
+                      scrolling="no"
+                      frameBorder="0"
+                      allowTransparency={true}
+                      allow="encrypted-media"
+                      title={video.title}
+                    />
+                  ) : hasVideo && isDirectVideo ? (
+                    <div className="w-full h-full relative">
+                      <video
+                        src={videoUrl}
+                        controls
+                        className="w-full h-full object-cover bg-black"
+                        controlsList="nodownload"
+                        preload="metadata"
+                      />
+                      <div className="absolute top-0 left-0 w-full p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+                        <h3 className="text-white text-sm font-bold uppercase tracking-wider line-clamp-1 drop-shadow-md">
+                          {video.title}
+                        </h3>
+                      </div>
+                    </div>
+                  ) : (
+                    // Placeholder pour vidéos non disponibles
+                    <div className="w-full h-full bg-gradient-to-br from-neutral-900 to-black border border-white/5">
+                      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-white/5 border-2 border-white/10">
+                          <svg className="w-6 h-6 text-neutral-500" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
+                        
+                        <h3 className="text-white text-sm sm:text-base font-bold uppercase tracking-wider line-clamp-2 px-4 mb-2 opacity-70">
+                          {video.title}
+                        </h3>
+                        
+                        <div className="px-3 py-1 bg-neutral-800 rounded-full border border-white/10">
+                          <p className="text-neutral-400 text-[10px] uppercase tracking-widest font-bold">
+                            Bientôt disponible
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
+
+        {/* Bouton CTA Chaîne YouTube */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-14 flex flex-col items-center justify-center"
+        >
+          <a
+            href="https://youtube.com/@mboanextstar237?si=815Ala4cymOaZgPh"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative inline-flex items-center gap-3 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-[#0a0a0a] border border-red-500/30 hover:border-red-500 transition-all duration-500 shadow-lg hover:shadow-[0_0_30px_rgba(239,68,68,0.3)] overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/10 to-red-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            
+            {/* Icône Play YouTube */}
+            <div className="relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-600 text-white shadow-md group-hover:scale-110 transition-transform duration-500">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            
+            <div className="relative flex flex-col text-left">
+              <span className="text-neutral-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-0.5">Plus de contenus exclusifs</span>
+              <span className="text-white font-black tracking-wide uppercase text-xs sm:text-sm group-hover:text-red-400 transition-colors duration-300">
+                Visitez notre chaîne YouTube
+              </span>
+            </div>
+          </a>
+        </motion.div>
+
       </section>
-
-      {/* =====================================================================
-          VIDÉOS YOUTUBE (Dynamique)
-          ===================================================================== */}
-      {videos.length > 0 && (
-        <section className="py-20 px-6 max-w-6xl mx-auto w-full border-t border-[#d4af37]/10">
-          <div className="mb-12 text-center">
-            <span className="text-[#d4af37] text-xs font-bold uppercase tracking-[0.25em] block mb-2">
-              Médias
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-black font-heading tracking-[-0.026em] uppercase">
-              Vidéos & Revues
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {videos.map((video, idx) => {
-              // Extraction de l'ID YouTube
-              let videoId = '';
-              const match = video.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-              if (match && match[1]) videoId = match[1];
-
-              return (
-                <div key={idx} className="bg-[#0b0b0b] rounded-2xl overflow-hidden border border-white/5 hover:border-[#d4af37]/30 transition-colors group">
-                  <div className="relative aspect-video w-full bg-black">
-                    {videoId ? (
-                      <iframe 
-                        src={`https://www.youtube.com/embed/${videoId}`} 
-                        title={video.title}
-                        className="absolute inset-0 w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center text-neutral-500">URL Invalide</div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-white font-bold text-sm line-clamp-2">{video.title}</h3>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-10 text-center">
-            <a 
-              href={youtubeChannel}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 border border-[#d4af37]/30 text-[#d4af37] font-bold text-sm uppercase tracking-wider rounded-xl hover:bg-[#d4af37]/10 transition-colors"
-            >
-              Voir notre chaîne YouTube
-            </a>
-          </div>
-        </section>
-      )}
       
       {/* =====================================================================
           7. CTA FINAL — Chaque Vote Compte (FOND PREMIUM OR ET NOIR)
@@ -660,6 +876,16 @@ const Home = () => {
       <div id="partners" className="w-full bg-neutral-950 border-t border-neutral-900 py-5">
         <SponsorMarquee />
       </div>
+
+      {/* Modal de vote pour les candidats sur la page d'accueil */}
+      {voteCandidate && (
+        <VoteModal
+          candidate={voteCandidate}
+          isOpen={!!voteCandidate}
+          onClose={() => setVoteCandidate(null)}
+          onVoteSuccess={() => setVoteCandidate(null)}
+        />
+      )}
     </div>
   );
 };

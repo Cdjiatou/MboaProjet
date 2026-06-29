@@ -120,6 +120,16 @@ export const Header = () => {
   const logoUrl = assets?.logo_url || assets?.site_logo || null;
   const currentPath = location.pathname + location.hash;
 
+  // Debug log pour vérifier la valeur du logo
+  useEffect(() => {
+    console.log('🎨 Logo Debug - Header:', {
+      'assets': assets,
+      'logo_url': assets?.logo_url,
+      'site_logo': assets?.site_logo,
+      'logoUrl utilisé': logoUrl
+    });
+  }, [assets, logoUrl]);
+
   const checkActive = (href: string) => currentPath === href || (href === '/' && currentPath === '');
   const isDropdownActive = DROPDOWN_LINKS.some(link => checkActive(link.href));
 

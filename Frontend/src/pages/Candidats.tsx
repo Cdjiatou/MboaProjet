@@ -60,25 +60,16 @@ const Candidats = () => {
           1. HEADER SECTION (Recherche & Filtres)
           ===================================================================== */}
       <section className="relative w-full max-w-7xl mx-auto px-6 mb-12">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#d4af37]/10 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#d4af37]/10 blur-[100px] rounded-full pointer-events-none " />
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/10 pb-8">
           <div>
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 mb-4"
-            >
-              <Star className="w-4 h-4 text-[#d4af37]" />
-              <span className="text-[#d4af37] text-xs font-semibold uppercase tracking-wider">
-                Classement & Talents
-              </span>
-            </motion.div>
+       
             
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-4xl sm:text-5xl font-black uppercase font-heading tracking-[-0.02em]"
+              className="text-4xl sm:text-5xl mt-20 font-black uppercase font-heading tracking-[-0.02em]"
             >
               Tous les <span className="text-[#d4af37]">Candidats</span>
             </motion.h1>

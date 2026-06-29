@@ -1,179 +1,357 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Play } from 'lucide-react';
+import { ExternalLink, ChevronLeft, ChevronRight, Volume2, VolumeX, X, Sparkles } from 'lucide-react';
+import { getPublicConfig } from '@/services/adminService';
+import { type AdBannerItem } from '@/components/admin/BannerManager';
 
-const FOOTER_ADS = [
-  {
-    id: 'ad-1',
-    company: 'MBOA Vidéo',
-    title: 'Vidéo Exclusive Partenaire',
-    description: 'Découvrez en exclusivité les images inédites de nos partenaires et soutenez la culture urbaine.',
-    videoUrl: 'https://drive.google.com/file/d/1uLjYSEaiWUKPcpeGmoQWeOBhpQCqPlXO/preview',
-    thumbnail: '/images/categories/chant.jpg',
-    ctaText: 'Soutenir',
-    link: '#',
-    bgColor: 'from-[#d4af37]/30 to-black',
-    accentColor: '#d4af37'
-  },
-  {
-    id: 'ad-2',
-    company: 'MBOA Auditions',
-    title: 'Auditions Douala — Les meilleurs moments',
-    description: 'Revivez les temps forts des auditions de Douala. Laissez-vous surprendre par les talents bruts.',
-    youtubeId: 'jNQXAC9IVRw',
-    thumbnail: 'https://drive.google.com/file/d/1yZv-cLavdwz9tYjo5XY00BtdBPESCH8e/view?usp=sharing',
-    ctaText: 'Découvrir',
-    link: '#',
-    bgColor: 'from-[#ff3333]/20 to-black',
-    accentColor: '#ff3333'
-  },
-  {
-    id: 'ad-3',
-    company: 'MBOA TRAP',
-    title: 'Danse d\'abord (Clip officiel)',
-    description: 'Le hit incontournable propulsé par nos partenaires officiels. Écoutez, vibrez, partagez.',
-    youtubeId: 'RgKAFK5djSk',
-    thumbnail: 'https://drive.google.com/file/d/1uXHE8vnLXwInwVnArPtikUX75BfX38NY/view?usp=sharing',
-    ctaText: 'Partager',
-    link: '#',
-    bgColor: 'from-[#3388ff]/20 to-black',
-    accentColor: '#3388ff'
-  }
-];
+
 
 export const FooterAdBanner = () => {
-  const [currentAdIndex, setCurrentAdIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+  const [banners, setBanners] = useState<AdBannerItem[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const [dismissed, setDismissed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await getPublicConfig();
+        if (res.success && res.data) {
+          const d = res.data;
+          let loaded: AdBannerItem[] = [];
+
+          if (d.ad_banners) {
+            try {
+              const parsed = JSON.parse(d.ad_banners);
+              if (Array.isArray(parsed)) {
+                loaded = parsed.filter((b: AdBannerItem) => b.enabled);
+              }
+            } catch (e) {
+              console.error('Error parsing ad_banners in AdBanner', e);
+            }
+          }
+
+          if (loaded.length === 0 && d.ad_banner_enabled === 'true') {
+            loaded = [{
+              id: 'banner-legacy',
+              enabled: true,
+              title: d.ad_banner_title || 'Événement Partenaire',
+              subtitle: d.ad_banner_subtitle || '',
+              ctaLabel: d.ad_banner_cta_label || 'En savoir plus',
+              ctaUrl: d.ad_banner_cta_url || '#',
+              videoUrl: d.ad_banner_video_url || '',
+              backgroundImageUrl: d.ad_banner_bg_image || '',
+            }];
+          }
+
+          setBanners(loaded);
+        }
+      } catch (err) {
+        console.error('Error fetching public config for AdBanner:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  const goToSlide = useCallback((index: number) => {
+    setCurrentSlide(index);
+  }, []);
+
+  const nextSlide = useCallback(() => {
+    if (banners.length <= 1) return;
+    goToSlide((currentSlide + 1) % banners.length);
+  }, [banners.length, currentSlide, goToSlide]);
+
+  const prevSlide = useCallback(() => {
+    if (banners.length <= 1) return;
+    goToSlide((currentSlide - 1 + banners.length) % banners.length);
+  }, [banners.length, currentSlide, goToSlide]);
+
+  // Auto-rotation — pause when a local/uploaded video is playing to let it finish
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
-  // Rotation automatique toutes les 8 secondes (stoppée si une vidéo est en lecture)
   useEffect(() => {
-    if (!isVisible || isVideoPlaying) return;
-    
-    const timer = setInterval(() => {
-      setCurrentAdIndex((prev) => (prev + 1) % FOOTER_ADS.length);
-    }, 8000);
-    
+    if (banners.length <= 1 || isVideoPlaying) return;
+    const timer = setInterval(nextSlide, 12000);
     return () => clearInterval(timer);
-  }, [isVisible, isVideoPlaying]);
+  }, [banners.length, nextSlide, isVideoPlaying]);
 
-  // Si l'utilisateur change manuellement ou ferme, on arrête la vidéo
-  const handleClose = () => {
-    setIsVisible(false);
-    setIsVideoPlaying(false);
-  };
+  // Auto-advance for Facebook slides (no playback events)
+  useEffect(() => {
+    const currentBannerObj = banners[currentSlide];
+    if (!currentBannerObj) return;
+    const url = currentBannerObj.videoUrl || '';
+    const isFbSlide = /facebook\.com|fb\.watch/.test(url);
+    if (isFbSlide && banners.length > 1) {
+      const fbTimer = setTimeout(nextSlide, 8000);
+      return () => clearTimeout(fbTimer);
+    }
+  }, [currentSlide, banners, nextSlide]);
 
-  if (!isVisible) return null;
+  // Sync mute & replay video on slide change
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [isMuted, currentSlide]);
 
-  const currentAd = FOOTER_ADS[currentAdIndex];
+  // Tell Facebook SDK to parse and render the embedded video plugin if it exists
+  useEffect(() => {
+    if ((window as any).FB) {
+      try {
+        (window as any).FB.XFBML.parse();
+      } catch (err) {
+        console.error('FB Parse Error', err);
+      }
+    }
+  }, [currentSlide, banners]);
+
+  if (loading || banners.length === 0 || dismissed) return null;
+
+  const currentBanner = banners[currentSlide] || banners[0];
+  const videoUrl = currentBanner.videoUrl || '';
+  const bgImage = currentBanner.backgroundImageUrl || '';
+
+  const isYt = /youtube\.com|youtu\.be/.test(videoUrl);
+  const isFb = /facebook\.com|fb\.watch/.test(videoUrl);
+  
+  // Extract YouTube video ID
+  const ytId = (() => {
+    if (!isYt) return null;
+    const patterns = [
+      /youtu\.be\/([^?&\s]+)/,
+      /youtube\.com\/watch\?v=([^&\s]+)/,
+      /youtube\.com\/embed\/([^?&\s]+)/,
+      /youtube\.com\/shorts\/([^?&\s]+)/,
+    ];
+    for (const p of patterns) {
+      const m = videoUrl.match(p);
+      if (m) return m[1];
+    }
+    return null;
+  })();
+  
+  const isDirectVideo = videoUrl.startsWith('/uploads/') || videoUrl.includes('cloudinary.com') || videoUrl.endsWith('.mp4') || videoUrl.endsWith('.webm');
+  const hasVideo = !!videoUrl;
+
+  const fullVideoUrl = (videoUrl && videoUrl.startsWith('/uploads/'))
+    ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${videoUrl}`
+    : videoUrl;
+
+  const fullBgImage = bgImage && bgImage.startsWith('/uploads/')
+    ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${bgImage}`
+    : bgImage;
 
   return (
-    <div className="w-full bg-neutral-950 border-t border-b border-neutral-900 py-4 sm:py-6 overflow-hidden relative">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        
-        {/* Label Publicité / Contrôles */}
-        <div className="flex justify-between items-center mb-3 sm:mb-0 sm:absolute sm:top-0 sm:right-8 sm:h-full z-30 pointer-events-none">
-          <span className="text-[9px] uppercase tracking-widest text-neutral-500 font-bold bg-neutral-900/50 px-2 py-0.5 rounded border border-neutral-800 backdrop-blur-sm">
-            Espace Vidéo / Publicité
-          </span>
-          <button 
-            onClick={handleClose}
-            className="w-7 h-7 rounded-full bg-neutral-900/80 backdrop-blur-md border border-neutral-700 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors pointer-events-auto sm:absolute sm:-top-3 sm:-right-4"
-            aria-label="Fermer la publicité"
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: 60, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 60, scale: 0.9 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed bottom-5 right-5 z-[9990] group"
+        style={{ width: isExpanded ? 'min(480px, calc(100vw - 40px))' : 'min(340px, calc(100vw - 40px))' }}
+      >
+        <div
+          className={`
+            relative rounded-2xl overflow-hidden
+            shadow-[0_8px_40px_rgba(0,0,0,0.6),0_0_20px_rgba(212,175,55,0.08)]
+            bg-[#0a0a0f]
+            transition-all duration-500 ease-out
+          `}
+        >
+
+          {/* ── Close button ── */}
+          <button
+            onClick={() => setDismissed(true)}
+            className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-black/70 backdrop-blur-sm flex items-center justify-center text-neutral-400 hover:text-white hover:bg-black transition-all"
+            aria-label="Fermer la bannière"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
-        </div>
 
-        {/* Indicateurs de progression rapides */}
-        <div className="absolute -top-3 sm:-top-5 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-          {FOOTER_ADS.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                setCurrentAdIndex(idx);
-                setIsVideoPlaying(false);
-              }}
-              className={`h-1 rounded-full transition-all duration-300 ${idx === currentAdIndex ? 'w-6 bg-[#d4af37]' : 'w-2 bg-neutral-800 hover:bg-neutral-600'}`}
-            />
-          ))}
-        </div>
-
-        {/* Contenu de la publicité */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentAd.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.5 }}
-            className="relative rounded-2xl overflow-hidden border border-white/5 bg-neutral-900/50 group flex flex-col md:flex-row min-h-[160px] md:h-[220px]"
+          {/* ── Video / Image area — no forced aspect ratio, let video dictate size ── */}
+          <div
+            className="relative w-full cursor-pointer bg-black flex items-center justify-center"
+            style={{ minHeight: '180px', maxHeight: isExpanded ? '320px' : '220px' }}
+            onClick={() => setIsExpanded(prev => !prev)}
           >
-            {/* Background dynamique */}
-            <div className={`absolute inset-0 bg-gradient-to-r ${currentAd.bgColor} opacity-20 pointer-events-none`} />
-            
-            {/* Colonne Gauche : Vidéo */}
-            <div className="w-full md:w-[40%] shrink-0 h-[200px] md:h-full relative bg-black border-b md:border-b-0 md:border-r border-white/10 overflow-hidden z-20">
-              {isVideoPlaying ? (
-                <iframe
-                  src={currentAd.videoUrl || `https://www.youtube.com/embed/${currentAd.youtubeId}?autoplay=1&rel=0`}
-                  title={currentAd.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full absolute inset-0"
-                />
-              ) : (
-                <button
-                  onClick={() => setIsVideoPlaying(true)}
-                  className="w-full h-full relative cursor-pointer block"
-                >
-                  <img
-                    src={currentAd.thumbnail}
-                    alt={currentAd.title}
-                    className="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-500"
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`media-${currentBanner.id}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6 }}
+                className="w-full h-full flex items-center justify-center"
+                style={{ minHeight: '180px', maxHeight: isExpanded ? '320px' : '220px' }}
+              >
+                {hasVideo && isYt && ytId ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                    className="w-full border-0"
+                    style={{ minHeight: '180px', height: isExpanded ? '320px' : '220px' }}
+                    allow="autoplay; fullscreen"
+                    allowFullScreen
+                    title="YouTube Banner Video"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-[#d4af37]/90 backdrop-blur-sm flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.4)] group-hover:scale-110 transition-transform duration-300">
-                      <Play className="w-5 h-5 text-black fill-black ml-0.5" />
+                ) : hasVideo && isFb ? (
+                  <div
+                    className="fb-video w-full"
+                    data-href={videoUrl}
+                    data-width="auto"
+                    data-show-text="false"
+                    data-autoplay="true"
+                    data-allowfullscreen="true"
+                    style={{ minHeight: '180px', height: isExpanded ? '320px' : '220px' }}
+                  />
+                ) : hasVideo && (isDirectVideo || videoUrl.startsWith('http')) ? (
+                  <video
+                    ref={videoRef}
+                    key={`video-${currentBanner.id}`}
+                    src={fullVideoUrl}
+                    autoPlay
+                    loop={banners.length <= 1}
+                    muted={isMuted}
+                    playsInline
+                    className="w-full h-full object-contain"
+                    style={{ maxHeight: isExpanded ? '320px' : '220px' }}
+                    onPlay={() => setIsVideoPlaying(true)}
+                    onPause={() => setIsVideoPlaying(false)}
+                    onEnded={() => {
+                      setIsVideoPlaying(false);
+                      if (banners.length > 1) nextSlide();
+                    }}
+                    onCanPlay={(e) => {
+                      const vid = e.target as HTMLVideoElement;
+                      vid.play().catch(() => {});
+                    }}
+                  />
+                ) : fullBgImage ? (
+                  <img
+                    src={fullBgImage}
+                    alt=""
+                    className="w-full h-full object-contain"
+                    style={{ maxHeight: isExpanded ? '320px' : '220px' }}
+                  />
+                ) : (
+                  <div className="w-full bg-gradient-to-br from-[#1a1610] to-[#0a0a0f]" style={{ minHeight: '180px' }} />
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Sound toggle */}
+            {hasVideo && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsMuted(prev => !prev); }}
+                className="absolute bottom-2 left-2 z-20 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white transition-all"
+                aria-label={isMuted ? 'Activer le son' : 'Couper le son'}
+              >
+                {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+              </button>
+            )}
+
+            {/* Gradient overlay bottom for text readability */}
+            <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none" />
+          </div>
+
+          {/* ── Text content ── */}
+          <div className="px-4 pb-4 pt-2">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`text-${currentBanner.id}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                {/* Badge + Title row */}
+                <div className="flex items-start gap-2 mb-1.5">
+                  <div className="shrink-0 mt-0.5">
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20">
+                      <Sparkles className="w-2.5 h-2.5 text-[#d4af37]" />
+                      <span className="text-[8px] font-bold uppercase tracking-wider text-[#d4af37]">Ad</span>
                     </div>
                   </div>
-                </button>
-              )}
-            </div>
+                  {currentBanner.title && (
+                    <h4 className="text-white font-bold text-sm leading-snug line-clamp-2">
+                      {currentBanner.title}
+                    </h4>
+                  )}
+                </div>
 
-            {/* Colonne Droite : Texte & CTA */}
-            <div className="flex-1 p-6 md:p-8 flex flex-col justify-center relative z-10">
-              <span 
-                className="text-[10px] font-bold uppercase tracking-wider mb-2 block drop-shadow-md"
-                style={{ color: currentAd.accentColor }}
-              >
-                {currentAd.company}
-              </span>
-              <h4 className="text-white font-bold text-xl sm:text-2xl mb-2.5 leading-tight pr-4">
-                {currentAd.title}
-              </h4>
-              <p className="text-neutral-400 text-sm max-w-xl mb-6">
-                {currentAd.description}
-              </p>
+                {/* Subtitle (only when expanded) */}
+                {isExpanded && currentBanner.subtitle && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="text-neutral-500 text-xs leading-relaxed mb-2 line-clamp-2"
+                  >
+                    {currentBanner.subtitle}
+                  </motion.p>
+                )}
 
-              <div className="mt-auto">
-                <a 
-                  href={currentAd.link}
-                  className="inline-flex px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide text-black items-center gap-2 transition-transform hover:scale-105 shadow-lg"
-                  style={{ backgroundColor: currentAd.accentColor }}
-                >
-                  {currentAd.ctaText}
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
+                {/* CTA + Navigation row */}
+                <div className="flex items-center justify-between mt-2">
+                  {currentBanner.ctaUrl && currentBanner.ctaLabel ? (
+                    <a
+                      href={currentBanner.ctaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#d4af37] hover:bg-[#b8952e] text-black text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all hover:scale-105 shadow-[0_2px_10px_rgba(212,175,55,0.2)]"
+                    >
+                      {currentBanner.ctaLabel}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : <div />}
 
-          </motion.div>
-        </AnimatePresence>
+                  {/* Mini navigation */}
+                  {banners.length > 1 && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={prevSlide}
+                        className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-neutral-500 hover:text-[#d4af37] transition-colors"
+                      >
+                        <ChevronLeft className="w-3 h-3" />
+                      </button>
+                      <div className="flex items-center gap-1">
+                        {banners.map((b, idx) => (
+                          <button
+                            key={b.id}
+                            onClick={() => goToSlide(idx)}
+                            className={`rounded-full transition-all duration-300 ${
+                              idx === currentSlide
+                                ? 'w-4 h-1 bg-[#d4af37]'
+                                : 'w-1 h-1 bg-white/20 hover:bg-white/50'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <button
+                        onClick={nextSlide}
+                        className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-neutral-500 hover:text-[#d4af37] transition-colors"
+                      >
+                        <ChevronRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-      </div>
-    </div>
+          {/* Gold accent line top */}
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
