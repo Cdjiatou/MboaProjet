@@ -26,5 +26,6 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "regions": ["cdg1"]
+  "regions": ["cdg1"],
+  "outputDirectory": "Frontend/dist"
 }
