@@ -497,7 +497,7 @@ const Home = () => {
       {/* =====================================================================
           5. SECTION TALENTS EN SCÈNE (Vidéos prestations)
           ===================================================================== */}
-      <div className="w-full bg-[#050505] border-y border-white/[0.04]">
+      <div id="candidates" className="w-full bg-[#050505] border-y border-white/[0.04]">
         <PerformancesSection />
       </div>
 
