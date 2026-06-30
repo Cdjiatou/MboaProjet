@@ -1,4 +1,4 @@
-const API_ORIGIN = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '');
+const API_ORIGIN = import.meta.env.VITE_API_URL?.replace(/\/api-mboa\/?$/, '') || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '');
 
 /** Chemins servis par le frontend (dossier public/) — ne pas préfixer avec l'API */
 const isFrontendStaticPath = (path: string) =>

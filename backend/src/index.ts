@@ -95,22 +95,22 @@ app.use('/uploads', express.static('uploads'));
 // - Appliquer des middlewares spécifiques à un groupe de routes (ex: authenticateAdmin).
 // - Faciliter la documentation et le versioning de l'API.
 
-/** Routes d'authentification : POST /api/auth/login */
-app.use('/api/auth', authRoutes);
+/** Routes d'authentification : POST /api-mboa/auth/login */
+app.use('/api-mboa/auth', authRoutes);
 
-/** Routes d'administration : /api/admin/* (toutes protégées par JWT admin) */
-app.use('/api/admin', adminRoutes);
+/** Routes d'administration : /api-mboa/* (toutes protégées par JWT admin) */
+app.use('/api-mboa/admin', adminRoutes);
 
-/** Routes candidat : /api/candidates/* (verify-otp public, complete-profile protégé) */
-app.use('/api/candidates', candidateRoutes);
+/** Routes candidat : /api-mboa/candidates/* (verify-otp public, complete-profile protégé) */
+app.use('/api-mboa/candidates', candidateRoutes);
 
 /**
- * Routes publiques montées directement sur /api (sans sous-préfixe "public").
- * Exemples : GET /api/config, GET /api/categories, POST /api/votes/initiate.
+ * Routes publiques montées directement sur /api-mboa (sans sous-préfixe "public").
+ * Exemples : GET /api-mboa/config, GET /api-mboa/categories, POST /api-mboa/votes/initiate.
  * Le choix de ne pas ajouter "/public" dans l'URL est délibéré : ces routes
  * sont les plus utilisées par le frontend et un chemin court améliore la lisibilité.
  */
-app.use('/api', publicRoutes);
+app.use('/api-mboa', publicRoutes);
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Routes utilitaires

@@ -8,7 +8,7 @@
 
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000/api' : '/api');
+const baseURL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000/api-mboa' : '/api-mboa');
 
 /** Instance Axios préconfigurée pour communiquer avec le backend */
 const api = axios.create({
