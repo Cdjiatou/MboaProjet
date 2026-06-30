@@ -7,7 +7,7 @@
     "start": "node dist/index.js",
     "dev": "nodemon",
     "build": "npx tsc && npx prisma generate",
-    "vercel-build": "npx prisma generate && npx prisma migrate deploy && npx tsc",
+    "vercel-build": "npx prisma generate  && npx tsc",
     "prisma:generate": "npx prisma generate",
     "prisma:migrate": "npx prisma migrate dev",
     "seed": "npx ts-node prisma/seed.ts",
