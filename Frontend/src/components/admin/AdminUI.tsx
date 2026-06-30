@@ -67,13 +67,17 @@ export const AdminButton: React.FC<AdminButtonProps> = ({
   children,
   className = '',
   disabled,
-  ...props
+  onClick,
+  type,
+  title,
 }) => (
   <motion.button
     whileHover={{ scale: disabled || loading ? 1 : 1.02 }}
     whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
     transition={{ duration: 0.15, ease: 'easeOut' }}
-    {...props}
+    onClick={onClick}
+    type={type}
+    title={title}
     disabled={disabled || loading}
     className={`
       inline-flex items-center justify-center gap-2.5 font-medium tracking-normal normal-case
