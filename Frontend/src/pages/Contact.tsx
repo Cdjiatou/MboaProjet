@@ -37,7 +37,7 @@ const Contact = () => {
     },
     {
       name: 'Facebook',
-      value: assets.facebook_name || (assets.facebook_url ? assets.facebook_url.replace('https://facebook.com/', '').replace('https://www.facebook.com/', '') : 'Mood & Com'),
+      value: assets.facebook_name || (assets.facebook_url && assets.facebook_url !== 'https://facebook.com' && assets.facebook_url !== '#' ? assets.facebook_url.replace(/^https?:\/\/(www\.)?facebook\.com\/?/, '') : 'Mood & Com'),
       href: assets.facebook_url || 'https://facebook.com',
       iconColor: 'text-[#1877F2]',
       iconBg: 'bg-[#1877F2]/10',
@@ -49,8 +49,8 @@ const Contact = () => {
     },
     {
       name: 'Instagram',
-      value: assets.instagram_name || (assets.instagram_url ? (assets.instagram_url.startsWith('@') ? assets.instagram_url : '@' + assets.instagram_url.split('/').filter(Boolean).pop()) : '@mboanextstar'),
-      href: assets.instagram_url ? (assets.instagram_url.startsWith('http') ? assets.instagram_url : `https://instagram.com/${assets.instagram_url.replace('@', '')}`) : 'https://instagram.com',
+      value: assets.instagram_name || (assets.instagram_url && assets.instagram_url !== 'https://instagram.com' && assets.instagram_url !== '#' ? (assets.instagram_url.startsWith('@') ? assets.instagram_url : '@' + assets.instagram_url.replace(/^https?:\/\/(www\.)?instagram\.com\/?/, '').replace(/\//g, '')) : '@mboanextstar'),
+      href: assets.instagram_url ? (assets.instagram_url.startsWith('http') ? assets.instagram_url : `https://instagram.com/${assets.instagram_url.replace('@', '')}`) : 'https://instagram.com/mboanextstar',
       iconColor: 'text-[#E4405F]',
       iconBg: 'bg-[#E4405F]/10',
       svg: (
@@ -61,7 +61,7 @@ const Contact = () => {
     },
     {
       name: 'YouTube',
-      value: assets.youtube_name || (assets.youtube_channel ? assets.youtube_channel.replace('https://youtube.com/', '').replace('https://www.youtube.com/', '') : 'Mboa Next Star'),
+      value: assets.youtube_name || (assets.youtube_channel && assets.youtube_channel !== 'https://youtube.com' && assets.youtube_channel !== '#' ? assets.youtube_channel.replace(/^https?:\/\/(www\.)?youtube\.com\/?/, '') : 'Mboa Next Star'),
       href: assets.youtube_channel || 'https://youtube.com',
       iconColor: 'text-[#FF0000]',
       iconBg: 'bg-[#FF0000]/10',
