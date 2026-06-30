@@ -203,7 +203,7 @@ const Home = () => {
           };
           // Convertir les chemins relatifs en chemins absolus
           img.src = src.startsWith('/uploads/') 
-            ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${src}`
+            ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${src}`
             : src;
         });
       });
@@ -298,7 +298,7 @@ const Home = () => {
               <img
                 src={
                   heroImages[currentHeroSlide]?.startsWith('/uploads/')
-                    ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${heroImages[currentHeroSlide]}`
+                    ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${heroImages[currentHeroSlide]}`
                     : heroImages[currentHeroSlide]
                 }
                 alt={`MBOA NEXT STAR Slide ${currentHeroSlide + 1}`}
@@ -660,7 +660,7 @@ const Home = () => {
             );
 
             const videoUrl = hasVideo && video.url.startsWith('/uploads/')
-              ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${video.url}`
+              ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${video.url}`
               : video.url;
 
             return (

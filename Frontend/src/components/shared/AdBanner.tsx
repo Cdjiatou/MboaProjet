@@ -142,11 +142,11 @@ export const FooterAdBanner = () => {
   const hasVideo = !!videoUrl;
 
   const fullVideoUrl = (videoUrl && videoUrl.startsWith('/uploads/'))
-    ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${videoUrl}`
+    ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${videoUrl}`
     : videoUrl;
 
   const fullBgImage = bgImage && bgImage.startsWith('/uploads/')
-    ? `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${bgImage}`
+    ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${bgImage}`
     : bgImage;
 
   return (
