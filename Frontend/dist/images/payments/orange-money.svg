@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" role="img" aria-label="Orange Money">
+  <rect width="240" height="80" rx="12" fill="#FF7900"/>
+  <text x="24" y="40" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#fff">Orange</text>
+  <text x="24" y="62" font-family="Arial Black, Arial, sans-serif" font-size="24" font-weight="900" fill="#fff">Money</text>
+</svg>

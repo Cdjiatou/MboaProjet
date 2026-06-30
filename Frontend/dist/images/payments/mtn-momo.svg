@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" role="img" aria-label="MTN Mobile Money">
+  <rect width="240" height="80" rx="12" fill="#FFCB05"/>
+  <text x="24" y="52" font-family="Arial Black, Arial, sans-serif" font-size="36" font-weight="900" fill="#000">MTN</text>
+  <text x="120" y="52" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#000">MoMo</text>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" role="img" aria-label="Carte bancaire">
+  <rect width="240" height="80" rx="12" fill="#1a1a2e"/>
+  <rect x="20" y="22" width="200" height="36" rx="6" fill="#2d2d44" stroke="#d4af37" stroke-width="2"/>
+  <rect x="32" y="34" width="48" height="12" rx="2" fill="#d4af37"/>
+  <circle cx="190" cy="40" r="10" fill="#eb001b" opacity="0.9"/>
+  <circle cx="204" cy="40" r="10" fill="#f79e1b" opacity="0.9"/>
+  <text x="20" y="18" font-family="Arial, sans-serif" font-size="11" fill="#aaa">Carte bancaire</text>
+</svg>
