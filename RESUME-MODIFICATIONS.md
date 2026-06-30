@@ -246,3 +246,82 @@ npx ts-node scripts/migrate-phone-numbers.ts
 - Les tests prouvent que le formatage fonctionne correctement
 - L'erreur 463 WhatsApp est un problème de compte, pas de code
 - Le logo est déjà intégré dans le code, il suffit d'ajouter le fichier image
+- **Tous les nouveaux uploads vont maintenant sur Cloudinary CDN automatiquement**
+- **La migration Firebase est configurée et prête à être exécutée**
+
+---
+
+## 🔥 Migration vers Firebase (EN COURS)
+
+### Objectif
+Migrer la base de données PostgreSQL vers Firebase Firestore pour :
+- ☁️ Hébergement cloud gratuit (pas de serveur à gérer)
+- 🤖 Scalabilité automatique
+- ⚡ Temps réel intégré
+- 🆓 Plan gratuit suffisant (50K lectures/jour)
+
+### Configuration effectuée
+
+**Fichiers créés** :
+- ✅ `backend/src/config/firebase.ts` - Configuration Firebase Admin SDK
+- ✅ `backend/scripts/migrate-to-firebase.ts` - Script de migration complet
+- ✅ `backend/scripts/verify-firebase-migration.ts` - Script de vérification
+- ✅ `backend/docs/firebase-migration-plan.md` - Plan détaillé (structure, coûts, étapes)
+- ✅ `FIREBASE-QUICK-START.md` - Guide de démarrage rapide
+- ✅ `FIREBASE-MIGRATION-SUMMARY.md` - Résumé complet
+- ✅ `backend/config/README.md` - Instructions pour les credentials
+
+**Dépendances installées** :
+- ✅ `firebase-admin` (222 packages)
+
+**Sécurité** :
+- ✅ `.gitignore` mis à jour pour exclure `mboa-firebase-adminsdk.json`
+- ✅ Dossier `backend/config/` créé
+
+### Prochaines étapes
+
+1. **Créer le projet Firebase** (5 min)
+   - https://console.firebase.google.com/
+   - Créer "MBOA NEXT STAR"
+   - Activer Firestore en mode Production
+   - Région : europe-west
+
+2. **Télécharger les credentials** (2 min)
+   - Paramètres → Comptes de service
+   - Générer une nouvelle clé privée
+   - Renommer en `mboa-firebase-adminsdk.json`
+   - Placer dans `backend/config/`
+
+3. **Lancer la migration** (5 min)
+   ```bash
+   cd backend
+   npx tsx scripts/migrate-to-firebase.ts
+   ```
+
+4. **Vérifier** (2 min)
+   ```bash
+   npx tsx scripts/verify-firebase-migration.ts
+   ```
+
+### Collections Firestore
+
+| Collection | Description | Documents |
+|------------|-------------|-----------|
+| `users` | Admins/Coaches | ~3 |
+| `categories` | Catégories concours | ~4-5 |
+| `candidates` | Candidats | ~2 |
+| `votes` | Votes payants | Variable |
+| `siteConfig` | Config du site | ~50 |
+| `withdrawals` | Retraits | Variable |
+| `sponsors` | Sponsors (+ media) | Variable |
+
+### Avantages Firebase
+
+- 🆓 **Gratuit** (plan Spark suffit)
+- ☁️ **Pas de serveur** à gérer
+- 🤖 **Scalabilité** automatique
+- ⚡ **Temps réel** natif
+- 📱 **SDK mobile** optimisé
+- 🔒 **Backup** automatique
+
+**Status** : ⏳ Configuration terminée - En attente des credentials Firebase

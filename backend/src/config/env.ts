@@ -61,6 +61,11 @@ const envSchema = z.object({
   MAVIANS_PAY_ITEM_MTN: z.string().optional(),
   MAVIANS_PAY_ITEM_ORANGE: z.string().optional(),
   MAVIANS_PAY_ITEM_CARD: z.string().optional(),
+
+  // FIREBASE
+  FIREBASE_PROJECT_ID: z.string().optional(),
+  FIREBASE_CLIENT_EMAIL: z.string().optional(),
+  FIREBASE_PRIVATE_KEY: z.string().optional(),
 });
 
 /**

@@ -6,3 +6,7 @@ build/
 backend/whatsapp-auth/
 backend/exports/
 backend/uploads/
+
+# Firebase credentials
+backend/config/mboa-firebase-adminsdk.json
+backend/config/*.json
