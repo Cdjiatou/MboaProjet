@@ -137,6 +137,13 @@ export const FooterAdBanner = () => {
     }
     return null;
   })();
+
+  // Build Facebook embed URL from any facebook link
+  const fbEmbedUrl = (() => {
+    if (!isFb) return null;
+    const encodedUrl = encodeURIComponent(videoUrl);
+    return `https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&autoplay=true&mute=${isMuted ? 'true' : 'false'}&width=500`;
+  })();
   
   const isDirectVideo = videoUrl.startsWith('/uploads/') || videoUrl.includes('cloudinary.com') || videoUrl.endsWith('.mp4') || videoUrl.endsWith('.webm');
   const hasVideo = !!videoUrl;
@@ -177,10 +184,10 @@ export const FooterAdBanner = () => {
             <X className="w-3.5 h-3.5" />
           </button>
 
-          {/* ── Video / Image area — no forced aspect ratio, let video dictate size ── */}
+          {/* ── Video / Image area — centered, consistent height ── */}
           <div
-            className="relative w-full cursor-pointer bg-black flex items-center justify-center"
-            style={{ minHeight: '180px', maxHeight: isExpanded ? '320px' : '220px' }}
+            className="relative w-full cursor-pointer bg-black overflow-hidden"
+            style={{ height: isExpanded ? '320px' : '220px' }}
             onClick={() => setIsExpanded(prev => !prev)}
           >
             <AnimatePresence mode="wait">
@@ -190,27 +197,25 @@ export const FooterAdBanner = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.6 }}
-                className="w-full h-full flex items-center justify-center"
-                style={{ minHeight: '180px', maxHeight: isExpanded ? '320px' : '220px' }}
+                className="absolute inset-0 flex items-center justify-center"
               >
                 {hasVideo && isYt && ytId ? (
                   <iframe
                     src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
-                    className="w-full border-0"
-                    style={{ minHeight: '180px', height: isExpanded ? '320px' : '220px' }}
+                    className="absolute inset-0 w-full h-full border-0"
                     allow="autoplay; fullscreen"
                     allowFullScreen
                     title="YouTube Banner Video"
                   />
-                ) : hasVideo && isFb ? (
-                  <div
-                    className="fb-video w-full"
-                    data-href={videoUrl}
-                    data-width="auto"
-                    data-show-text="false"
-                    data-autoplay="true"
-                    data-allowfullscreen="true"
-                    style={{ minHeight: '180px', height: isExpanded ? '320px' : '220px' }}
+                ) : hasVideo && isFb && fbEmbedUrl ? (
+                  <iframe
+                    src={fbEmbedUrl}
+                    className="absolute inset-0 w-full h-full border-0"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                    title="Facebook Banner Video"
+                    scrolling="no"
+                    style={{ overflow: 'hidden' }}
                   />
                 ) : hasVideo && (isDirectVideo || videoUrl.startsWith('http')) ? (
                   <video
@@ -221,8 +226,7 @@ export const FooterAdBanner = () => {
                     loop={banners.length <= 1}
                     muted={isMuted}
                     playsInline
-                    className="w-full h-full object-contain"
-                    style={{ maxHeight: isExpanded ? '320px' : '220px' }}
+                    className="absolute inset-0 w-full h-full object-cover"
                     onPlay={() => setIsVideoPlaying(true)}
                     onPause={() => setIsVideoPlaying(false)}
                     onEnded={() => {
@@ -238,11 +242,10 @@ export const FooterAdBanner = () => {
                   <img
                     src={fullBgImage}
                     alt=""
-                    className="w-full h-full object-contain"
-                    style={{ maxHeight: isExpanded ? '320px' : '220px' }}
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full bg-gradient-to-br from-[#1a1610] to-[#0a0a0f]" style={{ minHeight: '180px' }} />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#1a1610] to-[#0a0a0f]" />
                 )}
               </motion.div>
             </AnimatePresence>

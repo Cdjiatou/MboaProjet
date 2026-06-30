@@ -4,6 +4,7 @@
 
 import api from './api';
 import type { ApiResponse, LoginResponse, DashboardStats, Category, Candidate, SiteConfig } from '@/types';
+import { getCached, setCache } from '@/utils/apiCache';
 
 /** Connexion admin (Coach / Super Admin) */
 export const loginAdmin = async (
@@ -34,9 +35,12 @@ export const getDashboardStats = async (): Promise<ApiResponse<DashboardStats>> 
   return response.data;
 };
 
-/** Récupération de toutes les catégories avec leurs candidats */
+/** Récupération de toutes les catégories avec leurs candidats (avec cache) */
 export const getCategories = async (): Promise<ApiResponse<Category[]>> => {
+  const cached = getCached<ApiResponse<Category[]>>('categories', 8000);
+  if (cached) return cached;
   const response = await api.get('/categories');
+  setCache('categories', response.data);
   return response.data;
 };
 
@@ -87,7 +91,10 @@ export const updateConfig = async (
 
 /** Récupération de la configuration publique */
 export const getPublicConfig = async (): Promise<ApiResponse<Record<string, string>>> => {
+  const cached = getCached<ApiResponse<Record<string, string>>>('publicConfig', 15000);
+  if (cached) return cached;
   const response = await api.get('/config');
+  setCache('publicConfig', response.data);
   return response.data;
 };
 
