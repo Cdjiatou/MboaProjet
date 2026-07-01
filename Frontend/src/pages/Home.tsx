@@ -269,7 +269,7 @@ const Home = () => {
   }, [heroImages.length]);
 
   useEffect(() => {
-    const timer = setInterval(nextSlide, 6000);
+    const timer = setInterval(nextSlide, 3000);
     return () => clearInterval(timer);
   }, [nextSlide]);
 
@@ -655,7 +655,7 @@ const Home = () => {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {(() => {
             const list = [...videos];
             const defaultPlaceholders = [
@@ -690,7 +690,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group relative aspect-video rounded-2xl overflow-hidden bg-[#0b0b0b] border border-white/5 transition-all duration-500 shadow-lg"
+                className="group relative rounded-2xl overflow-hidden bg-[#0b0b0b] border border-white/5 transition-all duration-500 shadow-lg" style={{ aspectRatio: '16/9', minHeight: '200px' }}
               >
                 {/* Badge d'indication visuelle (désactivé aux événements de souris pour ne pas bloquer les iframes) */}
                 {hasVideo && (
@@ -717,13 +717,13 @@ const Home = () => {
                     />
                   ) : isFacebookVideo ? (
                     <iframe
-                      src={`https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(video.url)}&show_text=false&width=auto`}
+                      src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(video.url)}&show_text=false&width=560&height=315`}
                       className="w-full h-full"
                       style={{ border: 'none', overflow: 'hidden' }}
                       scrolling="no"
                       frameBorder="0"
-                      allowTransparency={true}
-                      allow="encrypted-media"
+                      allowFullScreen={true}
+                      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
                       title={video.title}
                     />
                   ) : hasVideo && isDirectVideo ? (
