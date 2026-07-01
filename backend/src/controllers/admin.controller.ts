@@ -44,7 +44,7 @@ import path from 'path';
 // Import de la fonction helper pour uploader vers Cloudinary
 import { uploadToCloudinaryAndCleanup } from '../middlewares/upload.middleware';
 import { deleteFromCloudinary } from '../config/cloudinary';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 /**
  * Crée un nouveau candidat dans le système via l'interface coach/admin.

@@ -13,7 +13,7 @@ import prisma from '../utils/prisma';
 
 // Bibliothèque de hachage de mots de passe — utilisée ici pour comparer
 // le mot de passe fourni avec le hash stocké en base de données
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // Utilitaire interne pour générer des tokens JWT signés
 import { generateToken } from '../utils/jwt';

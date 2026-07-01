@@ -96,6 +96,7 @@ app.listen(PORT, async () => {
   await fs.mkdir(path.join(__dirname, '../uploads/candidates'), { recursive: true });
   await fs.mkdir(path.join(__dirname, '../uploads/sponsors'), { recursive: true });
   await fs.mkdir(path.join(__dirname, '../uploads/media'), { recursive: true });
+  await fs.mkdir(path.join(__dirname, '../uploads/temp'), { recursive: true });
 
   console.log('🔄 Initialisation du service WhatsApp...');
   await initWhatsApp();
