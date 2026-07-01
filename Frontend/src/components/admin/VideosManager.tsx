@@ -103,16 +103,20 @@ export const VideosManager = () => {
       if (res.success && res.data?.fileUrl) {
         const fileUrl = res.data.fileUrl;
         
-        let updatedVideos: {id: string, title: string, url: string}[] = [];
         setVideos(prev => {
-          updatedVideos = prev.map(v => v.id === id ? { ...v, url: fileUrl } : v);
+          const updatedVideos = prev.map(v => v.id === id ? { ...v, url: fileUrl } : v);
+          
+          // Auto-save uniquement si toutes les vidéos ont un titre ET un URL
+          const allComplete = updatedVideos.every(v => v.title.trim() !== '' && v.url.trim() !== '');
+          if (allComplete) {
+            // Sauvegarder après un court délai pour laisser React mettre à jour le state
+            setTimeout(() => handleSave(updatedVideos), 200);
+          }
+          
           return updatedVideos;
         });
-        
-        // Auto-save uses the mapped reference
-        setTimeout(() => handleSave(updatedVideos), 100);
 
-        toast.show({ variant: 'success', title: 'Vidéo importée', message: 'Fichier vidéo téléversé et synchronisé.' });
+        toast.show({ variant: 'success', title: 'Vidéo importée', message: 'Fichier vidéo téléversé avec succès. N\'oubliez pas d\'enregistrer !' });
       } else {
         toast.show({ variant: 'error', title: 'Échec', message: res.message || 'Téléversement échoué' });
       }
