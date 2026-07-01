@@ -25,8 +25,7 @@ const app = (0, express_1.default)();
 // ──────────────────────────────────────────────────────────────────────────────
 // ✅ CORRECTIF 1 — URL O2switch ajoutée dans la liste
 const allowedOrigins = [
-    'https://mboa-next-star-9e401epr7-malebochristian1-9226s-projects.vercel.app', // ← remplacez par votre URL O2switch exacte
-    'http://localhost:5173',
+    'mboa-next-star.vercel.app', 
     'http://localhost:3000',
 ];
 app.use((0, cors_1.default)({
@@ -38,8 +37,7 @@ app.use((0, cors_1.default)({
             callback(null, true);
         }
         else {
-            // ✅ CORRECTIF 2 — callback(null, false) au lieu de callback(new Error(...))
-            // L'ancienne version causait les "🔥 ERREUR NON GÉRÉE" dans les logs Railway
+            
             callback(null, false);
         }
     },

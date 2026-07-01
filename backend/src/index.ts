@@ -26,7 +26,7 @@ const app = express();
 
 // ✅ CORRECTIF 1 — URL O2switch ajoutée dans la liste
 const allowedOrigins = [
-  'https://mboa-next-star-9e401epr7-malebochristian1-9226s-projects.vercel.app', // ← remplacez par votre URL O2switch exacte
+  'mboa-next-star.vercel.app', // ← remplacez par votre URL O2switch exacte
   'http://localhost:5173',
   'http://localhost:3000',
 ];
