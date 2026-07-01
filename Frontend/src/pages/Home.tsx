@@ -259,7 +259,7 @@ const Home = () => {
     }
     return [
       "MBOA NEXT STAR est le plus grand concours national de talents urbains du Cameroun. Musique, humour, danse, DJ, Miss & Master : découvrez les étoiles de demain à travers des auditions, compétitions, contenus exclusifs et événements live.",
-      "Une initiative portée par La Légende Vivante Tony Nobody pour révéler, former et propulser de Nouveaux talents camerounais vers les scènes nationales et internationales.",
+      "Une initiative portée par La Légende Vivante Tony Nobody pour révéler, former et propulser de nouveaux talents camerounais vers les scènes nationales et internationales.",
       "Abonnez-vous et vivez l'aventure MBOA NEXT STAR 2026-2027 ! 🚀🔥"
     ];
   })();
