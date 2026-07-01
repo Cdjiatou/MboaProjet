@@ -295,25 +295,45 @@ const Home = () => {
               transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
               className="absolute inset-0 w-full h-full"
             >
-              <img
-                src={
-                  heroImages[currentHeroSlide]?.startsWith('/uploads/')
-                    ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${heroImages[currentHeroSlide]}`
-                    : heroImages[currentHeroSlide]
+              {(() => {
+                const currentSrc = heroImages[currentHeroSlide];
+                const isVideo = currentSrc && (currentSrc.toLowerCase().endsWith('.mp4') || currentSrc.toLowerCase().endsWith('.webm') || currentSrc.toLowerCase().endsWith('.mov'));
+                const resolvedSrc = currentSrc?.startsWith('/uploads/')
+                  ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${currentSrc}`
+                  : currentSrc;
+
+                if (isVideo) {
+                  return (
+                    <video
+                      src={resolvedSrc}
+                      autoPlay
+                      loop
+                      playsInline
+                      className="absolute inset-0 w-full h-full object-cover object-center"
+                      style={{ filter: 'brightness(0.7) contrast(1.05)' }}
+                      // Note: 'muted' n'est pas défini ici à la demande de l'utilisateur,
+                      // mais les navigateurs bloqueront probablement l'autoplay.
+                    />
+                  );
                 }
-                alt={`MBOA NEXT STAR Slide ${currentHeroSlide + 1}`}
-                className="absolute inset-0 w-full h-full object-cover object-center"
-                style={{
-                  imageRendering: 'crisp-edges',
-                  filter: 'brightness(0.7) contrast(1.05)',
-                }}
-                loading="eager"
-                onError={(e) => {
-                  console.error('Erreur de chargement image carousel:', heroImages[currentHeroSlide]);
-                  // Fallback vers une image placeholder si l'image ne charge pas
-                  (e.target as HTMLImageElement).src = 'https://placehold.co/1920x1080/0a0a0a/666666?text=MBOA+NEXT+STAR';
-                }}
-              />
+
+                return (
+                  <img
+                    src={resolvedSrc}
+                    alt={`MBOA NEXT STAR Slide ${currentHeroSlide + 1}`}
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                    style={{
+                      imageRendering: 'crisp-edges',
+                      filter: 'brightness(0.7) contrast(1.05)',
+                    }}
+                    loading="eager"
+                    onError={(e) => {
+                      console.error('Erreur de chargement image carousel:', currentSrc);
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/1920x1080/0a0a0a/666666?text=MBOA+NEXT+STAR';
+                    }}
+                  />
+                );
+              })()}
             </motion.div>
           </AnimatePresence>
         </div>
