@@ -12,6 +12,22 @@
   <body>
     <div id="root"></div>
     <div id="fb-root"></div>
+    <!-- Google Translate -->
+    <div id="google_translate_element" style="display:none;"></div>
+    <style>
+      .skiptranslate { display: none !important; }
+      body { top: 0 !important; }
+    </style>
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'fr',
+          includedLanguages: 'fr,en',
+          autoDisplay: false
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/fr_FR/sdk.js#xfbml=1&version=v18.0" nonce="abc123"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

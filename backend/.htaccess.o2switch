@@ -1,0 +1,32 @@
+# Configuration Apache pour O2Switch
+# Ce fichier doit être placé dans /home/user/api/.htaccess
+
+# Activer le module de réécriture
+RewriteEngine On
+
+# Redirection HTTP vers HTTPS (SSL obligatoire en production)
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Proxy inverse vers l'application Node.js
+# Toutes les requêtes sont transmises à l'application Node.js sur le port 3000
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ http://localhost:3000/$1 [P,L]
+
+# Headers de sécurité
+Header set X-Content-Type-Options "nosniff"
+Header set X-Frame-Options "SAMEORIGIN"
+Header set X-XSS-Protection "1; mode=block"
+
+# Cache pour les assets statiques (si servis via Express)
+<FilesMatch "\.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$">
+    Header set Cache-Control "max-age=31536000, public"
+</FilesMatch>
+
+# Pas de cache pour les endpoints API
+<FilesMatch "\.(json|xml)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+</FilesMatch>

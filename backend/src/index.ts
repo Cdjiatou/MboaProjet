@@ -69,11 +69,30 @@ const app = express();
 // Middlewares globaux (appliqués à TOUTES les routes)
 // ──────────────────────────────────────────────────────────────────────────────
 
-// Activation du CORS sans restrictions d'origine.
-// En production, il serait préférable de restreindre les origines autorisées
-// via cors({ origin: 'https://mboa-next-star.com' }) pour limiter les appels
-// provenant de domaines non autorisés.
-app.use(cors());
+// Configuration CORS avec origines autorisées
+// Accepte les requêtes provenant du frontend en production et en développement
+const allowedOrigins = [
+  'https://mboanextstar.com',
+  'https://www.mboanextstar.com',
+  'http://localhost:5173',      // Dev local Vite
+  'http://localhost:3000',      // Dev local alternative
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Autoriser les requêtes sans origine (ex: Postman, curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Non autorisé par CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Parsing automatique du body JSON des requêtes entrantes.
 // Ce middleware transforme le corps brut de la requête en objet JavaScript

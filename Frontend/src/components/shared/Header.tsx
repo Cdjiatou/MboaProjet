@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Star, ChevronDown } from 'lucide-react';
 import { useThemeStore } from '@/store/useThemeStore';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 // =============================================================================
 // CONFIGURATION & LIENS
@@ -79,6 +80,9 @@ const MobileMenu = ({ isOpen, onClose, checkActive }: { isOpen: boolean; onClose
         className="lg:hidden bg-[#0b0b0b]/95 backdrop-blur-md border-t border-white/5 absolute top-full left-0 right-0 max-h-[calc(100vh-4rem)] overflow-y-auto"
       >
         <nav className="px-6 py-6 flex flex-col gap-3">
+          <div className="flex justify-end mb-2">
+            <LanguageSwitcher />
+          </div>
           {ALL_MOBILE_LINKS.map((link) => {
             const isActive = checkActive(link.href);
             return (
@@ -233,6 +237,8 @@ export const Header = () => {
               </div>
             </nav>
             
+            <div className="h-6 w-px bg-white/10 mx-2" />
+            <LanguageSwitcher />
             <div className="h-6 w-px bg-white/10 mx-2" />
             <CtaButton />
           </div>

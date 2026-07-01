@@ -10,3 +10,7 @@ backend/uploads/
 # Firebase credentials
 backend/config/mboa-firebase-adminsdk.json
 backend/config/*.json
+
+# Archives
+*.rar
+*.zip
