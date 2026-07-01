@@ -430,41 +430,41 @@ const Home = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
-            className="absolute bottom-4 sm:bottom-12 left-0 right-0 z-10 px-4 sm:px-6"
+            className="absolute bottom-12 left-0 right-0 z-10 px-6 hidden sm:block"
           >
-            <div className="max-w-4xl mx-auto backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl py-3 sm:py-5 px-3 sm:px-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
-              <div className="flex items-center justify-center gap-2 sm:gap-4 mb-2 sm:mb-4">
-                <div className="h-[1px] w-8 sm:w-12 bg-gradient-to-r from-transparent to-[#d4af37]/50"></div>
-                <p className="text-center text-[9px] sm:text-xs text-[#d4af37] font-black uppercase tracking-[0.3em]">
+            <div className="max-w-4xl mx-auto backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl py-5 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#d4af37]/50"></div>
+                <p className="text-center text-[10px] sm:text-xs text-[#d4af37] font-black uppercase tracking-[0.3em]">
                   Avec le soutien de
                 </p>
-                <div className="h-[1px] w-8 sm:w-12 bg-gradient-to-l from-transparent to-[#d4af37]/50"></div>
+                <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#d4af37]/50"></div>
               </div>
               
               {/* Marquee horizontal défilant */}
               <div className="relative overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-8 sm:w-12 bg-gradient-to-r from-white/5 to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-8 sm:w-12 bg-gradient-to-l from-white/5 to-transparent z-10 pointer-events-none" />
-                <div className="flex items-center gap-8 sm:gap-12 animate-[sponsorScroll_20s_linear_infinite] hover:[animation-play-state:paused] w-max">
+                <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white/5 to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white/5 to-transparent z-10 pointer-events-none" />
+                <div className="flex items-center gap-12 animate-[sponsorScroll_20s_linear_infinite] hover:[animation-play-state:paused] w-max">
                   {[...sponsors, ...sponsors, ...sponsors].map((sponsor, idx) => (
-                    <div key={idx} className="h-8 sm:h-16 flex items-center justify-center shrink-0">
+                    <div key={idx} className="h-12 sm:h-16 flex items-center justify-center shrink-0">
                       {sponsor.image ? (
                         <img 
                           src={getMediaUrl(sponsor.image)} 
                           alt={sponsor.name} 
-                          className="h-full w-auto max-w-[100px] sm:max-w-[180px] object-contain drop-shadow-lg" 
+                          className="h-full w-auto max-w-[140px] sm:max-w-[180px] object-contain drop-shadow-lg" 
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                             const parent = (e.target as HTMLImageElement).parentElement;
                             if (parent) parent.innerHTML = `
-                              <span class="text-white text-xs sm:text-sm font-bold tracking-[0.15em] uppercase whitespace-nowrap">${sponsor.name}</span>
+                              <span class="text-white text-sm font-bold tracking-[0.15em] uppercase whitespace-nowrap">${sponsor.name}</span>
                             `;
                           }}
                         />
                       ) : (
-                        <div className="flex items-center gap-1.5 sm:gap-2">
-                          <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 bg-[#d4af37] rotate-45 shrink-0" />
-                          <span className="text-white text-xs sm:text-sm font-bold tracking-[0.15em] uppercase whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-[#d4af37] rotate-45 shrink-0" />
+                          <span className="text-white text-sm font-bold tracking-[0.15em] uppercase whitespace-nowrap">
                             {sponsor.name}
                           </span>
                         </div>
