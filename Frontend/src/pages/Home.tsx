@@ -49,13 +49,6 @@ const CustomVideoPlayer = ({ url, isYouTube }: { url: string; isYouTube: boolean
           } as any)}
         />
 
-        {/* Overlay Noir pendant le chargement */}
-        {!isReady && (
-          <div className="absolute inset-0 bg-[#0a0a0f] z-10 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-[#d4af37] animate-spin" />
-          </div>
-        )}
-
         {/* Custom Overlay Controls */}
         <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="flex justify-end">
@@ -778,19 +771,7 @@ const Home = () => {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="group relative rounded-2xl overflow-hidden bg-[#0b0b0b] border border-white/5 transition-all duration-500 shadow-lg" style={{ aspectRatio: '16/9', minHeight: '200px' }}
               >
-                {/* Badge d'indication visuelle (désactivé aux événements de souris pour ne pas bloquer les iframes) */}
-                {hasVideo && (
-                  <div className="absolute top-3 left-3 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#d4af37] rounded-lg shadow-lg">
-                      <svg className="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                      </svg>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-black">
-                        {isYouTubeVideo ? 'YouTube' : isFacebookVideo ? 'Facebook' : 'Vidéo'}
-                      </span>
-                    </div>
-                  </div>
-                )}
+
 
                 <div className="absolute inset-0">
                   {isYouTubeVideo ? (

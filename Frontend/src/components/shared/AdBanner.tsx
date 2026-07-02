@@ -11,7 +11,7 @@ export const FooterAdBanner = () => {
   const [banners, setBanners] = useState<AdBannerItem[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -204,12 +204,12 @@ export const FooterAdBanner = () => {
                   <div className="absolute inset-0 w-full h-full overflow-hidden">
                     <ReactPlayer
                       {...({
-                        url: videoUrl,
+                        url: ytId ? `https://www.youtube.com/watch?v=${ytId}` : videoUrl,
                         playing: true,
                         muted: isMuted,
                         width: '100%',
                         height: '100%',
-                        controls: false,
+                        controls: true,
                         style: { position: 'absolute', top: 0, left: 0 },
                         onEnded: () => {
                           setIsVideoPlaying(false);
@@ -221,12 +221,9 @@ export const FooterAdBanner = () => {
                           youtube: {
                             playerVars: {
                               modestbranding: 1,
-                              controls: 0,
-                              showinfo: 0,
                               rel: 0,
-                              iv_load_policy: 3,
+                              showinfo: 0,
                               disablekb: 1,
-                              fs: 0,
                               playsinline: 1,
                             },
                           },
