@@ -10,84 +10,6 @@ import { CandidateCard } from '@/components/candidate/CandidateCard';
 import SponsorMarquee from '@/components/shared/SponsorMarquee';
 import ReactPlayer from 'react-player';
 
-// =============================================================================
-// COMPOSANT LECTEUR VIDÉO CUSTOM (SANS BRANDING YOUTUBE)
-// =============================================================================
-const CustomVideoPlayer = ({ url, isYouTube }: { url: string; isYouTube: boolean }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [hasInteracted, setHasInteracted] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-
-  // Pour YouTube, on utilise ReactPlayer avec config ultra clean + autoplay
-  if (isYouTube) {
-    return (
-      <div 
-        className="w-full h-full relative group cursor-pointer bg-black"
-        onClick={() => {
-          setHasInteracted(true);
-          setIsPlaying(!isPlaying);
-          // Si on joue pour la première fois via clic, on peut démute
-          if (!hasInteracted) setIsMuted(false);
-        }}
-      >
-        <ReactPlayer
-          {...({
-            url: url,
-            playing: isPlaying,
-            muted: isMuted,
-            width: "100%",
-            height: "100%",
-            controls: false,
-            onReady: () => setIsReady(true),
-            style: { position: 'absolute', top: 0, left: 0 },
-            config: {
-              youtube: {
-                playerVars: { modestbranding: 1, rel: 0, showinfo: 0, controls: 0, disablekb: 1, playsinline: 1 }
-              }
-            }
-          } as any)}
-        />
-
-        {/* Custom Overlay Controls */}
-        <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="flex justify-end">
-             <button
-              onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
-              className="pointer-events-auto w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white transition-all hover:scale-110"
-            >
-              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-            </button>
-          </div>
-          <div className="flex items-center justify-center h-full pb-10">
-            <button
-              onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); setHasInteracted(true); }}
-              className="pointer-events-auto w-16 h-16 rounded-full bg-[#d4af37]/90 backdrop-blur-sm flex items-center justify-center text-black shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all hover:scale-110"
-            >
-              {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Fallback direct MP4 ou FB
-  return (
-    <div className="w-full h-full bg-black overflow-hidden flex items-center justify-center">
-      <ReactPlayer
-        {...({
-          url: url,
-          width: "100%",
-          height: "100%",
-          controls: true,
-          light: false
-        } as any)}
-      />
-    </div>
-  );
-};
-
 import PerformancesSection from '@/components/home/PerformancesSection';
 import { usePublicCandidates } from '@/hooks/usePublicCandidates';
 import { useThemeStore } from '@/store/useThemeStore';
@@ -775,9 +697,25 @@ const Home = () => {
 
                 <div className="absolute inset-0">
                   {isYouTubeVideo ? (
-                    <CustomVideoPlayer url={`https://www.youtube.com/watch?v=${ytId}`} isYouTube={true} />
+                    <iframe
+                      src={`https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1`}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={video.title}
+                    />
                   ) : isFacebookVideo ? (
-                    <CustomVideoPlayer url={video.url} isYouTube={false} />
+                    <div className="w-full h-full bg-black overflow-hidden flex items-center justify-center">
+                      <ReactPlayer
+                        {...({
+                          url: video.url,
+                          width: "100%",
+                          height: "100%",
+                          controls: true,
+                          light: false
+                        } as any)}
+                      />
+                    </div>
                   ) : hasVideo && isDirectVideo ? (
                     <div className="w-full h-full relative">
                       <video
