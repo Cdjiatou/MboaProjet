@@ -430,7 +430,7 @@ const Home = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
-            className="absolute bottom-12 left-0 right-0 z-10 px-6 hidden sm:block"
+            className="absolute bottom-12 left-0 right-0 z-10 px-6 block"
           >
             <div className="max-w-4xl mx-auto backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl py-5 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
               <div className="flex items-center justify-center gap-4 mb-4">

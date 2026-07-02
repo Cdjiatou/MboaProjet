@@ -11,7 +11,7 @@ export const FooterAdBanner = () => {
   const [banners, setBanners] = useState<AdBannerItem[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [dismissed, setDismissed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
