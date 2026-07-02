@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, ChevronLeft, ChevronRight, Volume2, VolumeX, X, Sparkles } from 'lucide-react';
 import { getPublicConfig } from '@/services/adminService';
 import { type AdBannerItem } from '@/components/admin/BannerManager';
+import ReactPlayer from 'react-player';
 
 
 
@@ -199,17 +200,42 @@ export const FooterAdBanner = () => {
                 transition={{ duration: 0.6 }}
                 className="absolute inset-0 flex items-center justify-center"
               >
-                {hasVideo && isYt && ytId ? (
-                  <iframe
-                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
-                    className="absolute inset-0 w-full h-full border-0"
-                    allow="autoplay; fullscreen"
-                    allowFullScreen
-                    title="YouTube Banner Video"
-                  />
+                {hasVideo && isYt ? (
+                  <div className="absolute inset-0 w-full h-full overflow-hidden">
+                    <ReactPlayer
+                      {...({
+                        url: videoUrl,
+                        playing: true,
+                        muted: isMuted,
+                        width: '100%',
+                        height: '100%',
+                        controls: false,
+                        style: { position: 'absolute', top: 0, left: 0 },
+                        onEnded: () => {
+                          setIsVideoPlaying(false);
+                          if (banners.length > 1) nextSlide();
+                        },
+                        onPlay: () => setIsVideoPlaying(true),
+                        onPause: () => setIsVideoPlaying(false),
+                        config: {
+                          youtube: {
+                            playerVars: {
+                              modestbranding: 1,
+                              controls: 0,
+                              showinfo: 0,
+                              rel: 0,
+                              iv_load_policy: 3,
+                              disablekb: 1,
+                              fs: 0,
+                              playsinline: 1,
+                            },
+                          },
+                        },
+                      } as any)}
+                    />
+                  </div>
                 ) : hasVideo && isFb && fbEmbedUrl ? (
                   <iframe
-                    src={fbEmbedUrl}
                     className="absolute inset-0 w-full h-full border-0"
                     allow="autoplay; encrypted-media"
                     allowFullScreen
