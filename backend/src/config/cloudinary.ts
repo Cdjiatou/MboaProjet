@@ -40,10 +40,9 @@ export async function uploadToCloudinary(
   resourceType: 'image' | 'video' = 'image'
 ): Promise<{ url: string; publicId: string }> {
   try {
-    const result = await cloudinary.uploader.upload(filePath, {
+    const uploadOptions = {
       folder: `mboa-next-star/${folder}`,
       resource_type: resourceType,
-      // Pour les vidéos, optimiser automatiquement
       ...(resourceType === 'video' && {
         eager: [
           { 
@@ -54,9 +53,14 @@ export async function uploadToCloudinary(
             fetch_format: 'auto'
           }
         ],
-        eager_async: true
+        eager_async: true,
+        chunk_size: 6000000 // 6MB chunks to prevent timeouts
       })
-    });
+    };
+
+    const result = resourceType === 'video'
+      ? await cloudinary.uploader.upload_large(filePath, uploadOptions)
+      : await cloudinary.uploader.upload(filePath, uploadOptions);
 
     return {
       url: result.secure_url,

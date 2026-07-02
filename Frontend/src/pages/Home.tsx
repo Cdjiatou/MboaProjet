@@ -270,7 +270,7 @@ const Home = () => {
   }, [heroImages.length]);
 
   useEffect(() => {
-    const timer = setInterval(nextSlide, 3000);
+    const timer = setInterval(nextSlide, 5000);
     return () => clearInterval(timer);
   }, [nextSlide]);
 
@@ -719,13 +719,11 @@ const Home = () => {
                   ) : isFacebookVideo ? (
                     <div className="w-full h-full bg-black overflow-hidden flex items-center justify-center">
                       <ReactPlayer
-                        {...({
-                          url: video.url,
-                          width: "100%",
-                          height: "100%",
-                          controls: true,
-                          light: false
-                        } as any)}
+                        url={video.url}
+                        width="100%"
+                        height="100%"
+                        controls={true}
+                        light={false}
                       />
                     </div>
                   ) : hasVideo && isDirectVideo ? (

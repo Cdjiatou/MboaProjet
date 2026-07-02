@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Mail, Loader2, CheckCircle2, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { updateAdminProfile } from '@/services/adminService';
+import { useThemeStore } from '@/store/useThemeStore';
 
 interface Props {
   isOpen: boolean;
@@ -54,6 +55,15 @@ export const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, currentEma
       if (res.success) {
         setStatus('success');
         setMessage('Profil mis à jour avec succès.');
+        
+        // Mettre à jour le store instantanément sans rechargement
+        if (email !== currentEmail) {
+          const { user, token, setAuth } = useThemeStore.getState();
+          if (user && token) {
+            setAuth(token, user.role as any, { ...user, email });
+          }
+        }
+
         setTimeout(() => {
           onClose();
           setStatus('idle');

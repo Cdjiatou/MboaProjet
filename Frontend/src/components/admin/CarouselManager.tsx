@@ -107,13 +107,29 @@ export const CarouselManager = () => {
   };
 
   const handleAddImage = () => {
-    setHeroImages(prev => [...prev, '']);
-    setModes(prev => ({ ...prev, [heroImages.length]: 'link' }));
+    setHeroImages(prev => ['', ...prev]);
+    
+    setModes(prev => {
+      const newModes: Record<number, 'link' | 'upload'> = { 0: 'link' };
+      Object.keys(prev).forEach(key => {
+        newModes[Number(key) + 1] = prev[Number(key)];
+      });
+      return newModes;
+    });
   };
 
   const handleRemoveImage = (index: number) => {
     const newImages = heroImages.filter((_, idx) => idx !== index);
     setHeroImages(newImages);
+    setModes(prev => {
+      const newModes: Record<number, 'link' | 'upload'> = {};
+      Object.keys(prev).forEach(keyStr => {
+        const key = Number(keyStr);
+        if (key < index) newModes[key] = prev[key];
+        else if (key > index) newModes[key - 1] = prev[key];
+      });
+      return newModes;
+    });
   };
 
   const handleModeChange = (index: number, mode: 'link' | 'upload') => {
