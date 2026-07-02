@@ -719,11 +719,13 @@ const Home = () => {
                   ) : isFacebookVideo ? (
                     <div className="w-full h-full bg-black overflow-hidden flex items-center justify-center">
                       <ReactPlayer
-                        url={video.url}
-                        width="100%"
-                        height="100%"
-                        controls={true}
-                        light={false}
+                        {...({
+                          url: video.url,
+                          width: "100%",
+                          height: "100%",
+                          controls: true,
+                          light: false
+                        } as any)}
                       />
                     </div>
                   ) : hasVideo && isDirectVideo ? (
