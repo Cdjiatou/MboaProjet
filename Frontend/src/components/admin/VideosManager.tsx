@@ -264,9 +264,15 @@ export const VideosManager = () => {
                           {isUploading ? (
                             <div className="flex flex-col items-center gap-2 py-2">
                               <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
-                              <span className="text-xs text-neutral-400">{uploadPercent}% téléversé...</span>
+                              <span className="text-xs text-neutral-400">
+                                {uploadPercent < 50
+                                  ? `${uploadPercent * 2}% envoi en cours...`
+                                  : uploadPercent < 100
+                                    ? `Traitement sur le serveur... ${uploadPercent}%`
+                                    : 'Terminé !'}
+                              </span>
                               <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden mt-1">
-                                <div className="h-full bg-[#d4af37] transition-all duration-300" style={{ width: `${uploadPercent}%` }} />
+                                <div className="h-full bg-[#d4af37] transition-all duration-500" style={{ width: `${uploadPercent}%` }} />
                               </div>
                             </div>
                           ) : (

@@ -220,14 +220,41 @@ export const uploadMediaFile = async (
 ): Promise<ApiResponse<{ fileUrl: string }>> => {
   const formData = new FormData();
   formData.append('file', file);
+
+  // Phase 1: Browser -> Backend upload (0% to 50%)
+  let serverProcessing = false;
+  let processingInterval: ReturnType<typeof setInterval> | null = null;
+
   const response = await api.post('/admin/media/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000, // 5 minutes - les videos prennent du temps sur Cloudinary
     onUploadProgress: (progressEvent) => {
       if (onProgress && progressEvent.total) {
-        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        onProgress(percent);
+        const rawPercent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        // Phase 1: map 0-100 upload -> 0-50 displayed
+        const displayPercent = Math.round(rawPercent * 0.5);
+        onProgress(displayPercent);
+
+        // When browser upload reaches 100%, start phase 2 animation
+        if (rawPercent >= 100 && !serverProcessing) {
+          serverProcessing = true;
+          let fakeProgress = 50;
+          processingInterval = setInterval(() => {
+            fakeProgress += 1;
+            if (fakeProgress >= 95) {
+              fakeProgress = 95; // cap at 95% until server responds
+              if (processingInterval) clearInterval(processingInterval);
+            }
+            onProgress(fakeProgress);
+          }, 800); // increment every 800ms
+        }
       }
     },
   });
+
+  // Cleanup interval and jump to 100%
+  if (processingInterval) clearInterval(processingInterval);
+  if (onProgress) onProgress(100);
+
   return response.data;
 };

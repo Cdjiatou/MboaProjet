@@ -59,9 +59,11 @@ api.interceptors.response.use(
     const isCandidateRoute = url.includes('/candidates/');
 
     if (error.response?.status === 401 && !url.includes('/auth/login')) {
+      // Ne pas rediriger si c'est un upload de média (timeout probable, pas une vraie 401)
+      const isUploadRoute = url.includes('/media/upload') || url.includes('/sponsors/upload');
       if (isCandidateRoute) {
         setCandidateSessionToken(null);
-      } else {
+      } else if (!isUploadRoute) {
         localStorage.removeItem('mboa_token');
         window.location.href = '/';
       }
