@@ -265,7 +265,7 @@ const VerifyProfile = () => {
 
   // ─── Partage WhatsApp ─────────────────────────────────────────────────────
   const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(
-    `⭐ Votez pour ${candidateName} sur MBOA NEXT STAR ! Faites-moi gagner ! 🎤\n${uniqueLink}`
+    ` Votez pour ${candidateName} sur MBOA NEXT STAR ! Faites-moi gagner ! 🎤\n${uniqueLink}`
   )}`;
 
   // =============================================================================
