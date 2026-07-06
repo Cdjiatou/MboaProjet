@@ -188,9 +188,12 @@ export const CandidateForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         }
 
         resetForm();
-        notifyCandidatesUpdated();
-        notifyAdminDashboardUpdated();
-        if (onSuccess) onSuccess();
+        // Échelonner les notifications pour éviter un crash de rendu React (écran noir)
+        setTimeout(() => {
+          notifyCandidatesUpdated();
+          notifyAdminDashboardUpdated();
+          if (onSuccess) onSuccess();
+        }, 100);
       } else {
         toast.show({
           variant: 'error',

@@ -5,6 +5,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 // Lazy-loaded pages pour un chargement plus rapide
 const Home = lazy(() => import('../pages/Home'));
@@ -30,30 +31,32 @@ const PageLoader = () => (
 
 const AppRoutes: React.FC = () => {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/partners" element={<Partners />} />
-        <Route path="/candidats" element={<Candidats />} />
-        <Route path="/categories" element={<Categories />} />
-        <Route path="/classement" element={<Classement />} />
-        <Route path="/reglement" element={<Reglement />} />
-        <Route path="/verify-profile" element={<VerifyProfile />} />
-        <Route path="/candidats/:slug" element={<CandidateProfile />} />
-        <Route path="/artist" element={<ArtistSpace />} />
-        <Route path="/nexstar" element={<Login />} />
-        <Route
-          path="/nexstar/dashboard"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/partners" element={<Partners />} />
+          <Route path="/candidats" element={<Candidats />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/classement" element={<Classement />} />
+          <Route path="/reglement" element={<Reglement />} />
+          <Route path="/verify-profile" element={<VerifyProfile />} />
+          <Route path="/candidats/:slug" element={<CandidateProfile />} />
+          <Route path="/artist" element={<ArtistSpace />} />
+          <Route path="/nexstar" element={<Login />} />
+          <Route
+            path="/nexstar/dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 };
 
