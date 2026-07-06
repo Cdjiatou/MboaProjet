@@ -43,9 +43,9 @@ const AppRoutes: React.FC = () => {
         <Route path="/verify-profile" element={<VerifyProfile />} />
         <Route path="/candidats/:slug" element={<CandidateProfile />} />
         <Route path="/artist" element={<ArtistSpace />} />
-        <Route path="/admin" element={<Login />} />
+        <Route path="/nexstar" element={<Login />} />
         <Route
-          path="/admin/dashboard"
+          path="/nexstar/dashboard"
           element={
             <ProtectedRoute>
               <AdminDashboard />

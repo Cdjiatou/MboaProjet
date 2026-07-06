@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from 'react'; // [CORRIGÉ] AnimatePresence est maintenant correctement importé ici
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion'; 
-import { LogIn, Shield, Loader2 } from 'lucide-react';
+import { LogIn, Shield, Loader2, Eye, EyeOff } from 'lucide-react';
 import { loginAdmin } from '@/services/adminService';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -16,11 +16,12 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirection automatique si session active
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/admin/dashboard', { replace: true });
+      navigate('/nexstar/dashboard', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -35,7 +36,7 @@ const Login: React.FC = () => {
       const res = await loginAdmin(email, password);
       if (res.success && res.data) {
         login(res.data.user, res.data.token);
-        navigate('/admin/dashboard', { replace: true });
+        navigate('/nexstar/dashboard', { replace: true });
       } else {
         setLoginError(res.error || 'Erreur d\'authentification.');
       }
@@ -100,16 +101,25 @@ const Login: React.FC = () => {
               <label htmlFor="password" className="block text-xs font-semibold text-neutral-400">
                 Clé de sécurité
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                disabled={loginLoading}
-                className="w-full px-4 py-3 bg-neutral-950/60 border border-white/[0.08] rounded-xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/40 focus:ring-1 focus:ring-[#d4af37]/40 disabled:opacity-50 transition-all"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  disabled={loginLoading}
+                  className="w-full px-4 py-3 bg-neutral-950/60 border border-white/[0.08] rounded-xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#d4af37]/40 focus:ring-1 focus:ring-[#d4af37]/40 disabled:opacity-50 transition-all pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 focus:outline-none transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
           </div>
 

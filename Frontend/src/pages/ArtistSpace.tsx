@@ -22,7 +22,7 @@ const ArtistSpace = () => {
   const wordCount = useWordCount(biography);
 
   const maxWords = 300;
-  const minWords = 10;
+  const minWords = 0;
   const progress = Math.min((wordCount / maxWords) * 100, 100);
   const isValid = wordCount >= minWords && wordCount <= maxWords;
   const authToken = useThemeStore((state) => state.token);
@@ -134,7 +134,7 @@ const ArtistSpace = () => {
               <div className="p-2 rounded-lg bg-[#d4af37]/10">
                 <FileText className="w-4 h-4 text-[#d4af37]" />
               </div>
-              Biographie (10 à 300 mots)
+              Biographie (maximum 300 mots)
             </label>
             <textarea
               value={biography}
@@ -211,7 +211,7 @@ const ArtistSpace = () => {
 
             {!isValid && (
               <p className="text-red-400 text-xs text-center mt-4">
-                La biographie doit contenir entre {minWords} et {maxWords} mots.
+                La biographie ne doit pas dépasser {maxWords} mots.
               </p>
             )}
           </div>

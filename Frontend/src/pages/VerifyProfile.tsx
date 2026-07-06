@@ -219,10 +219,6 @@ const VerifyProfile = () => {
 
   // ─── Soumission de la légende ──────────────────────────────────────────────
   const handleSubmitLegend = async () => {
-    if (legendWordCount < 10) {
-      setError('La légende doit contenir au moins 10 mots.');
-      return;
-    }
     if (legendWordCount > 300) {
       setError(`Maximum 300 mots (actuellement ${legendWordCount}).`);
       return;
@@ -528,7 +524,7 @@ const VerifyProfile = () => {
                   <textarea
                     value={legend}
                     onChange={(e) => { setLegend(e.target.value); setError(''); }}
-                    placeholder="Présentez-vous en quelques mots... (10 à 300 mots)"
+                    placeholder="Présentez-vous en quelques mots... (maximum 300 mots)"
                     rows={6}
                     className={`
                       w-full px-5 py-4 bg-[#050505] border rounded-2xl text-white text-sm placeholder:text-neutral-600
@@ -563,7 +559,7 @@ const VerifyProfile = () => {
 
                 <button
                   onClick={handleSubmitLegend}
-                  disabled={submitting || legendWordCount < 10 || legendWordCount > 300}
+                  disabled={submitting || legendWordCount > 300}
                   className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black uppercase tracking-widest text-sm rounded-xl hover:shadow-[0_0_25px_rgba(212,175,55,0.35)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
                 >
                   {submitting ? (
