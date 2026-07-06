@@ -66,7 +66,7 @@ const Login: React.FC = () => {
         {/* En-tête de la carte */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-5">
-            <img src="/logo.png" alt="MBOA NEXT STAR" className="h-16 w-auto object-contain" />
+            <img src="/logo.png" alt="MBOA NEXT STAR" className="h-24 sm:h-32 w-auto object-contain scale-[1.1]" />
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight sm:text-2xl">
             Espace Confidentiel

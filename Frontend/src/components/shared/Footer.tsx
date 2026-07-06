@@ -45,7 +45,7 @@ export const Footer = () => {
           {/* Colonne 1 — Marque & Description */}
           <div className="flex flex-col space-y-4">
             {logoUrl ? (
-              <img src={logoUrl} alt="MBOA NEXT STAR" className="h-10 w-auto object-contain self-start" />
+              <img src={logoUrl} alt="MBOA NEXT STAR" className="h-20 sm:h-24 w-auto object-contain self-start scale-[1.1] origin-left" />
             ) : (
               <span className="text-sm font-black tracking-widest uppercase">
                 <span className="bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">MBOA NEXT STAR</span>

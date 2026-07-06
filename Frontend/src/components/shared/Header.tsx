@@ -34,7 +34,7 @@ const ALL_MOBILE_LINKS = [...MAIN_NAV_LINKS.slice(0, 4), ...DROPDOWN_LINKS, MAIN
 const Logo = ({ url }: { url: string | null }) => (
   <Link to="/" className="flex items-center gap-2 group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] rounded-lg">
     {url ? (
-      <img src={url} alt="MBOA NEXT STAR" className="h-8 sm:h-10 w-auto object-contain" />
+      <img src={url} alt="MBOA NEXT STAR" className="h-16 sm:h-20 w-auto object-contain scale-[1.1] origin-left" />
     ) : (
       <>
         <Star className="w-5 h-5 text-[#d4af37] fill-[#d4af37] group-hover:-rotate-12 transition-transform duration-300" />
