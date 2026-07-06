@@ -58,7 +58,7 @@ const CandidateProfile = () => {
   }, [slug]);
 
   const shareUrl = window.location.href;
-  const shareText = `⭐ Votez pour ${candidate?.firstName} ${candidate?.lastName} dans la catégorie ${candidate?.category?.name || 'Artiste'} sur MBOA NEXT STAR !`;
+  const shareText = ` Votez pour ${candidate?.firstName} ${candidate?.lastName} dans la catégorie ${candidate?.category?.name || 'Artiste'} sur MBOA NEXT STAR !`;
 
   if (loading) {
     return (

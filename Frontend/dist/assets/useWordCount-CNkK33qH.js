@@ -1,1 +1,0 @@
-import{d as e,m as t}from"./createLucideIcon-BFvJBq37.js";var n=t(e(),1),r=e=>(0,n.useMemo)(()=>e?e.replace(/[.,/#!$%^&*;:{}=\-_`~()@"'?\\[\]<>|+]/g,` `).replace(/\s{2,}/g,` `).trim().split(` `).filter(e=>e.length>0).length:0,[e]);export{r as t};

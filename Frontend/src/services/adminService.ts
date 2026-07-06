@@ -4,7 +4,7 @@
 
 import api from './api';
 import type { ApiResponse, LoginResponse, DashboardStats, Category, Candidate, SiteConfig } from '@/types';
-import { getCached, setCache } from '@/utils/apiCache';
+import { getCached, setCache, invalidateCache } from '@/utils/apiCache';
 
 /** Connexion admin (Coach / Super Admin) */
 export const loginAdmin = async (
@@ -73,11 +73,13 @@ export const createCandidate = async (
         'Content-Type': 'multipart/form-data',
       },
     });
+    invalidateCache('categories');
     return response.data;
   }
 
   // Sinon, envoyer du JSON classique
   const response = await api.post('/admin/candidates', data);
+  invalidateCache('categories');
   return response.data;
 };
 
@@ -86,6 +88,7 @@ export const updateConfig = async (
   configs: SiteConfig[]
 ): Promise<ApiResponse> => {
   const response = await api.post('/admin/config', { configs });
+  invalidateCache('publicConfig');
   return response.data;
 };
 
@@ -194,12 +197,14 @@ export const updateAdminCandidate = async (
   }>
 ): Promise<ApiResponse<Candidate>> => {
   const response = await api.patch(`/admin/candidates/${id}`, data);
+  invalidateCache('categories');
   return response.data;
 };
 
 /** Supprime un candidat */
 export const deleteAdminCandidate = async (id: number): Promise<ApiResponse> => {
   const response = await api.delete(`/admin/candidates/${id}`);
+  invalidateCache('categories');
   return response.data;
 };
 
@@ -210,6 +215,7 @@ export const uploadAdminCandidatePhoto = async (id: number, file: File): Promise
   const response = await api.post(`/admin/candidates/${id}/photo`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+  invalidateCache('categories');
   return response.data;
 };
 

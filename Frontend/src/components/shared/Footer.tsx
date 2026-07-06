@@ -76,7 +76,7 @@ export const Footer = () => {
                 to="/verify-profile"
                 className="text-[#d4af37] font-bold text-xs sm:text-sm hover:text-white transition-colors duration-200 w-fit flex items-center gap-2"
               >
-                <Star className="w-3.5 h-3.5 fill-[#d4af37]" />
+                
                 Espace Candidat
               </Link>
             </nav>

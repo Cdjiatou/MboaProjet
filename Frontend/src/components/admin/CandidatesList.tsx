@@ -31,7 +31,7 @@ export const CandidatesList = ({ refreshKey = 0, onChange }: Props) => {
   const [editing, setEditing] = useState<Candidate | null>(null);
 
   useEffect(() => {
-    fetchCandidates();
+    fetchCandidates(search);
   }, [refreshKey]);
 
   const fetchCandidates = async (query?: string) => {
@@ -62,7 +62,6 @@ export const CandidatesList = ({ refreshKey = 0, onChange }: Props) => {
         notifyCandidatesUpdated();
         onChange?.();
         toast.show({ variant: 'success', title: 'Suppression réussie', message: 'Le candidat a été retiré.' });
-        fetchCandidates(search);
       }
     } catch (err) {
       toast.show({ variant: 'error', title: 'Erreur', message: getApiErrorMessage(err, 'Suppression impossible.') });
@@ -96,7 +95,7 @@ export const CandidatesList = ({ refreshKey = 0, onChange }: Props) => {
           </form>
         </div>
 
-        {loading ? (
+        {loading && candidates.length === 0 ? (
           <div className="py-12 text-center text-neutral-500">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-neutral-400" />
             <span className="text-sm font-medium">Chargement de la liste...</span>
@@ -106,7 +105,7 @@ export const CandidatesList = ({ refreshKey = 0, onChange }: Props) => {
             <p className="text-sm">Aucun candidat trouvé.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className={`overflow-x-auto transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
@@ -194,12 +193,10 @@ export const CandidatesList = ({ refreshKey = 0, onChange }: Props) => {
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
-            fetchCandidates(search);
             onChange?.();
           }}
           onDeleted={() => {
             setEditing(null);
-            fetchCandidates(search);
             onChange?.();
           }}
         />

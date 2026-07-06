@@ -60,9 +60,7 @@ const CtaButton = ({ isMobile = false, onClick }: { isMobile?: boolean; onClick?
   return (
     <Link to="/verify-profile" onClick={onClick} className={containerStyles}>
       <div className="absolute inset-0 bg-gradient-to-r from-[#d4af37]/0 via-[#d4af37]/10 to-[#d4af37]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <div className={!isMobile ? "w-5 h-5 rounded-full bg-[#d4af37]/10 flex items-center justify-center shrink-0 group-hover:bg-[#d4af37] transition-colors duration-500" : ""}>
-        <Star className={isMobile ? "w-4 h-4 text-[#d4af37] fill-[#d4af37] relative z-10" : "w-3 h-3 text-[#d4af37] fill-[#d4af37] group-hover:text-black group-hover:fill-black transition-colors duration-500"} />
-      </div>
+    
       <span className={textStyles}>Espace Candidat</span>
     </Link>
   );

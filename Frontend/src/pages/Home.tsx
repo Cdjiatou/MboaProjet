@@ -261,7 +261,7 @@ const Home = () => {
     return [
       "MBOA NEXT STAR est le plus grand concours national de talents urbains du Cameroun. Musique, humour, danse, DJ, Miss & Master : découvrez les étoiles de demain à travers des auditions, compétitions, contenus exclusifs et événements live.",
       "Une initiative portée par La Légende Vivante Tony Nobody pour révéler, former et propulser de nouveaux talents camerounais vers les scènes nationales et internationales.",
-      "Abonnez-vous et vivez l'aventure MBOA NEXT STAR 2026-2027 ! 🚀🔥"
+      "Abonnez-vous et vivez l'aventure MBOA NEXT STAR 2026-2027 ! "
     ];
   })();
 
@@ -311,7 +311,7 @@ const Home = () => {
                       loop
                       playsInline
                       className="absolute inset-0 w-full h-full object-cover object-center"
-                      style={{ filter: 'brightness(0.7) contrast(1.05)' }}
+                      style={{ filter: 'brightness(0.85) contrast(1.05)' }}
                       // Note: 'muted' n'est pas défini ici à la demande de l'utilisateur,
                       // mais les navigateurs bloqueront probablement l'autoplay.
                     />
@@ -325,7 +325,7 @@ const Home = () => {
                     className="absolute inset-0 w-full h-full object-cover object-center"
                     style={{
                       imageRendering: 'crisp-edges',
-                      filter: 'brightness(0.7) contrast(1.05)',
+                      filter: 'brightness(0.85) contrast(1.05)',
                     }}
                     loading="eager"
                     onError={(e) => {
@@ -340,7 +340,7 @@ const Home = () => {
         </div>
 
         {/* Overlays : Gradient pour lisibilité sans trop de lumière */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/90 via-[#050505]/50 to-[#050505] z-[1]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/70 via-[#050505]/30 to-[#050505]/90 z-[1]" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center flex flex-col items-center mt-2 sm:mt-0 -translate-y-6 sm:-translate-y-12">
           

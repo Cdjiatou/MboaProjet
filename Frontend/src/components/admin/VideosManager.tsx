@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { getPublicConfig, updateConfig, uploadMediaFile } from '@/services/adminService';
-import { Video as VideoIcon, Plus, Trash2, Loader2, Save, Link as LinkIcon, UploadCloud, CheckCircle2, ExternalLink, Play, AlertCircle } from 'lucide-react';
+import { Video as VideoIcon, Plus, Trash2, Loader2, Save, Link as LinkIcon, UploadCloud, CheckCircle2, ExternalLink, Play, AlertCircle, ChevronUp, ChevronDown, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRefreshSiteConfig } from '@/hooks/useRefreshSiteConfig';
 import { AdminButton, AdminCard } from './AdminUI';
 import { useToastStore } from '@/store/useToastStore';
+import ReactPlayer from 'react-player';
 
 export const VideosManager = () => {
   const toast = useToastStore();
@@ -12,6 +13,7 @@ export const VideosManager = () => {
   const [saving, setSaving] = useState(false);
   
   const [videos, setVideos] = useState<{id: string, title: string, url: string}[]>([]);
+  const [initialVideos, setInitialVideos] = useState<{id: string, title: string, url: string}[]>([]);
   const [modes, setModes] = useState<Record<string, 'link' | 'upload'>>({});
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
@@ -32,6 +34,7 @@ export const VideosManager = () => {
             const list = JSON.parse(res.data.videos) as {title: string, url: string}[];
             const listWithIds = list.map(v => ({ ...v, id: Math.random().toString(36).substr(2, 9) }));
             setVideos(listWithIds);
+            setInitialVideos(JSON.parse(JSON.stringify(listWithIds)));
             const initialModes: Record<string, 'link' | 'upload'> = {};
             listWithIds.forEach((v) => {
               initialModes[v.id] = (v.url.includes('/uploads/') || v.url.includes('cloudinary.com')) ? 'upload' : 'link';
@@ -42,6 +45,7 @@ export const VideosManager = () => {
           }
         } else {
           setVideos([]);
+          setInitialVideos([]);
         }
       }
     } catch {
@@ -50,6 +54,16 @@ export const VideosManager = () => {
       setLoading(false);
     }
   };
+
+  const isDirty = (() => {
+    if (videos.length !== initialVideos.length) return true;
+    for (let i = 0; i < videos.length; i++) {
+      if (videos[i].title !== initialVideos[i].title || videos[i].url !== initialVideos[i].url) {
+        return true;
+      }
+    }
+    return false;
+  })();
 
   const handleSave = async (videosToSave?: {id: string, title: string, url: string}[]) => {
     const list = videosToSave || videos;
@@ -71,7 +85,7 @@ export const VideosManager = () => {
 
     setSaving(true);
     try {
-      // Strip out the internal 'id' before saving to DB
+      // Retirer l'ID interne avant d'enregistrer en BDD
       const dbPayload = validVideos.map(({ title, url }) => ({ title, url }));
       const configs = [
         { key: 'videos', value: JSON.stringify(dbPayload) },
@@ -81,6 +95,7 @@ export const VideosManager = () => {
         if (!videosToSave) {
           toast.show({ variant: 'success', title: 'Enregistré', message: `${validVideos.length} vidéo(s) enregistrée(s) avec succès.` });
         }
+        setInitialVideos(JSON.parse(JSON.stringify(list)));
         await refreshConfig();
       } else {
         toast.show({ variant: 'error', title: 'Échec', message: res.message || 'Impossible de sauvegarder' });
@@ -134,11 +149,36 @@ export const VideosManager = () => {
   };
 
   const handleRemoveVideo = (id: string) => {
+    const video = videos.find(v => v.id === id);
+    const title = video?.title || 'cette vidéo';
+    if (!window.confirm(`Voulez-vous vraiment supprimer "${title}" ?`)) return;
     setVideos(prev => prev.filter(v => v.id !== id));
   };
 
   const handleModeChange = (id: string, mode: 'link' | 'upload') => {
     setModes(prev => ({ ...prev, [id]: mode }));
+  };
+
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
+    setVideos(prev => {
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[index - 1];
+      copy[index - 1] = temp;
+      return copy;
+    });
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === videos.length - 1) return;
+    setVideos(prev => {
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[index + 1];
+      copy[index + 1] = temp;
+      return copy;
+    });
   };
 
   if (loading) {
@@ -159,7 +199,14 @@ export const VideosManager = () => {
             <VideoIcon className="w-6 h-6 text-neutral-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white tracking-wide font-heading">Vidéos promotionnelles (MBOA TV)</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-xl font-bold text-white tracking-wide font-heading">Vidéos promotionnelles (MBOA TV)</h2>
+              {isDirty && (
+                <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-wider animate-pulse select-none shrink-0">
+                  <AlertTriangle className="w-3 h-3" /> Modifications non enregistrées
+                </span>
+              )}
+            </div>
             <p className="text-xs text-neutral-400 mt-1">{videos.length} vidéo(s) configurée(s)</p>
           </div>
         </div>
@@ -167,7 +214,12 @@ export const VideosManager = () => {
           <AdminButton variant="secondary" size="sm" icon={Plus} onClick={handleAddVideo}>
             ajouter une vidéo
           </AdminButton>
-          <AdminButton icon={Save} onClick={() => handleSave()} loading={saving}>
+          <AdminButton 
+            icon={Save} 
+            onClick={() => handleSave()} 
+            loading={saving}
+            className={isDirty ? 'ring-2 ring-amber-500/80 ring-offset-2 ring-offset-black' : ''}
+          >
             enregistrer
           </AdminButton>
         </div>
@@ -179,6 +231,8 @@ export const VideosManager = () => {
             const currentMode = modes[video.id] || ((video.url.includes('/uploads/') || video.url.includes('cloudinary.com')) ? 'upload' : 'link');
             const isUploading = uploading[video.id];
             const uploadPercent = progress[video.id] || 0;
+            const initialVideo = initialVideos.find(v => v.id === video.id);
+            const isVideoModified = !initialVideo || initialVideo.title !== video.title || initialVideo.url !== video.url;
 
             return (
               <motion.div
@@ -187,19 +241,51 @@ export const VideosManager = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -16 }}
                 key={video.id}
-                className="bg-white/[0.02] rounded-3xl p-6 space-y-4 shadow-xl"
+                className={`bg-white/[0.02] rounded-3xl p-6 space-y-4 shadow-xl border transition-all duration-300 ${
+                  isVideoModified 
+                    ? 'border-[#d4af37]/20 bg-[#d4af37]/[0.01]' 
+                    : 'border-white/5'
+                }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium uppercase tracking-wider text-neutral-300 bg-white/5 px-3 py-1 rounded-full border border-white/10">
-                    vidéo #{videos.length - index}
-                  </span>
-                  <button
-                    onClick={() => handleRemoveVideo(video.id)}
-                    className="text-neutral-500 hover:text-red-400 p-2 hover:bg-red-500/10 rounded-xl transition-colors"
-                    title="Supprimer cette vidéo"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xs font-medium uppercase tracking-wider text-neutral-300 bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                      vidéo #{videos.length - index}
+                    </span>
+                    {isVideoModified && (
+                      <span className="text-[9px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-md animate-pulse">
+                        {initialVideo ? 'Modifiée' : 'Nouvelle'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveUp(index)}
+                      disabled={index === 0}
+                      className="text-neutral-500 hover:text-white p-2 hover:bg-white/5 rounded-xl transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                      title="Monter"
+                    >
+                      <ChevronUp className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveDown(index)}
+                      disabled={index === videos.length - 1}
+                      className="text-neutral-500 hover:text-white p-2 hover:bg-white/5 rounded-xl transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                      title="Descendre"
+                    >
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveVideo(video.id)}
+                      className="text-neutral-500 hover:text-red-400 p-2 hover:bg-red-500/10 rounded-xl transition-colors ml-1"
+                      title="Supprimer cette vidéo"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -227,7 +313,7 @@ export const VideosManager = () => {
                             : 'bg-white/5 text-neutral-400 border border-transparent hover:text-white'
                         }`}
                       >
-                        <LinkIcon className="w-3.5 h-3.5" /> Lien YouTube / Vimeo
+                        <LinkIcon className="w-3.5 h-3.5" /> Lien YouTube / Vimeo / Facebook
                       </button>
                       <button
                         type="button"
@@ -283,9 +369,23 @@ export const VideosManager = () => {
                           )}
                         </label>
                         {video.url && (video.url.includes('/uploads/') || video.url.includes('cloudinary.com')) && (
-                          <p className="text-xs text-emerald-400 flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-ellipsis" title={video.url}>
-                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Vidéo enregistrée : <span className="truncate">{video.url}</span>
-                          </p>
+                          <div className="space-y-3">
+                            <p className="text-xs text-emerald-400 flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-ellipsis" title={video.url}>
+                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Vidéo enregistrée : <span className="truncate">{video.url}</span>
+                            </p>
+                            <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/5" style={{ aspectRatio: '16/9', maxHeight: '180px' }}>
+                              <ReactPlayer
+                                {...({
+                                  url: video.url.startsWith('/uploads/') 
+                                    ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${video.url}`
+                                    : video.url,
+                                  width: "100%",
+                                  height: "100%",
+                                  controls: true,
+                                } as any)}
+                              />
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}
@@ -300,31 +400,14 @@ export const VideosManager = () => {
   );
 };
 
-/* ─── Helper: extract YouTube video ID ─── */
-function getYouTubeId(url: string): string | null {
-  const patterns = [
-    /youtu\.be\/([^?&\s]+)/,
-    /youtube\.com\/watch\?v=([^&\s]+)/,
-    /youtube\.com\/embed\/([^?&\s]+)/,
-    /youtube\.com\/shorts\/([^?&\s]+)/,
-  ];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m) return m[1];
-  }
-  return null;
-}
-
 /* ─── LinkInput: input + validate button + preview ─── */
 const LinkInput = ({ url, onUrlChange }: { url: string; onUrlChange: (u: string) => void }) => {
   const [validated, setValidated] = useState(!!url && url.length > 5);
 
-  // If URL gets cleared externally, reset validated state
   useEffect(() => {
     if (!url) setValidated(false);
   }, [url]);
 
-  const ytId = getYouTubeId(url);
   const isValidUrl = url.trim().length > 5 && (url.startsWith('http://') || url.startsWith('https://'));
 
   const handleValidate = () => {
@@ -349,7 +432,7 @@ const LinkInput = ({ url, onUrlChange }: { url: string; onUrlChange: (u: string)
           onChange={(e) => { onUrlChange(e.target.value); setValidated(false); }}
           onKeyDown={handleKeyDown}
           onBlur={handleValidate}
-          placeholder="https://www.youtube.com/watch?v=..."
+          placeholder="Ex: https://www.youtube.com/watch?v=... ou Facebook video URL"
           className="flex-1 bg-white/[0.03] rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:bg-white/[0.06] transition-colors placeholder:text-neutral-600"
         />
         <button
@@ -380,61 +463,42 @@ const LinkInput = ({ url, onUrlChange }: { url: string; onUrlChange: (u: string)
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           transition={{ duration: 0.3 }}
-          className="overflow-hidden"
+          className="overflow-hidden space-y-2.5"
         >
-          {ytId ? (
-            /* YouTube thumbnail preview */
-            <div className="relative rounded-xl overflow-hidden bg-black/40 group">
-              <img
-                src={`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`}
-                alt="Aperçu YouTube"
-                className="w-full h-36 object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-xl">
-                  <Play className="w-5 h-5 text-white ml-0.5" />
-                </div>
-              </div>
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-              <div className="absolute bottom-0 inset-x-0 px-3 py-2 bg-gradient-to-t from-black/80 to-transparent">
-                <p className="text-[10px] text-neutral-400 truncate flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                  Vidéo YouTube détectée
-                </p>
-              </div>
-            </div>
-          ) : (
-            /* Generic URL confirmation */
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-emerald-400 font-medium">Lien validé</p>
-                <p className="text-[10px] text-neutral-500 truncate">{url}</p>
-              </div>
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-auto text-neutral-500 hover:text-white transition-colors shrink-0"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            </div>
-          )}
+          <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/5" style={{ aspectRatio: '16/9', maxHeight: '180px' }}>
+            <ReactPlayer
+              {...({
+                url: url,
+                width: "100%",
+                height: "100%",
+                controls: true,
+                config: {
+                  youtube: {
+                    playerVars: { rel: 0, modestbranding: 1 }
+                  }
+                }
+              } as any)}
+            />
+          </div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/5 text-emerald-400">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-[10px] truncate max-w-[200px]" title={url}>Lien validé : {url}</span>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto text-neutral-500 hover:text-white transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </motion.div>
       )}
 
       {/* Error hint */}
       {!validated && url.length > 0 && !isValidUrl && (
         <p className="text-[10px] text-amber-400/70 flex items-center gap-1">
-          <AlertCircle className="w-3 h-3" />
+          <AlertCircle className="w-3.5 h-3.5" />
           Saisissez un lien commençant par https://
         </p>
       )}
