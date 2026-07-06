@@ -428,7 +428,7 @@ const Home = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
-            className="absolute bottom-12 left-0 right-0 z-10 px-6 block"
+            className="absolute bottom-12 left-0 right-0 z-10 px-6 hidden sm:block"
           >
             <div className="max-w-4xl mx-auto backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl py-5 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
               <div className="flex items-center justify-center gap-4 mb-4">
@@ -491,6 +491,48 @@ const Home = () => {
           ))}
         </div>
       </section>
+      {sponsors.length > 0 && (
+        <section className="sm:hidden w-full bg-[#050505] pt-8 px-6 border-b border-white/[0.04] pb-6">
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl py-5 px-4 overflow-hidden">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#d4af37]/50"></div>
+              <p className="text-center text-[10px] text-[#d4af37] font-black uppercase tracking-[0.3em]">
+                Avec le soutien de
+              </p>
+              <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#d4af37]/50"></div>
+            </div>
+            
+            {/* Marquee horizontal défilant */}
+            <div className="relative overflow-hidden">
+              <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white/5 to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/5 to-transparent z-10 pointer-events-none" />
+              <div className="flex items-center gap-12 animate-[sponsorScroll_20s_linear_infinite] hover:[animation-play-state:paused] w-max">
+                {[...sponsors, ...sponsors, ...sponsors].map((sponsor, idx) => (
+                  <div key={idx} className="h-12 flex items-center justify-center shrink-0">
+                    {sponsor.image ? (
+                      <img 
+                        src={getMediaUrl(sponsor.image)} 
+                        alt={sponsor.name} 
+                        className="h-full w-auto max-w-[120px] object-contain drop-shadow-lg" 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-[#d4af37] rotate-45 shrink-0" />
+                        <span className="text-white text-xs font-bold tracking-[0.15em] uppercase whitespace-nowrap">
+                          {sponsor.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* =====================================================================
           4. SECTION STATS (Ajusté pour être centré et fluide sur mobile)

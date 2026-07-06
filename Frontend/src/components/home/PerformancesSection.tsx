@@ -61,7 +61,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.5, delay: (index % 4) * 0.1 }}
-      className="group relative overflow-hidden rounded-2xl bg-[#0b0b0b] border border-white/[0.06] cursor-pointer aspect-[4/5]"
+      className="group relative overflow-hidden rounded-2xl bg-[#0b0b0b] border border-white/[0.06] cursor-pointer aspect-[4/3] sm:aspect-[4/5]"
     >
       {/* Thumbnail / Background */}
       <div className="relative w-full h-full overflow-hidden">
@@ -329,7 +329,7 @@ const PerformancesSection: React.FC = () => {
       </motion.div>
 
       {/* Grille uniforme */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {featured.map((candidate, index) => (
           <VideoCard
             key={candidate.id}
