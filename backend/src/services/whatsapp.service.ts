@@ -1,4 +1,4 @@
-import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
+import { makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import path from 'path';
 import fs from 'fs/promises';
@@ -86,7 +86,7 @@ export const initWhatsApp = async (clearAuth = false) => {
     sock = makeWASocket({
       auth: state,
       printQRInTerminal: false,
-      browser: ['MboaNextStar Admin', 'Chrome', '1.0.0'],
+      browser: Browsers.macOS('Desktop'),
       syncFullHistory: false,
       connectTimeoutMs: 30000,
       defaultQueryTimeoutMs: 30000,
