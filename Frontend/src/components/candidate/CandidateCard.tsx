@@ -35,7 +35,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
       {/* Badge de classement (#1, #2, #3...) */}
       {rank && rank <= 10 && (
         <div className="absolute top-3 left-3 z-10 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center shadow-lg text-xs font-black text-black">
-          #{rank}
+          {rank}
         </div>
       )}
 
