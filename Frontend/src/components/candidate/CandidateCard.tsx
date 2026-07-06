@@ -46,7 +46,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
             src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
             alt={`${candidate.firstName} ${candidate.lastName}`}
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.9] group-hover:brightness-100"
+            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 brightness-[0.9] group-hover:brightness-100"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1a1610] to-[#0d0b08]">
