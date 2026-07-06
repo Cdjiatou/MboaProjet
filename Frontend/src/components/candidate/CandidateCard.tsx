@@ -40,7 +40,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
       )}
 
       {/* Zone de contenu principale cliquable vers le profil */}
-      <Link to={`/candidats/${candidate.slug}`} className="block relative aspect-[3/4] overflow-hidden bg-neutral-900">
+      <Link to={`/candidats/${candidate.slug}`} className="block relative aspect-square sm:aspect-[4/5] overflow-hidden bg-neutral-900">
         {candidate.profilePhoto ? (
           <img
             src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}

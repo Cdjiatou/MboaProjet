@@ -202,7 +202,7 @@ const CandidateProfile = () => {
               <div className="space-y-4 pt-2">
                 <button
                   onClick={() => setIsVoteModalOpen(true)}
-                  className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 text-sm uppercase tracking-wider flex items-center justify-center gap-2"
+                  className="hidden lg:flex w-full py-3.5 sm:py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 text-sm uppercase tracking-wider items-center justify-center gap-2"
                 >
                   <Star className="w-5 h-5 fill-black" /> Voter pour {candidate.firstName}
                 </button>
@@ -220,12 +220,12 @@ const CandidateProfile = () => {
       </div>
 
       {/* ===== Bouton de vote flottant (mobile) ===== */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black via-black/95 to-transparent lg:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-gradient-to-t from-black via-black/95 to-transparent lg:hidden pb-6">
         <button
           onClick={() => setIsVoteModalOpen(true)}
-          className="w-full py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black rounded-2xl shadow-[0_-4px_30px_rgba(212,175,55,0.3)] text-sm uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-transform"
+          className="w-full py-3.5 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black rounded-xl shadow-[0_-4px_30px_rgba(212,175,55,0.3)] text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-transform"
         >
-          <Star className="w-5 h-5 fill-black" /> Voter pour {candidate.firstName}
+          <Star className="w-4 h-4 fill-black" /> Voter pour {candidate.firstName}
         </button>
       </div>
 
