@@ -17,8 +17,8 @@ const App: React.FC = () => {
   const setColors = useThemeStore((state) => state.setColors);
   const setAssets = useThemeStore((state) => state.setAssets);
 
-  // Détermine si on est sur une page admin (dashboard)
-  const isAdminPage = location.pathname.startsWith('/admin/dashboard');
+  // Détermine si on est sur une page admin (dashboard ou login)
+  const isAdminPage = location.pathname.startsWith('/nexstar');
 
   useEffect(() => {
     const loadConfig = async () => {

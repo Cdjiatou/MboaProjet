@@ -236,34 +236,14 @@ const Home = () => {
   const heroTitle = rawTitle.replace(/PROCHAINESTAR/ig, 'PROCHAINE STAR');
   const heroDesc = assets.hero_desc || "Découvrez les talents qui façonneront la culture africaine. Votez, soutenez, et propulsez vos artistes préférés vers les étoiles.";
 
-  const statsList = (() => {
-    try {
-      if (assets.home_stats) {
-        const parsed = JSON.parse(assets.home_stats);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (e) {
-      console.error('Error parsing home_stats', e);
-    }
-    return STATS;
-  })();
+  const statsList = STATS;
 
-  const homeAboutTitle = assets.home_about_title || "Découvrez le concept de MBOA NEXT STAR";
-  const homeAboutParagraphs = (() => {
-    try {
-      if (assets.home_about_text) {
-        const parsed = JSON.parse(assets.home_about_text);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (e) {
-      console.error('Error parsing home_about_text', e);
-    }
-    return [
-      "MBOA NEXT STAR est le plus grand concours national de talents urbains du Cameroun. Musique, humour, danse, DJ, Miss & Master : découvrez les étoiles de demain à travers des auditions, compétitions, contenus exclusifs et événements live.",
-      "Une initiative portée par La Légende Vivante Tony Nobody pour révéler, former et propulser de nouveaux talents camerounais vers les scènes nationales et internationales.",
-      "Abonnez-vous et vivez l'aventure MBOA NEXT STAR 2026-2027 !"
-    ];
-  })();
+  const homeAboutTitle = "Découvrez le concept de MBOA NEXT STAR";
+  const homeAboutParagraphs = [
+    "MBOA NEXT STAR est le plus grand concours national de talents urbains du Cameroun. Musique, humour, danse, DJ, Miss & Master : découvrez les étoiles de demain à travers des auditions, compétitions, contenus exclusifs et événements live.",
+    "Une initiative portée par La Légende Vivante Tony Nobody pour révéler, former et propulser de nouveaux talents camerounais vers les scènes nationales et internationales.",
+    "Abonnez-vous et vivez l'aventure MBOA NEXT STAR 2026-2027 !"
+  ];
 
   const nextSlide = useCallback(() => {
     setCurrentHeroSlide((prev) => (prev + 1) % heroImages.length);
