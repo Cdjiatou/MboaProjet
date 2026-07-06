@@ -36,7 +36,7 @@ const prisma_1 = __importDefault(require("../utils/prisma"));
 // Import de la fonction helper pour uploader vers Cloudinary
 const upload_middleware_1 = require("../middlewares/upload.middleware");
 const cloudinary_1 = require("../config/cloudinary");
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 /**
  * Crée un nouveau candidat dans le système via l'interface coach/admin.
  *
@@ -492,8 +492,8 @@ exports.updateAdminProfile = (0, catchAsync_1.catchAsync)(async (req, res) => {
         updateData.email = email;
     }
     if (password) {
-        const salt = await bcrypt_1.default.genSalt(10);
-        updateData.password = await bcrypt_1.default.hash(password, salt);
+        const salt = await bcryptjs_1.default.genSalt(10);
+        updateData.password = await bcryptjs_1.default.hash(password, salt);
     }
     if (Object.keys(updateData).length === 0) {
         throw new AppError_1.AppError('Aucune donnée à mettre à jour.', 400);

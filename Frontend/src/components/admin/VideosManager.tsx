@@ -115,28 +115,36 @@ export const VideosManager = () => {
       const res = await uploadMediaFile(file, (percent) => {
         setProgress(prev => ({ ...prev, [id]: percent }));
       });
-      if (res.success && res.data?.fileUrl) {
-        const fileUrl = res.data.fileUrl;
-        
+
+      console.log('[VideosManager] Upload response:', JSON.stringify(res));
+
+      // Extraire l'URL du fichier — le backend peut renvoyer la donnée dans différentes structures
+      const fileUrl = res.data?.fileUrl || (res as any).fileUrl || (res as any).url || '';
+
+      if (res.success && fileUrl) {
         setVideos(prev => {
           const updatedVideos = prev.map(v => v.id === id ? { ...v, url: fileUrl } : v);
           
           // Auto-save uniquement si toutes les vidéos ont un titre ET un URL
           const allComplete = updatedVideos.every(v => v.title.trim() !== '' && v.url.trim() !== '');
           if (allComplete) {
-            // Sauvegarder après un court délai pour laisser React mettre à jour le state
             setTimeout(() => handleSave(updatedVideos), 200);
           }
           
           return updatedVideos;
         });
 
-        toast.show({ variant: 'success', title: 'Vidéo importée', message: 'Fichier vidéo téléversé avec succès. N\'oubliez pas d\'enregistrer !' });
+        toast.show({ variant: 'success', title: 'Vidéo importée', message: 'Fichier vidéo téléversé avec succès.' });
+      } else if (res.success && !fileUrl) {
+        // Le backend a confirmé le succès mais n'a pas retourné l'URL — cas rare
+        console.warn('[VideosManager] Upload réussi côté serveur mais URL manquante dans la réponse:', res);
+        toast.show({ variant: 'warning', title: 'Upload partiel', message: 'La vidéo a été téléversée mais l\'URL n\'a pas été retournée. Veuillez réessayer.' });
       } else {
         toast.show({ variant: 'error', title: 'Échec', message: res.message || 'Téléversement échoué' });
       }
-    } catch {
-      toast.show({ variant: 'error', title: 'Erreur', message: 'Erreur lors du téléversement de la vidéo.' });
+    } catch (err: any) {
+      console.error('[VideosManager] Upload error:', err);
+      toast.show({ variant: 'error', title: 'Erreur', message: err?.response?.data?.message || err?.message || 'Erreur lors du téléversement de la vidéo.' });
     } finally {
       setUploading(prev => ({ ...prev, [id]: false }));
     }
@@ -374,16 +382,28 @@ export const VideosManager = () => {
                               <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Vidéo enregistrée : <span className="truncate">{video.url}</span>
                             </p>
                             <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/5" style={{ aspectRatio: '16/9', maxHeight: '180px' }}>
-                              <ReactPlayer
-                                {...({
-                                  url: video.url.startsWith('/uploads/') 
-                                    ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${video.url}`
-                                    : video.url,
-                                  width: "100%",
-                                  height: "100%",
-                                  controls: true,
-                                } as any)}
-                              />
+                              {(video.url.includes('facebook.com') || video.url.includes('fb.watch')) ? (
+                                <iframe
+                                  src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(video.url)}&show_text=false&width=auto`}
+                                  className="w-full h-full border-0 bg-black"
+                                  style={{ overflow: 'hidden' }}
+                                  scrolling="no"
+                                  frameBorder="0"
+                                  allowFullScreen={true}
+                                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                                />
+                              ) : (
+                                <ReactPlayer
+                                  {...({
+                                    src: video.url.startsWith('/uploads/') 
+                                      ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${video.url}`
+                                      : video.url,
+                                    width: "100%",
+                                    height: "100%",
+                                    controls: true,
+                                  } as any)}
+                                />
+                              )}
                             </div>
                           </div>
                         )}
@@ -466,19 +486,31 @@ const LinkInput = ({ url, onUrlChange }: { url: string; onUrlChange: (u: string)
           className="overflow-hidden space-y-2.5"
         >
           <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/5" style={{ aspectRatio: '16/9', maxHeight: '180px' }}>
-            <ReactPlayer
-              {...({
-                url: url,
-                width: "100%",
-                height: "100%",
-                controls: true,
-                config: {
-                  youtube: {
-                    playerVars: { rel: 0, modestbranding: 1 }
+            {(url.includes('facebook.com') || url.includes('fb.watch')) ? (
+              <iframe
+                src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=auto`}
+                className="w-full h-full border-0 bg-black"
+                style={{ overflow: 'hidden' }}
+                scrolling="no"
+                frameBorder="0"
+                allowFullScreen={true}
+                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+              />
+            ) : (
+              <ReactPlayer
+                {...({
+                  src: url,
+                  width: "100%",
+                  height: "100%",
+                  controls: true,
+                  config: {
+                    youtube: {
+                      playerVars: { rel: 0, modestbranding: 1 }
+                    }
                   }
-                }
-              } as any)}
-            />
+                } as any)}
+              />
+            )}
           </div>
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/5 text-emerald-400">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />

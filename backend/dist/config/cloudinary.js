@@ -40,23 +40,16 @@ cloudinary_1.v2.config({
  */
 async function uploadToCloudinary(filePath, folder, resourceType = 'image') {
     try {
-        const result = await cloudinary_1.v2.uploader.upload(filePath, {
+        const uploadOptions = {
             folder: `mboa-next-star/${folder}`,
             resource_type: resourceType,
-            // Pour les vidéos, optimiser automatiquement
             ...(resourceType === 'video' && {
-                eager: [
-                    {
-                        width: 1280,
-                        height: 720,
-                        crop: 'limit',
-                        quality: 'auto',
-                        fetch_format: 'auto'
-                    }
-                ],
-                eager_async: true
+                chunk_size: 6000000 // 6MB chunks to prevent timeouts
             })
-        });
+        };
+        const result = resourceType === 'video'
+            ? await cloudinary_1.v2.uploader.upload_large(filePath, uploadOptions)
+            : await cloudinary_1.v2.uploader.upload(filePath, uploadOptions);
         return {
             url: result.secure_url,
             publicId: result.public_id

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, ChevronLeft, ChevronRight, Volume2, VolumeX, X, Sparkles } from 'lucide-react';
 import { getPublicConfig } from '@/services/adminService';
 import { type AdBannerItem } from '@/components/admin/BannerManager';
-import ReactPlayer from 'react-player';
+
 
 
 

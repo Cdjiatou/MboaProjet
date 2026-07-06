@@ -82,6 +82,7 @@ app.listen(PORT, async () => {
     await promises_1.default.mkdir(path_1.default.join(__dirname, '../uploads/candidates'), { recursive: true });
     await promises_1.default.mkdir(path_1.default.join(__dirname, '../uploads/sponsors'), { recursive: true });
     await promises_1.default.mkdir(path_1.default.join(__dirname, '../uploads/media'), { recursive: true });
+    await promises_1.default.mkdir(path_1.default.join(__dirname, '../uploads/temp'), { recursive: true });
     console.log('🔄 Initialisation du service WhatsApp...');
     await (0, whatsapp_service_1.initWhatsApp)();
 });

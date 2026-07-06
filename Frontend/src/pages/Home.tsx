@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { Star, ChevronRight, Phone, Mail, Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { CandidateCard } from '@/components/candidate/CandidateCard';
 import SponsorMarquee from '@/components/shared/SponsorMarquee';
-import ReactPlayer from 'react-player';
+
 
 import PerformancesSection from '@/components/home/PerformancesSection';
 import { usePublicCandidates } from '@/hooks/usePublicCandidates';
@@ -705,17 +705,16 @@ const Home = () => {
                       title={video.title}
                     />
                   ) : isFacebookVideo ? (
-                    <div className="w-full h-full bg-black overflow-hidden flex items-center justify-center">
-                      <ReactPlayer
-                        {...({
-                          url: video.url,
-                          width: "100%",
-                          height: "100%",
-                          controls: true,
-                          light: false
-                        } as any)}
-                      />
-                    </div>
+                    <iframe
+                      src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(video.url)}&show_text=false&width=auto`}
+                      className="w-full h-full border-0 bg-black"
+                      style={{ overflow: 'hidden' }}
+                      scrolling="no"
+                      frameBorder="0"
+                      allowFullScreen={true}
+                      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                      title={video.title}
+                    />
                   ) : hasVideo && isDirectVideo ? (
                     <div className="w-full h-full relative">
                       <video

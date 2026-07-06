@@ -16,7 +16,7 @@ exports.loginAdmin = void 0;
 const prisma_1 = __importDefault(require("../utils/prisma"));
 // Bibliothèque de hachage de mots de passe — utilisée ici pour comparer
 // le mot de passe fourni avec le hash stocké en base de données
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 // Utilitaire interne pour générer des tokens JWT signés
 const jwt_1 = require("../utils/jwt");
 // Classe d'erreur personnalisée qui permet de lever des exceptions HTTP
@@ -52,7 +52,7 @@ const loginAdmin = async (email, password) => {
     }
     // Étape 2 : Comparaison sécurisée du mot de passe fourni avec le hash en base
     // bcrypt.compare gère automatiquement l'extraction du sel depuis le hash stocké
-    const isValidPassword = await bcrypt_1.default.compare(password, user.password);
+    const isValidPassword = await bcryptjs_1.default.compare(password, user.password);
     // Même message d'erreur que pour l'utilisateur non trouvé,
     // afin d'empêcher l'énumération des comptes (sécurité par obscurité contrôlée)
     if (!isValidPassword) {
