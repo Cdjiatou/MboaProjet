@@ -59,6 +59,11 @@ const App: React.FC = () => {
     loadConfig();
   }, [setColors, setAssets]);
 
+  // Fait défiler la page vers le haut à chaque changement d'URL
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   // Si on est sur une page admin, on ne rend PAS le layout public (Header/Footer)
   if (isAdminPage) {
     return (
