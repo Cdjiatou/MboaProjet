@@ -53,7 +53,7 @@ export const WhatsAppManager = () => {
     const interval = setInterval(() => {
       if (!backendOnlineRef.current) return;
       if (!connectedRef.current) fetchStatus(false);
-    }, 3000);
+    }, 1500);
     return () => clearInterval(interval);
   }, [fetchStatus]);
 

@@ -582,7 +582,7 @@ export const updateAdminProfile = catchAsync(async (req: Request, res: Response)
   }
 
   const updatedAdmin = await prisma.user.update({
-    where: { id: adminId },
+    where: { id: Number(adminId) },
     data: updateData,
     select: {
       id: true,
