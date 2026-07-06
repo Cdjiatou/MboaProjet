@@ -38,7 +38,15 @@ const App: React.FC = () => {
             secondaryColor: secondary,
             backgroundColor: background,
           });
-          setAssets(configData);
+          // Fusionner les assets backend avec les valeurs par défaut.
+          // Si le backend renvoie un logo_url ou site_logo qui n'est pas une URL Cloudinary valide,
+          // on force le nouveau logo local.
+          const mergedAssets = { ...configData };
+          const backendLogo = configData.logo_url || configData.site_logo || '';
+          if (!backendLogo || backendLogo.includes('LOGO.jpeg') || backendLogo.includes('logo.jpg')) {
+            mergedAssets.logo_url = '/logo.png';
+          }
+          setAssets(mergedAssets);
           document.documentElement.style.setProperty('--primary-color', primary);
           document.documentElement.style.setProperty('--secondary-color', secondary);
           document.documentElement.style.setProperty('--background-color', background);
