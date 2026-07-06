@@ -463,7 +463,7 @@ export const getWhatsAppStatus = catchAsync(async (req: Request, res: Response) 
  * Redémarre la session WhatsApp pour générer un nouveau QR code
  */
 export const refreshWhatsAppSession = catchAsync(async (req: Request, res: Response) => {
-  await restartWhatsApp(false);
+  await restartWhatsApp(true);
   // Laisser Baileys générer le QR
   await new Promise((resolve) => setTimeout(resolve, 2000));
   const status = getWAStatus();
