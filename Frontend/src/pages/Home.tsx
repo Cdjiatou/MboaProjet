@@ -245,6 +245,24 @@ const Home = () => {
     "Abonnez-vous et vivez l'aventure MBOA NEXT STAR 2026-2027 !"
   ];
 
+  const juryList = (() => {
+    try {
+      if (assets.jury_members) {
+        const parsed = JSON.parse(assets.jury_members);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Error parsing jury_members', e);
+    }
+    return [
+      { id: '1', name: 'Phillbill', title: 'Producteur Musical', initials: 'PB' },
+      { id: '2', name: 'Maalhox', title: 'Artiste / Rappeur', initials: 'MH' },
+      { id: '3', name: 'Tzy Panchak', title: 'Artiste International', initials: 'TP' },
+      { id: '4', name: 'Stanley Enow', title: 'Rappeur / Producteur', initials: 'SE' },
+      { id: '5', name: 'Tony Nobody', title: 'Fondateur & Légende', initials: 'TN' },
+    ];
+  })();
+
   const nextSlide = useCallback(() => {
     setCurrentHeroSlide((prev) => (prev + 1) % heroImages.length);
   }, [heroImages.length]);
@@ -572,15 +590,9 @@ const Home = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8">
-          {[
-            { name: 'Phillbill', title: 'Producteur Musical', initials: 'PB' },
-            { name: 'Maalhox', title: 'Artiste / Rappeur', initials: 'MH' },
-            { name: 'Tzy Panchak', title: 'Artiste International', initials: 'TP' },
-            { name: 'Stanley Enow', title: 'Rappeur / Producteur', initials: 'SE' },
-            { name: 'Tony Nobody', title: 'Fondateur & Légende', initials: 'TN' },
-          ].map((juror, index) => (
+          {juryList.map((juror, index) => (
             <motion.div
-              key={juror.name}
+              key={juror.id || juror.name}
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true, margin: "-40px" }}
@@ -590,10 +602,14 @@ const Home = () => {
               {/* Avatar circulaire avec glow doré */}
               <div className="relative mb-5">
                 <div className="absolute inset-0 rounded-full bg-[#d4af37]/20 blur-xl scale-0 group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
-                <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#1a1610] to-[#0d0b08] border-2 border-[#d4af37]/20 group-hover:border-[#d4af37]/60 transition-all duration-500 flex items-center justify-center shadow-[0_0_0_4px_rgba(5,5,5,1)] group-hover:shadow-[0_0_30px_rgba(212,175,55,0.15)]">
-                  <span className="text-2xl sm:text-3xl font-black bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">
-                    {juror.initials}
-                  </span>
+                <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#1a1610] to-[#0d0b08] border-2 border-[#d4af37]/20 group-hover:border-[#d4af37]/60 transition-all duration-500 flex items-center justify-center overflow-hidden shadow-[0_0_0_4px_rgba(5,5,5,1)] group-hover:shadow-[0_0_30px_rgba(212,175,55,0.15)]">
+                  {juror.image ? (
+                    <img src={getMediaUrl(juror.image)} alt={juror.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl sm:text-3xl font-black bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">
+                      {juror.initials}
+                    </span>
+                  )}
                 </div>
                 {/* Badge étoile */}
                 <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#d4af37] flex items-center justify-center shadow-lg border-2 border-[#050505]">

@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Video, LayoutGrid, Mail, Layers, Megaphone } from 'lucide-react';
+import { Image as ImageIcon, Video, LayoutGrid, Mail, Layers, Megaphone, Users } from 'lucide-react';
 import { SponsorsManager } from './SponsorsManager';
 import { VideosManager } from './VideosManager';
 import { CarouselManager } from './CarouselManager';
 import { ContactManager } from './ContactManager';
 import { BannerManager } from './BannerManager';
+import { JuryManager } from './JuryManager';
 
-type ContentModule = 'sponsors' | 'banner' | 'videos' | 'carousel' | 'contacts';
+type ContentModule = 'sponsors' | 'banner' | 'videos' | 'carousel' | 'contacts' | 'jury';
 
 const MODULES: { key: ContentModule; label: string; icon: React.ElementType; desc: string }[] = [
   { key: 'sponsors', label: 'Sponsors', icon: ImageIcon, desc: 'Logos & Partenaires' },
@@ -15,6 +16,7 @@ const MODULES: { key: ContentModule; label: string; icon: React.ElementType; des
   { key: 'videos', label: 'Vidéos', icon: Video, desc: 'Médias & URLs' },
   { key: 'carousel', label: 'Carrousel', icon: LayoutGrid, desc: "Bannières d'accueil" },
   { key: 'contacts', label: 'Contacts', icon: Mail, desc: 'Informations de contact' },
+  { key: 'jury', label: 'Jury', icon: Users, desc: 'Membres du jury' },
 ];
 
 const COMPONENTS: Record<ContentModule, React.ReactElement> = {
@@ -23,6 +25,7 @@ const COMPONENTS: Record<ContentModule, React.ReactElement> = {
   videos: <VideosManager />,
   carousel: <CarouselManager />,
   contacts: <ContactManager />,
+  jury: <JuryManager />,
 };
 
 export const ContentSitePanel = () => {
