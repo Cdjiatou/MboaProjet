@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logoutWhatsApp = exports.sendWhatsAppMessage = exports.getWhatsAppStatus = exports.restartWhatsApp = exports.initWhatsApp = void 0;
+exports.logoutWhatsApp = exports.sendWhatsAppImage = exports.sendWhatsAppMessage = exports.getWhatsAppStatus = exports.restartWhatsApp = exports.initWhatsApp = void 0;
 const baileys_1 = require("@whiskeysockets/baileys");
 const path_1 = __importDefault(require("path"));
 const promises_1 = __importDefault(require("fs/promises"));
@@ -207,6 +207,44 @@ const sendWhatsAppMessage = async (phone, text) => {
     }
 };
 exports.sendWhatsAppMessage = sendWhatsAppMessage;
+/**
+ * Envoie une image avec une légende via WhatsApp.
+ * @param phone  - Numéro du destinataire
+ * @param imageUrl - URL publique de l'image à envoyer
+ * @param caption - Texte accompagnant l'image
+ */
+const sendWhatsAppImage = async (phone, imageUrl, caption) => {
+    if (!isConnected || !sock) {
+        console.warn('[WhatsApp] Impossible d\'envoyer l\'image : non connecté.');
+        return false;
+    }
+    try {
+        const jid = formatPhoneNumber(phone);
+        // Vérifier si le numéro existe sur WhatsApp
+        try {
+            const result = await sock.onWhatsApp(jid);
+            if (!result || result.length === 0 || !result[0]?.exists) {
+                console.warn(`[WhatsApp] Le numéro ${phone} n'est pas enregistré sur WhatsApp.`);
+                return false;
+            }
+        }
+        catch (verifyError) {
+            console.warn(`[WhatsApp] Impossible de vérifier le numéro ${phone}:`, verifyError);
+        }
+        // Envoi de l'image avec la légende
+        await sock.sendMessage(jid, {
+            image: { url: imageUrl },
+            caption,
+        });
+        console.log(`[WhatsApp] Image envoyée avec succès à ${phone} (${jid})`);
+        return true;
+    }
+    catch (error) {
+        console.error(`[WhatsApp] Erreur lors de l'envoi de l'image au ${phone}:`, error);
+        return false;
+    }
+};
+exports.sendWhatsAppImage = sendWhatsAppImage;
 const logoutWhatsApp = async () => {
     reconnectAttempts = 0;
     if (sock) {

@@ -10,7 +10,10 @@
 // futur : un seul fichier à modifier pour brancher les vraies API.
 // =============================================================================
 
-import { sendWhatsAppMessage } from './whatsapp.service';
+import { sendWhatsAppMessage, sendWhatsAppImage } from './whatsapp.service';
+
+// URL du logo MBOA NEXT STAR hébergé sur Cloudinary
+const LOGO_URL = 'https://res.cloudinary.com/dlcrb5pat/image/upload/v1783339162/mboa-next-star/site-media/spjvod1fxxmkdy9n0rpb.png';
 
 // =============================================================================
 // FONCTION : sendWhatsAppOTP
@@ -18,14 +21,26 @@ import { sendWhatsAppMessage } from './whatsapp.service';
 
 /**
  * Envoie un code OTP (One-Time Password) par WhatsApp à un numéro de téléphone.
+ * Le message est accompagné du logo MBOA NEXT STAR.
  *
  * @param phone - Numéro de téléphone du destinataire (format international recommandé, ex: +237XXXXXXXXX).
  * @param otp   - Code OTP à 6 chiffres à envoyer au destinataire.
  * @returns `true` si l'envoi est réussi.
  */
 export const sendWhatsAppOTP = async (phone: string, otp: string): Promise<boolean> => {
-  const message = `Bienvenue sur MBOA NEXT STAR ! 🌟\n\nVotre code de vérification est : *${otp}*\n\nNe partagez ce code avec personne.`;
-  return await sendWhatsAppMessage(phone, message);
+  const caption = ` *MBOA NEXT STAR* \n\nBienvenue sur MBOA NEXT STAR !\n\nVotre code de vérification est :\n\n🔐 *${otp}*\n\n⚠️ Ne partagez ce code avec personne.\nIl expire dans 10 minutes.`;
+
+  // Tenter d'envoyer avec l'image du logo
+  try {
+    const sent = await sendWhatsAppImage(phone, LOGO_URL, caption);
+    if (sent) return true;
+  } catch (err) {
+    console.warn('[OTP] Échec envoi image, fallback vers texte simple:', err);
+  }
+
+  // Fallback: envoi en texte simple si l'image échoue
+  return await sendWhatsAppMessage(phone, caption);
 };
 
 // Mavians déplacé vers mavians.service.ts
+

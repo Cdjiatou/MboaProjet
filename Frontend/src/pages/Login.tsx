@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from 'react'; // [CORRIGÉ] AnimatePresence est maintenant correctement importé ici
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion'; 
-import { LogIn, Shield, Loader2, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Loader2, Eye, EyeOff } from 'lucide-react';
 import { loginAdmin } from '@/services/adminService';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -65,8 +65,8 @@ const Login: React.FC = () => {
       >
         {/* En-tête de la carte */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/[0.08] text-[#d4af37] mb-5 shadow-inner">
-            <Shield className="w-6 h-6" />
+          <div className="inline-flex items-center justify-center mb-5">
+            <img src="/logo.png" alt="MBOA NEXT STAR" className="h-16 w-auto object-contain" />
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight sm:text-2xl">
             Espace Confidentiel

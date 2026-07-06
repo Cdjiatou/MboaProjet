@@ -42,16 +42,11 @@ async function uploadToCloudinary(filePath, folder, resourceType = 'image') {
     try {
         const uploadOptions = {
             folder: `mboa-next-star/${folder}`,
-            resource_type: resourceType,
-            ...(resourceType === 'video' && {
-                chunk_size: 6000000 // 6MB chunks to prevent timeouts
-            })
+            resource_type: resourceType
         };
-        const result = resourceType === 'video'
-            ? await cloudinary_1.v2.uploader.upload_large(filePath, uploadOptions)
-            : await cloudinary_1.v2.uploader.upload(filePath, uploadOptions);
+        const result = await cloudinary_1.v2.uploader.upload(filePath, uploadOptions);
         return {
-            url: result.secure_url,
+            url: result.secure_url || result.url,
             publicId: result.public_id
         };
     }
