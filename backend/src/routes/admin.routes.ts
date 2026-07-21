@@ -40,6 +40,13 @@ import {
   updateAdminProfile,
 } from '../controllers/admin.controller';
 
+import {
+  listAdmins,
+  createAdmin,
+  updateAdmin,
+  deleteAdmin
+} from '../controllers/adminUsers.controller';
+
 // Import des routes sponsors
 import sponsorRoutes from './sponsor.routes';
 
@@ -48,7 +55,7 @@ import { uploadCandidatePhoto as uploadMiddleware, uploadSponsorLogo, uploadMedi
 
 // Middleware d'authentification vérifiant la présence et la validité d'un
 // JWT admin dans le header Authorization. Rejette avec 401 si absent ou invalide.
-import { authenticateAdmin } from '../middlewares/authMiddleware';
+import { authenticateAdmin, requireSuperAdmin } from '../middlewares/authMiddleware';
 
 // Middleware de validation Zod : même principe que dans auth.routes.ts,
 // il valide le body/params/query avant d'atteindre le contrôleur.
@@ -156,8 +163,36 @@ const updateCandidateSchema = z.object({
 
 const updateAdminProfileSchema = z.object({
   body: z.object({
+    currentPassword: z.string().min(8, 'Le mot de passe actuel doit faire au moins 8 caractères').optional(),
+    newPassword: z.string().min(8, 'Le nouveau mot de passe doit faire au moins 8 caractères').optional(),
+  }).refine(data => {
+    if (data.newPassword && !data.currentPassword) {
+      return false;
+    }
+    return true;
+  }, {
+    message: 'Le mot de passe actuel est requis pour définir un nouveau mot de passe',
+    path: ['currentPassword'],
+  }),
+});
+
+const adminUserSchema = z.object({
+  body: z.object({
+    name: z.string().min(2, 'Le nom doit faire au moins 2 caractères'),
+    email: z.string().email('Email invalide'),
+    password: z.string().min(8, 'Le mot de passe doit faire au moins 8 caractères').optional(),
+    role: z.enum(['ADMIN', 'SUPER_ADMIN']).optional(),
+    isActive: z.boolean().optional()
+  })
+});
+
+const adminUserUpdateSchema = z.object({
+  body: z.object({
+    name: z.string().min(2, 'Le nom doit faire au moins 2 caractères').optional(),
     email: z.string().email('Email invalide').optional(),
-    password: z.string().min(6, 'Le mot de passe doit faire au moins 6 caractères').optional(),
+    password: z.string().min(8, 'Le mot de passe doit faire au moins 8 caractères').optional(),
+    role: z.enum(['ADMIN', 'SUPER_ADMIN']).optional(),
+    isActive: z.boolean().optional()
   })
 });
 
@@ -268,16 +303,16 @@ router.post('/config', validate(configSchema), saveConfig);
 /**
  * @route POST /withdrawals
  * @description Initie une demande de retrait des fonds accumulés.
- * Pipeline : validation Zod → contrôleur createWithdrawal.
+ * Pipeline : requireSuperAdmin → validation Zod → contrôleur createWithdrawal.
  */
-router.post('/withdrawals', validate(withdrawalSchema), createWithdrawal);
+router.post('/withdrawals', requireSuperAdmin, validate(withdrawalSchema), createWithdrawal);
 
 /**
  * @route PATCH /withdrawals/:id
  * @description Met à jour le statut d'un retrait de PENDING vers COMPLETED.
- * Pipeline : contrôleur patchWithdrawalStatus.
+ * Pipeline : requireSuperAdmin → contrôleur patchWithdrawalStatus.
  */
-router.patch('/withdrawals/:id', patchWithdrawalStatus);
+router.patch('/withdrawals/:id', requireSuperAdmin, patchWithdrawalStatus);
 
 /**
  * @route GET /exports/votes
@@ -290,15 +325,24 @@ router.get('/exports/votes', exportVotes);
  * @route GET /exports/withdrawals
  * @description Télécharge l'export CSV de tous les retraits effectués.
  */
-router.get('/exports/withdrawals', exportWithdrawals);
+router.get('/exports/withdrawals', requireSuperAdmin, exportWithdrawals);
 
 /**
  * Routes pour la gestion de WhatsApp
  * Préfixe : /api/admin/whatsapp
  */
-router.get('/whatsapp/status', getWhatsAppStatus);
-router.post('/whatsapp/refresh', refreshWhatsAppSession);
-router.post('/whatsapp/logout', logoutWhatsAppSession);
+router.get('/whatsapp/status', requireSuperAdmin, getWhatsAppStatus);
+router.post('/whatsapp/refresh', requireSuperAdmin, refreshWhatsAppSession);
+router.post('/whatsapp/logout', requireSuperAdmin, logoutWhatsAppSession);
+
+/**
+ * Routes pour la gestion des utilisateurs administrateurs
+ * Préfixe : /api/admin/users
+ */
+router.get('/users', requireSuperAdmin, listAdmins);
+router.post('/users', requireSuperAdmin, validate(adminUserSchema), createAdmin);
+router.patch('/users/:id', requireSuperAdmin, validate(adminUserUpdateSchema), updateAdmin);
+router.delete('/users/:id', requireSuperAdmin, deleteAdmin);
 
 /**
  * Routes pour la gestion des sponsors

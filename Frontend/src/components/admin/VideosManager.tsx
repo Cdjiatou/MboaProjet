@@ -6,12 +6,82 @@ import { useRefreshSiteConfig } from '@/hooks/useRefreshSiteConfig';
 import { AdminButton, AdminCard } from './AdminUI';
 import { useToastStore } from '@/store/useToastStore';
 import ReactPlayer from 'react-player';
+import { TikTokEmbed, InstagramEmbed, FacebookEmbed } from 'react-social-media-embed';
+
+/* ─── Helpers de détection de plateforme ─── */
+const isTikTokUrl = (url: string) => /tiktok\.com/.test(url);
+const isInstagramUrl = (url: string) => /instagram\.com/.test(url);
+const isFacebookUrl = (url: string) => url.includes('facebook.com') || url.includes('fb.watch');
+
+const getUploadedFileUrl = (url: string) =>
+  url.startsWith('/uploads/')
+    ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${url}`
+    : url;
+
+/**
+ * Composant unique qui choisit le bon lecteur/embed selon l'URL fournie.
+ * - TikTok / Instagram / Facebook -> react-social-media-embed
+ * - YouTube / Vimeo / MP4 uploadé -> ReactPlayer
+ */
+const VideoPreview = ({ url }: { url: string }) => {
+  if (isTikTokUrl(url)) {
+    const hasVideoId = /\/video\/\d+/.test(url);
+    if (!hasVideoId) {
+      return (
+        <div className="flex items-center justify-center h-full p-4 text-center">
+          <p className="text-xs text-amber-400 flex items-center gap-1.5">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            Lien TikTok non supporté : utilisez le lien complet (format .../@compte/video/1234567890), pas un lien court.
+          </p>
+        </div>
+      );
+    }
+    return (
+      <div className="w-full h-full overflow-y-auto flex justify-center bg-black">
+        <TikTokEmbed url={url} width="100%" />
+      </div>
+    );
+  }
+
+  if (isInstagramUrl(url)) {
+    return (
+      <div className="w-full h-full overflow-y-auto flex justify-center bg-black">
+        <InstagramEmbed url={url} width="100%" />
+      </div>
+    );
+  }
+
+  if (isFacebookUrl(url)) {
+    return (
+      <div className="w-full h-full flex justify-center bg-black">
+        <FacebookEmbed url={url} width="100%" />
+      </div>
+    );
+  }
+
+  // YouTube, Vimeo, fichiers MP4 uploadés, etc.
+  return (
+    <ReactPlayer
+      {...({
+        src: getUploadedFileUrl(url),
+        width: '100%',
+        height: '100%',
+        controls: true,
+        config: {
+          youtube: {
+            playerVars: { rel: 0, modestbranding: 1 },
+          },
+        },
+      } as any)}
+    />
+  );
+};
 
 export const VideosManager = () => {
   const toast = useToastStore();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+
   const [videos, setVideos] = useState<{id: string, title: string, url: string}[]>([]);
   const [initialVideos, setInitialVideos] = useState<{id: string, title: string, url: string}[]>([]);
   const [modes, setModes] = useState<Record<string, 'link' | 'upload'>>({});
@@ -30,7 +100,7 @@ export const VideosManager = () => {
       const res = await getPublicConfig();
       if (res.success && res.data) {
         if (res.data.videos) {
-          try { 
+          try {
             const list = JSON.parse(res.data.videos) as {title: string, url: string}[];
             const listWithIds = list.map(v => ({ ...v, id: Math.random().toString(36).substr(2, 9) }));
             setVideos(listWithIds);
@@ -40,8 +110,8 @@ export const VideosManager = () => {
               initialModes[v.id] = (v.url.includes('/uploads/') || v.url.includes('cloudinary.com')) ? 'upload' : 'link';
             });
             setModes(initialModes);
-          } catch(e) { 
-            console.error('[VideosManager] Erreur parsing videos:', e); 
+          } catch(e) {
+            console.error('[VideosManager] Erreur parsing videos:', e);
           }
         } else {
           setVideos([]);
@@ -124,13 +194,13 @@ export const VideosManager = () => {
       if (res.success && fileUrl) {
         setVideos(prev => {
           const updatedVideos = prev.map(v => v.id === id ? { ...v, url: fileUrl } : v);
-          
+
           // Auto-save uniquement si toutes les vidéos ont un titre ET un URL
           const allComplete = updatedVideos.every(v => v.title.trim() !== '' && v.url.trim() !== '');
           if (allComplete) {
             setTimeout(() => handleSave(updatedVideos), 200);
           }
-          
+
           return updatedVideos;
         });
 
@@ -222,9 +292,9 @@ export const VideosManager = () => {
           <AdminButton variant="secondary" size="sm" icon={Plus} onClick={handleAddVideo}>
             ajouter une vidéo
           </AdminButton>
-          <AdminButton 
-            icon={Save} 
-            onClick={() => handleSave()} 
+          <AdminButton
+            icon={Save}
+            onClick={() => handleSave()}
             loading={saving}
             className={isDirty ? 'ring-2 ring-amber-500/80 ring-offset-2 ring-offset-black' : ''}
           >
@@ -250,8 +320,8 @@ export const VideosManager = () => {
                 exit={{ opacity: 0, y: -16 }}
                 key={video.id}
                 className={`bg-white/[0.02] rounded-3xl p-6 space-y-4 shadow-xl border transition-all duration-300 ${
-                  isVideoModified 
-                    ? 'border-[#d4af37]/20 bg-[#d4af37]/[0.01]' 
+                  isVideoModified
+                    ? 'border-[#d4af37]/20 bg-[#d4af37]/[0.01]'
                     : 'border-white/5'
                 }`}
               >
@@ -321,7 +391,7 @@ export const VideosManager = () => {
                             : 'bg-white/5 text-neutral-400 border border-transparent hover:text-white'
                         }`}
                       >
-                        <LinkIcon className="w-3.5 h-3.5" /> Lien YouTube / Vimeo / Facebook
+                        <LinkIcon className="w-3.5 h-3.5" /> Lien YouTube / TikTok / Instagram / Facebook
                       </button>
                       <button
                         type="button"
@@ -382,28 +452,7 @@ export const VideosManager = () => {
                               <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Vidéo enregistrée : <span className="truncate">{video.url}</span>
                             </p>
                             <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/5" style={{ aspectRatio: '16/9', maxHeight: '180px' }}>
-                              {(video.url.includes('facebook.com') || video.url.includes('fb.watch')) ? (
-                                <iframe
-                                  src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(video.url)}&show_text=false&width=auto`}
-                                  className="w-full h-full border-0 bg-black"
-                                  style={{ overflow: 'hidden' }}
-                                  scrolling="no"
-                                  frameBorder="0"
-                                  allowFullScreen={true}
-                                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                                />
-                              ) : (
-                                <ReactPlayer
-                                  {...({
-                                    src: video.url.startsWith('/uploads/') 
-                                      ? `${import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')}${video.url}`
-                                      : video.url,
-                                    width: "100%",
-                                    height: "100%",
-                                    controls: true,
-                                  } as any)}
-                                />
-                              )}
+                              <VideoPreview url={video.url} />
                             </div>
                           </div>
                         )}
@@ -452,7 +501,7 @@ const LinkInput = ({ url, onUrlChange }: { url: string; onUrlChange: (u: string)
           onChange={(e) => { onUrlChange(e.target.value); setValidated(false); }}
           onKeyDown={handleKeyDown}
           onBlur={handleValidate}
-          placeholder="Ex: https://www.youtube.com/watch?v=... ou Facebook video URL"
+          placeholder="Ex: https://www.tiktok.com/@compte/video/... ou Instagram / YouTube / Facebook"
           className="flex-1 bg-white/[0.03] rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:bg-white/[0.06] transition-colors placeholder:text-neutral-600"
         />
         <button
@@ -486,31 +535,7 @@ const LinkInput = ({ url, onUrlChange }: { url: string; onUrlChange: (u: string)
           className="overflow-hidden space-y-2.5"
         >
           <div className="relative rounded-xl overflow-hidden bg-black/40 border border-white/5" style={{ aspectRatio: '16/9', maxHeight: '180px' }}>
-            {(url.includes('facebook.com') || url.includes('fb.watch')) ? (
-              <iframe
-                src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=auto`}
-                className="w-full h-full border-0 bg-black"
-                style={{ overflow: 'hidden' }}
-                scrolling="no"
-                frameBorder="0"
-                allowFullScreen={true}
-                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-              />
-            ) : (
-              <ReactPlayer
-                {...({
-                  src: url,
-                  width: "100%",
-                  height: "100%",
-                  controls: true,
-                  config: {
-                    youtube: {
-                      playerVars: { rel: 0, modestbranding: 1 }
-                    }
-                  }
-                } as any)}
-              />
-            )}
+            <VideoPreview url={url} />
           </div>
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/5 text-emerald-400">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />

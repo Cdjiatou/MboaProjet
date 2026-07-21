@@ -10,6 +10,7 @@ datasource db {
 
 enum Role {
   SUPER_ADMIN
+  ADMIN
   COACH
 }
 
@@ -36,6 +37,7 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(COACH)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 }
 

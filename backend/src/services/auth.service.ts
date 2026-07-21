@@ -63,6 +63,11 @@ export const loginAdmin = async (email: string, password: string) => {
     throw new AppError('Identifiants invalides.', 401);
   }
 
+  // Si le compte a été suspendu
+  if (!user.isActive) {
+    throw new AppError('Ce compte a été suspendu par un administrateur.', 403);
+  }
+
   // Étape 3 : Génération du token JWT
   // Le payload contient l'ID de l'utilisateur, son rôle (ex: SUPER_ADMIN, ADMIN)
   // et le type 'admin' pour distinguer les tokens admin des tokens candidat

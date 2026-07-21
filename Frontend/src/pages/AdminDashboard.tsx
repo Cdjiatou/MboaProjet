@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart3, Users, Trophy, Banknote, Settings, LogOut,
   ChevronRight, Search, Bell, Smartphone, Menu, X,
-  TrendingUp, Eye, Calendar
+  TrendingUp, Eye, Calendar, Shield
 } from 'lucide-react';
 import { getDashboardStats } from '@/services/adminService';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,11 +22,12 @@ import { maskVoterIdentifier } from '@/utils/maskIdentifier';
 import { formatRelativeTime } from '@/utils/relativeTime';
 import { useAdminDashboardSync, notifyAdminDashboardUpdated } from '@/hooks/useAdminDashboardSync';
 import { AdminProfileModal } from '@/components/admin/AdminProfileModal';
+import { AdminUsersManager } from '@/components/admin/AdminUsersManager';
 
 // =============================================================================
 // TYPES
 // =============================================================================
-type TabKey = 'dashboard' | 'candidates' | 'content' | 'whatsapp' | 'finances';
+type TabKey = 'dashboard' | 'candidates' | 'content' | 'whatsapp' | 'finances' | 'admins';
 
 interface NavItem {
   key: TabKey;
@@ -44,13 +45,14 @@ const TAB_TITLES: Record<TabKey, { title: string; subtitle: string }> = {
   content: { title: 'Contenu & Site', subtitle: 'Gestion des sponsors, vidéos, carousel et contacts' },
   whatsapp: { title: 'WhatsApp', subtitle: 'Connexion et envoi automatisé de messages' },
   finances: { title: 'Finances', subtitle: 'Retraits, paiements et exports de données' },
+  admins: { title: 'Équipe Admin', subtitle: 'Gestion des administrateurs et des accès' },
 };
 
 // =============================================================================
 // COMPOSANT PRINCIPAL
 // =============================================================================
 const AdminDashboard = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
@@ -104,12 +106,15 @@ const AdminDashboard = () => {
     notifyAdminDashboardUpdated();
   };
 
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
   const navItems: NavItem[] = [
     { key: 'dashboard', label: 'Vue d\'ensemble', icon: BarChart3 },
     { key: 'candidates', label: 'Candidats', icon: Users, badge: stats?.totalCandidates },
     { key: 'content', label: 'Contenu & Site', icon: Settings },
-    { key: 'whatsapp', label: 'WhatsApp', icon: Smartphone },
-    { key: 'finances', label: 'Finances', icon: Banknote },
+    ...(isSuperAdmin ? [{ key: 'whatsapp', label: 'WhatsApp', icon: Smartphone } as NavItem] : []),
+    ...(isSuperAdmin ? [{ key: 'finances', label: 'Finances', icon: Banknote } as NavItem] : []),
+    ...(isSuperAdmin ? [{ key: 'admins', label: 'Équipe', icon: Shield } as NavItem] : []),
   ];
 
   const statCards = [
@@ -208,7 +213,9 @@ const AdminDashboard = () => {
         <div className="px-4 py-4 border-t border-white/[0.06] space-y-3">
           <div className="px-3 py-2">
             <p className="text-xs text-neutral-500">Connecté en tant que</p>
-            <p className="text-sm font-semibold text-white truncate">Administrateur</p>
+            <p className="text-sm font-semibold text-white truncate">
+              {user?.role === 'SUPER_ADMIN' ? 'Super Administrateur' : 'Administrateur'}
+            </p>
           </div>
           <div className="flex gap-2">
             <button
@@ -505,7 +512,7 @@ const AdminDashboard = () => {
             {/* =========================================================
                 TAB: WHATSAPP
                 ========================================================= */}
-            {activeTab === 'whatsapp' && (
+            {activeTab === 'whatsapp' && isSuperAdmin && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -519,7 +526,7 @@ const AdminDashboard = () => {
             {/* =========================================================
                 TAB: FINANCES
                 ========================================================= */}
-            {activeTab === 'finances' && (
+            {activeTab === 'finances' && isSuperAdmin && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -527,6 +534,20 @@ const AdminDashboard = () => {
                 className="space-y-6"
               >
                 <FinanceSection onChange={handleFinancesChange} />
+              </motion.div>
+            )}
+
+            {/* =========================================================
+                TAB: ADMINS (ÉQUIPE)
+                ========================================================= */}
+            {activeTab === 'admins' && isSuperAdmin && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                <AdminUsersManager />
               </motion.div>
             )}
 

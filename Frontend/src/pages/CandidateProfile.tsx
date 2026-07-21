@@ -84,10 +84,7 @@ const CandidateProfile = () => {
   const resolvedVideoUrl = rawVideoUrl ? getMediaUrl(rawVideoUrl, candidate.updatedAt) : '';
 
   return (
-    <div className="min-h-screen pt-24 pb-32 sm:pb-16 bg-[#050505] text-white relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.08)_0%,transparent_70%)] pointer-events-none"></div>
-      <div className="absolute top-1/4 right-0 w-[50%] h-[50%] bg-[#d4af37]/5 rounded-full blur-[150px] pointer-events-none"></div>
+    <div className="min-h-screen pt-24 pb-32 sm:pb-16 bg-black text-white relative overflow-hidden">
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Bouton retour */}
@@ -108,7 +105,7 @@ const CandidateProfile = () => {
             className="lg:col-span-3 space-y-6"
           >
             {/* Lecteur Vidéo */}
-            <div className="relative aspect-video rounded-2xl sm:rounded-3xl overflow-hidden bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(212,175,55,0.05)] p-1.5 sm:p-2">
+            <div className="relative aspect-video rounded-2xl sm:rounded-3xl overflow-hidden bg-white/[0.02] backdrop-blur-md border border-white/10 shadow-2xl p-1.5 sm:p-2">
               <div className="w-full h-full rounded-xl sm:rounded-2xl overflow-hidden bg-black relative group">
                 {rawVideoUrl ? (
                   isYt && ytId ? (
@@ -139,7 +136,7 @@ const CandidateProfile = () => {
             </div>
 
             {/* Biographie */}
-            <div className="bg-[#0b0b0b]/60 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-10 shadow-[0_0_50px_rgba(212,175,55,0.02)]">
+            <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-10 shadow-2xl">
               <h2 className="text-lg sm:text-xl font-black text-white mb-4 sm:mb-6 font-heading uppercase tracking-widest border-b border-white/10 pb-4 inline-block">
                 Biographie
               </h2>
@@ -159,12 +156,12 @@ const CandidateProfile = () => {
             className="lg:col-span-2 space-y-6"
           >
             {/* Carte de profil */}
-            <div className="bg-[#0b0b0b]/60 backdrop-blur-xl border border-[#d4af37]/20 shadow-[0_0_50px_rgba(212,175,55,0.08)] rounded-2xl sm:rounded-3xl p-5 sm:p-10 text-center space-y-6 sm:space-y-8 relative overflow-hidden">
+            <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl sm:rounded-3xl p-5 sm:p-10 text-center space-y-6 sm:space-y-8 relative overflow-hidden">
               {/* Decorative top gradient */}
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#d4af37] via-[#fff3c4] to-[#b8952e]"></div>
 
               {/* Avatar */}
-              <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full overflow-hidden border-4 border-[#0b0b0b] shadow-[0_0_0_2px_rgba(212,175,55,0.5)] bg-[#141414] relative z-10">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full overflow-hidden border border-white/10 bg-[#141414] relative z-10">
                 {candidate.profilePhoto ? (
                   <img
                     src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
@@ -190,8 +187,7 @@ const CandidateProfile = () => {
               </div>
 
               {/* Compteur de votes */}
-              <div className="flex items-center justify-center gap-3 bg-[#050505] py-3 sm:py-4 px-6 rounded-2xl border border-white/5">
-                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37]" />
+              <div className="flex items-center justify-center gap-3 bg-white/[0.03] py-3 sm:py-4 px-6 rounded-2xl border border-white/5">
                 <span className="text-2xl sm:text-3xl font-black bg-gradient-to-br from-[#d4af37] via-[#fff3c4] to-[#b8952e] bg-clip-text text-transparent">
                   {candidate.totalVotesCache}
                 </span>
@@ -199,15 +195,15 @@ const CandidateProfile = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-4 pt-2">
+              <div className="space-y-4 pt-2 flex flex-col items-center">
                 <button
                   onClick={() => setIsVoteModalOpen(true)}
-                  className="hidden lg:flex w-full py-3.5 sm:py-4 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 text-sm uppercase tracking-wider items-center justify-center gap-2"
+                  className="hidden lg:flex px-12 py-3.5 sm:py-4 bg-[#d4af37]/10 border border-[#d4af37]/50 text-[#d4af37] font-black rounded-xl hover:bg-[#d4af37] hover:text-black hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] active:scale-95 transition-all duration-300 text-sm uppercase tracking-widest items-center justify-center"
                 >
-                  <Star className="w-5 h-5 fill-black" /> Voter pour {candidate.firstName}
+                  VOTER
                 </button>
 
-                <div className="space-y-3">
+                <div className="space-y-4 pt-8">
                   <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest text-center">Partager le profil</p>
                   <div className="flex justify-center">
                     <ShareButtons url={shareUrl} text={shareText} size="md" />
@@ -220,12 +216,12 @@ const CandidateProfile = () => {
       </div>
 
       {/* ===== Bouton de vote flottant (mobile) ===== */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-gradient-to-t from-black via-black/95 to-transparent lg:hidden pb-6">
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-gradient-to-t from-black via-black/95 to-transparent lg:hidden pb-6 flex justify-center">
         <button
           onClick={() => setIsVoteModalOpen(true)}
-          className="w-full py-3.5 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black font-black rounded-xl shadow-[0_-4px_30px_rgba(212,175,55,0.3)] text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-transform"
+          className="w-[90%] py-3.5 bg-[#d4af37]/10 border border-[#d4af37]/50 text-[#d4af37] font-black rounded-xl shadow-[0_-4px_30px_rgba(212,175,55,0.2)] text-xs uppercase tracking-widest flex items-center justify-center hover:bg-[#d4af37] hover:text-black hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] active:scale-95 transition-all"
         >
-          <Star className="w-4 h-4 fill-black" /> Voter pour {candidate.firstName}
+          VOTER
         </button>
       </div>
 

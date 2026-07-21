@@ -122,3 +122,17 @@ export const authenticateCandidate = (req: Request, res: Response, next: NextFun
   req.user = decoded;
   next();
 };
+
+/**
+ * Middleware d'authentification réservé au SUPER_ADMIN.
+ *
+ * Doit être placé après `authenticateAdmin`. Vérifie que le rôle de l'utilisateur
+ * est bien SUPER_ADMIN pour protéger les routes sensibles (retraits, whatsapp).
+ */
+export const requireSuperAdmin = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user || req.user.role !== 'SUPER_ADMIN') {
+    throw new AppError('Accès refusé. Privilèges insuffisants (Super Admin requis).', 403);
+  }
+
+  next();
+};

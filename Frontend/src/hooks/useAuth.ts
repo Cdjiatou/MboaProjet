@@ -22,7 +22,7 @@ export const useAuth = (): AuthState => {
   const clearAuth = useThemeStore((state) => state.clearAuth);
 
   const login = useCallback((userData: User, jwtToken: string) => {
-    const role: 'admin' | 'artist' = ['SUPER_ADMIN', 'COACH', 'admin'].includes(userData.role) ? 'admin' : 'artist';
+    const role: 'admin' | 'artist' = ['SUPER_ADMIN', 'ADMIN', 'COACH', 'admin'].includes(userData.role) ? 'admin' : 'artist';
     localStorage.setItem('mboa_token', jwtToken);
     setAuth(jwtToken, role, {
       id: userData.id,

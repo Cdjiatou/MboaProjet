@@ -264,3 +264,31 @@ export const uploadMediaFile = async (
 
   return response.data;
 };
+
+// =============================================================================
+// GESTION DES ADMINISTRATEURS (Super Admin)
+// =============================================================================
+
+/** Récupère la liste des administrateurs */
+export const getAdminUsers = async (): Promise<ApiResponse<any[]>> => {
+  const response = await api.get('/admin/users');
+  return response.data;
+};
+
+/** Crée un nouvel administrateur */
+export const createAdminUser = async (data: any): Promise<ApiResponse<any>> => {
+  const response = await api.post('/admin/users', data);
+  return response.data;
+};
+
+/** Met à jour un administrateur existant */
+export const updateAdminUser = async (id: number, data: any): Promise<ApiResponse<any>> => {
+  const response = await api.patch(`/admin/users/${id}`, data);
+  return response.data;
+};
+
+/** Supprime un administrateur */
+export const deleteAdminUser = async (id: number): Promise<ApiResponse> => {
+  const response = await api.delete(`/admin/users/${id}`);
+  return response.data;
+};

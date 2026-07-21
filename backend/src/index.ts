@@ -99,5 +99,9 @@ app.listen(PORT, async () => {
   await fs.mkdir(path.join(__dirname, '../uploads/temp'), { recursive: true });
 
   console.log('🔄 Initialisation du service WhatsApp...');
-  await initWhatsApp();
+  try {
+    await initWhatsApp();
+  } catch (err) {
+    console.error('⚠️ WhatsApp n\'a pas pu s\'initialiser (le serveur continue) :', (err as Error).message);
+  }
 });
