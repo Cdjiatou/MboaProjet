@@ -85,15 +85,15 @@ const CandidateProfile = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-32 sm:pb-16 bg-black text-white relative overflow-hidden">
-      {/* Background avec image du candidat floutée (Style Vote-For-Me) */}
+      {/* Background avec image du candidat floutée (Vibrant & Sublime) */}
       {candidate.profilePhoto && (
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img
             src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
             alt=""
-            className="w-full h-full object-cover object-center scale-125 blur-[90px] opacity-35 filter brightness-50"
+            className="w-full h-full object-cover object-top scale-110 blur-2xl opacity-60 filter brightness-90 saturate-125 transition-all"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black" />
         </div>
       )}
 
