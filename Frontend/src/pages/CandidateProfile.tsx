@@ -85,17 +85,17 @@ const CandidateProfile = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-32 sm:pb-16 bg-black text-white relative overflow-hidden">
-      {/* Background Hero avec la photo de l'artiste centrée */}
+      {/* Background Hero avec la photo de l'artiste centrée (Lumineuse & Sublime) */}
       {candidate.profilePhoto && (
-        <div className="absolute top-0 left-0 right-0 h-[600px] sm:h-[750px] z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-[650px] sm:h-[800px] z-0 overflow-hidden pointer-events-none">
           <img
             src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
             alt=""
-            className="w-full h-full object-cover object-center scale-105 blur-xl opacity-60 sm:opacity-70 filter brightness-95 saturate-125 transition-all duration-700"
+            className="w-full h-full object-cover object-center scale-105 blur-xl opacity-75 sm:opacity-85 filter brightness-105 saturate-125 transition-all duration-700"
           />
-          {/* Dégradés d'intégration centrés & fluides */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/40 to-black" />
+          {/* Dégradés d'intégration légers & fluides */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/35 to-black" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/25 to-black" />
         </div>
       )}
 
