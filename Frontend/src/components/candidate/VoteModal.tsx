@@ -1,18 +1,23 @@
 // =============================================================================
-// COMPOSANT VoteModal — Formulaire glassmorphism premium & ergonomique
+// COMPOSANT VoteModal — Formulaire de vote minimaliste, élégant & ergonomique
 // =============================================================================
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, AlertTriangle, Loader2, CreditCard, Smartphone, Zap, Sparkles } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, Loader2, CreditCard, Smartphone, Zap } from 'lucide-react';
 import { initiateVote, checkVoteStatus, type PaymentMethod } from '@/services/voteService';
 import { getMediaUrl } from '@/utils/mediaUrl';
 import type { Candidate } from '@/types';
 
 const RATE_PER_VOTE = 100;
 
-// Montants prédéfinis pour une ergonomie maximale
-const PRESET_AMOUNTS = [500, 1000, 2000, 5000, 10000];
+// Presets de vote rapides et épurés (FCFA)
+const PRESETS = [
+  { label: '5 votes', amount: 500 },
+  { label: '10 votes', amount: 1000 },
+  { label: '20 votes', amount: 2000 },
+  { label: '50 votes', amount: 5000 },
+];
 
 // Logique de détection d'opérateur mobile au Cameroun
 const detectOperator = (phone: string): 'MTN_MOMO' | 'ORANGE_MOMO' | null => {
@@ -21,12 +26,9 @@ const detectOperator = (phone: string): 'MTN_MOMO' | 'ORANGE_MOMO' | null => {
     const prefix2 = cleanPhone.substring(0, 2);
     const prefix3 = cleanPhone.substring(0, 3);
     
-    // MTN: 67, 68, 650-654
     if (['67', '68'].includes(prefix2) || ['650', '651', '652', '653', '654'].includes(prefix3)) {
       return 'MTN_MOMO';
     }
-    
-    // Orange: 69, 655-659
     if (['69'].includes(prefix2) || ['655', '656', '657', '658', '659'].includes(prefix3)) {
       return 'ORANGE_MOMO';
     }
@@ -49,7 +51,7 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
   const [tab, setTab] = useState<PaymentTab>('mobile');
   
   const [voterPhone, setVoterPhone] = useState('');
-  const [amountStr, setAmountStr] = useState('500'); // Montant par défaut 500 FCFA
+  const [amountStr, setAmountStr] = useState('500');
   const [statusMessage, setStatusMessage] = useState('');
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -57,7 +59,6 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
   const votesCount = Math.floor(amount / RATE_PER_VOTE);
   const operator = detectOperator(voterPhone);
 
-  // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setStep('form');
@@ -118,7 +119,7 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
     if (tab === 'mobile') {
       if (!operator) {
         setStep('error');
-        setStatusMessage("Opérateur non reconnu. Vérifiez le numéro de téléphone.");
+        setStatusMessage("Opérateur non reconnu. Vérifiez le numéro.");
         return;
       }
       paymentMethod = operator;
@@ -166,271 +167,221 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            className="absolute inset-0 bg-black/85 backdrop-blur-lg"
             onClick={onClose}
           />
 
-          {/* Modal Container */}
+          {/* Modal Épuré & Élégan */}
           <motion.div
-            initial={{ opacity: 0, y: 60, scale: 0.96 }}
+            initial={{ opacity: 0, y: 40, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 60, scale: 0.96 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            className="relative z-10 w-full sm:max-w-[440px] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-[#d4af37]/30 shadow-[0_32px_80px_rgba(0,0,0,0.8)] bg-[#0d0d12]/95 backdrop-blur-2xl"
+            exit={{ opacity: 0, y: 40, scale: 0.96 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="relative z-10 w-full sm:max-w-[390px] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-[#0f0f14]/90 backdrop-blur-2xl"
           >
-            {/* Barre visuelle dorée supérieure */}
-            <div className="h-1 w-full bg-gradient-to-r from-transparent via-[#d4af37] to-transparent opacity-80" />
-
-            {/* Drag Handle Mobile */}
-            <div className="flex justify-center pt-3 pb-1 sm:hidden">
-              <div className="w-12 h-1 rounded-full bg-white/20" />
-            </div>
-
-            {/* En-tête Candidat */}
-            <div className="px-5 pt-4 pb-4 flex items-center justify-between border-b border-white/[0.08] bg-white/[0.02]">
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border-2 border-[#d4af37]/40 shadow-lg shadow-[#d4af37]/15">
+            {/* Header minimaliste */}
+            <div className="px-5 py-4 flex items-center justify-between border-b border-white/[0.06]">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 border border-[#d4af37]/40 shadow-md">
                   {candidatePhoto ? (
                     <img src={candidatePhoto} alt={candidateName} className="w-full h-full object-cover object-top" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#d4af37]/30 to-[#d4af37]/10 flex items-center justify-center text-[#d4af37] font-black text-lg">
+                    <div className="w-full h-full bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37] font-black">
                       {candidate.firstName?.[0]}
                     </div>
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-white font-black text-base truncate leading-tight">{candidateName}</h3>
-                  <p className="text-[#d4af37] text-xs font-semibold mt-0.5 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 inline" /> Voter pour soutenir ce candidat
-                  </p>
+                  <h3 className="text-white font-bold text-sm truncate">{candidateName}</h3>
+                  <p className="text-neutral-400 text-xs truncate">Formulaire de vote</p>
                 </div>
               </div>
 
               <button
                 onClick={onClose}
-                className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-neutral-400 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Corps du modal */}
-            <div className="px-5 pb-6 pt-5">
+            {/* Corps du Formulaire */}
+            <div className="p-5">
               <AnimatePresence mode="wait">
                 {step === 'form' && (
                   <motion.div
                     key="form"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     className="space-y-4"
                   >
-                    {/* Tabs de Paiement */}
-                    <div className="flex p-1.5 rounded-2xl gap-1.5 bg-black/40 border border-white/10">
+                    {/* Tabs Minimalistes */}
+                    <div className="grid grid-cols-2 p-1 rounded-xl bg-white/5 border border-white/10 text-xs">
                       <button
                         type="button"
                         onClick={() => setTab('mobile')}
-                        className={`relative flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
+                        className={`py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 ${
                           tab === 'mobile'
-                            ? 'text-black shadow-lg shadow-[#d4af37]/20 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#b8952e]'
-                            : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-[#d4af37] text-black shadow-md'
+                            : 'text-neutral-400 hover:text-white'
                         }`}
                       >
-                        <Smartphone className="w-4 h-4" />
+                        <Smartphone className="w-3.5 h-3.5" />
                         Mobile Money
                       </button>
-
                       <button
                         type="button"
                         onClick={() => setTab('card')}
-                        className={`relative flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
+                        className={`py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 ${
                           tab === 'card'
-                            ? 'text-black shadow-lg shadow-[#d4af37]/20 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#b8952e]'
-                            : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-[#d4af37] text-black shadow-md'
+                            : 'text-neutral-400 hover:text-white'
                         }`}
                       >
-                        <CreditCard className="w-4 h-4" />
-                        Carte Bancaire
+                        <CreditCard className="w-3.5 h-3.5" />
+                        Carte
                       </button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                      {/* Champ Numéro (Mobile Money) */}
+                      {/* Numéro de téléphone */}
                       {tab === 'mobile' && (
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider pl-1 flex items-center justify-between">
-                            <span>Numéro de téléphone</span>
-                            <span className="text-[10px] text-neutral-500 font-normal">MTN / Orange</span>
-                          </label>
+                        <div>
                           <div className="relative">
                             <input
                               type="tel"
                               value={voterPhone}
                               onChange={(e) => setVoterPhone(e.target.value)}
-                              placeholder="Ex: 671234567"
+                              placeholder="Numéro (ex: 671234567)"
                               maxLength={9}
                               required
-                              className="w-full rounded-2xl pl-4 pr-20 py-3.5 bg-white/[0.06] border border-white/10 text-white text-base font-bold outline-none transition-all placeholder:text-neutral-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                              className="w-full rounded-xl px-4 py-3 bg-white/5 border border-white/10 text-white text-sm font-semibold outline-none focus:border-[#d4af37] transition-all placeholder:text-neutral-500"
                             />
-                            {/* Logo opérateur détecté */}
-                            <AnimatePresence>
-                              {operator && voterPhone.length === 9 && (
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.8 }}
-                                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center bg-black/60 rounded-xl px-2 py-1 border border-white/10"
-                                >
-                                  {operator === 'MTN_MOMO' ? (
-                                    <span className="text-[10px] font-black text-amber-400 tracking-wider">MTN MOMO</span>
-                                  ) : (
-                                    <span className="text-[10px] font-black text-orange-400 tracking-wider">ORANGE</span>
-                                  )}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
+                            {operator && voterPhone.length === 9 && (
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[#d4af37] uppercase bg-[#d4af37]/10 px-2 py-0.5 rounded border border-[#d4af37]/30">
+                                {operator === 'MTN_MOMO' ? 'MTN' : 'ORANGE'}
+                              </span>
+                            )}
                           </div>
                         </div>
                       )}
 
-                      {/* Champ Montant */}
+                      {/* Choix des Votes / Montant */}
                       <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider pl-1">
-                          Montant du don / vote (FCFA)
-                        </label>
-                        <input
-                          type="text"
-                          value={amountStr}
-                          onChange={(e) => setAmountStr(e.target.value.replace(/\D/g, ''))}
-                          placeholder="Saisissez ou choisissez ci-dessous"
-                          required
-                          className="w-full rounded-2xl px-4 py-3.5 bg-white/[0.06] border border-white/10 text-white text-lg font-black outline-none transition-all placeholder:text-neutral-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
-                        />
-
-                        {/* Puces de sélection rapide du montant (Chips Ergonomiques) */}
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {PRESET_AMOUNTS.map((preset) => (
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {PRESETS.map((preset) => (
                             <button
-                              key={preset}
+                              key={preset.amount}
                               type="button"
-                              onClick={() => setAmountStr(preset.toString())}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                                amount === preset
-                                  ? 'bg-[#d4af37] text-black border-[#d4af37] shadow-md shadow-[#d4af37]/20 scale-105'
-                                  : 'bg-white/5 text-neutral-300 border-white/10 hover:bg-white/10 hover:border-white/20'
+                              onClick={() => setAmountStr(preset.amount.toString())}
+                              className={`py-2 rounded-xl text-xs font-bold transition-all border ${
+                                amount === preset.amount
+                                  ? 'bg-[#d4af37]/20 border-[#d4af37] text-[#d4af37]'
+                                  : 'bg-white/5 border-white/10 text-neutral-300 hover:bg-white/10'
                               }`}
                             >
-                              {preset.toLocaleString('fr-FR')} FCFA
+                              <div>{preset.label}</div>
+                              <div className="text-[9px] font-normal text-neutral-400">{preset.amount} F</div>
                             </button>
                           ))}
                         </div>
-                      </div>
 
-                      {/* Récapitulatif des Votes Equivalent */}
-                      <div className="rounded-2xl px-4 py-3.5 bg-gradient-to-r from-[#d4af37]/15 via-[#d4af37]/10 to-transparent border border-[#d4af37]/30 flex items-center justify-between shadow-inner">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-xl bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37]">
-                            <Zap className="w-4 h-4 fill-[#d4af37]" />
-                          </div>
-                          <div>
-                            <p className="text-white font-bold text-xs">Votes attribués</p>
-                            <p className="text-neutral-400 text-[10px]">100 FCFA = 1 Vote</p>
-                          </div>
-                        </div>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-[#ffe58f] via-[#d4af37] to-[#b8952e] bg-clip-text text-transparent">
-                            {votesCount}
-                          </span>
-                          <span className="text-xs text-[#d4af37] font-black uppercase">
-                            Vote{votesCount > 1 ? 's' : ''}
+                        {/* Champ de saisie personnalisée du montant */}
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={amountStr}
+                            onChange={(e) => setAmountStr(e.target.value.replace(/\D/g, ''))}
+                            placeholder="Autre montant (FCFA)"
+                            required
+                            className="w-full rounded-xl px-4 py-2.5 bg-white/5 border border-white/10 text-white text-sm font-bold outline-none focus:border-[#d4af37] transition-all placeholder:text-neutral-500"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400 font-medium">
+                            FCFA
                           </span>
                         </div>
                       </div>
 
-                      {/* Bouton de Soumission Principal */}
-                      <motion.button
-                        whileHover={canSubmit ? { scale: 1.02 } : {}}
-                        whileTap={canSubmit ? { scale: 0.98 } : {}}
+                      {/* Bouton de confirmation épuré */}
+                      <button
                         type="submit"
                         disabled={!canSubmit}
-                        className={`w-full py-4 rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-200 shadow-xl ${
+                        className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-lg flex items-center justify-center gap-2 ${
                           canSubmit
-                            ? 'bg-gradient-to-r from-[#d4af37] via-[#f0cc55] to-[#b8952e] text-black shadow-[#d4af37]/30 cursor-pointer'
-                            : 'bg-white/10 text-neutral-400 border border-white/10 cursor-not-allowed opacity-60'
+                            ? 'bg-[#d4af37] text-black hover:bg-[#e5c158] shadow-[#d4af37]/20 active:scale-[0.99]'
+                            : 'bg-white/10 text-neutral-500 border border-white/5 cursor-not-allowed opacity-50'
                         }`}
                       >
-                        Voter Maintenant ({amount ? `${amount.toLocaleString('fr-FR')} FCFA` : '0 FCFA'})
-                      </motion.button>
+                        <Zap className="w-4 h-4 fill-current" />
+                        Voter • {votesCount} Vote{votesCount > 1 ? 's' : ''} ({amount ? amount.toLocaleString('fr-FR') : 0} F)
+                      </button>
 
-                      <p className="text-center text-[10px] text-neutral-400 font-medium">
-                        🔒 Paiement 100% sécurisé par Mobile Money ou Carte
+                      <p className="text-center text-[10px] text-neutral-500 font-medium">
+                        100 FCFA = 1 vote • Paiement sécurisé
                       </p>
                     </form>
                   </motion.div>
                 )}
 
-                {/* Étape : Processing */}
+                {/* Processing */}
                 {step === 'processing' && (
                   <motion.div
                     key="processing"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="py-12 flex flex-col items-center text-center space-y-4"
+                    className="py-10 flex flex-col items-center text-center space-y-3"
                   >
-                    <div className="relative">
-                      <div className="w-16 h-16 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/30 flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-                        <Loader2 className="w-8 h-8 text-[#d4af37] animate-spin" />
-                      </div>
-                    </div>
+                    <Loader2 className="w-8 h-8 text-[#d4af37] animate-spin" />
                     <div>
-                      <p className="text-white font-black text-base mb-1">Traitement en cours...</p>
-                      <p className="text-neutral-300 text-xs max-w-[280px] leading-relaxed">{statusMessage}</p>
+                      <p className="text-white font-bold text-sm">Traitement du vote</p>
+                      <p className="text-neutral-400 text-xs mt-1">{statusMessage}</p>
                     </div>
                   </motion.div>
                 )}
 
-                {/* Étape : Succès */}
+                {/* Success */}
                 {step === 'success' && (
                   <motion.div
                     key="success"
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
-                    className="py-8 flex flex-col items-center text-center space-y-4"
+                    className="py-6 flex flex-col items-center text-center space-y-3"
                   >
-                    <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-                      <CheckCircle className="w-9 h-9 text-emerald-400" />
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="text-xl text-white font-black mb-1">Vote Confirmé ! 🎉</p>
-                      <p className="text-sm text-emerald-400 font-medium">{statusMessage}</p>
+                      <p className="text-white font-black text-base">Vote Validé !</p>
+                      <p className="text-emerald-400 text-xs mt-1 font-medium">{statusMessage}</p>
                     </div>
                     <button
                       onClick={onClose}
-                      className="w-full mt-2 py-3.5 rounded-2xl text-black font-black text-sm uppercase tracking-wider bg-gradient-to-r from-[#d4af37] to-[#b8952e] shadow-lg shadow-[#d4af37]/20 transition-all"
+                      className="w-full mt-2 py-3 rounded-xl text-black font-bold text-xs uppercase bg-[#d4af37] hover:bg-[#e5c158]"
                     >
-                      Terminer
+                      Fermer
                     </button>
                   </motion.div>
                 )}
 
-                {/* Étape : Erreur */}
+                {/* Error */}
                 {step === 'error' && (
                   <motion.div
                     key="error"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="py-6 space-y-4"
+                    className="py-4 space-y-3"
                   >
-                    <div className="flex flex-col items-center text-center gap-3 rounded-2xl p-5 bg-red-500/10 border border-red-500/30">
-                      <AlertTriangle className="w-8 h-8 text-red-400" />
-                      <p className="text-sm text-red-400 font-medium">{statusMessage}</p>
+                    <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-center">
+                      <AlertTriangle className="w-6 h-6 text-red-400 mx-auto mb-1" />
+                      <p className="text-xs text-red-400 font-medium">{statusMessage}</p>
                     </div>
                     <button
                       onClick={() => setStep('form')}
-                      className="w-full py-3.5 rounded-2xl text-white text-sm font-bold bg-white/10 border border-white/20 hover:bg-white/20 transition-all"
+                      className="w-full py-3 rounded-xl text-white text-xs font-bold bg-white/10 border border-white/10 hover:bg-white/20"
                     >
                       Réessayer
                     </button>
@@ -446,4 +397,5 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
 };
 
 export default VoteModal;
+
 
