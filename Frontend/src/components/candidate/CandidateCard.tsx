@@ -34,7 +34,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
     >
       {/* Badge de classement (#1, #2, #3...) */}
       {rank && rank <= 10 && (
-        <div className="absolute top-3 left-3 z-10 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center shadow-lg text-xs font-black text-black">
+        <div className="absolute top-3 left-3 z-10 w-8 h-8 rounded-full bg-[#d4af37]/20 backdrop-blur-md border border-[#d4af37]/40 flex items-center justify-center shadow-[0_4px_16px_rgba(212,175,55,0.15)] text-xs font-black text-[#d4af37]">
           {rank}
         </div>
       )}
@@ -60,8 +60,8 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
         {/* Bouton Play au survol si vidéo présente */}
         {candidate.videoUrl && (
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-            <div className="w-12 h-12 rounded-full bg-[#d4af37] flex items-center justify-center shadow-2xl transform scale-90 group-hover:scale-100 transition-transform duration-300">
-              <Play className="w-5 h-5 text-black fill-black ml-0.5" />
+            <div className="w-12 h-12 rounded-full bg-[#d4af37]/20 backdrop-blur-md border border-[#d4af37]/30 flex items-center justify-center shadow-[0_8px_32px_rgba(212,175,55,0.15)] transform scale-90 group-hover:scale-100 transition-all duration-300">
+              <Play className="w-5 h-5 text-[#d4af37] fill-[#d4af37] ml-0.5" />
             </div>
           </div>
         )}
@@ -82,7 +82,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
       {/* Bloc d'informations en bas */}
       <div className="p-4">
         {/* Badge catégorie */}
-        <span className="inline-block px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#d4af37]/15 text-[#d4af37] border border-[#d4af37]/20 mb-2">
+        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#d4af37]/15 backdrop-blur-md text-[#d4af37] border border-[#d4af37]/30 mb-2 shadow-sm">
           {candidate.category?.name || 'Artiste'}
         </span>
 
@@ -109,7 +109,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
           {onVoteClick && (
             <button
               onClick={handleVoteAction}
-              className="px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-[#d4af37] text-black hover:bg-[#e8c547] active:scale-95 transition-all duration-150 shadow-md"
+              className="px-3.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-[#d4af37]/20 backdrop-blur-md border border-[#d4af37]/30 text-[#d4af37] hover:bg-[#d4af37]/30 hover:border-[#d4af37]/50 active:scale-95 transition-all duration-150 shadow-[0_4px_16px_rgba(212,175,55,0.15)]"
             >
               Voter
             </button>
