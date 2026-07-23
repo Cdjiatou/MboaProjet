@@ -209,7 +209,7 @@ const CandidateProfile = () => {
               <div className="space-y-4 pt-2 flex flex-col items-center">
                 <button
                   onClick={() => setIsVoteModalOpen(true)}
-                  className="hidden lg:flex px-12 py-3.5 sm:py-4 bg-[#d4af37]/10 border border-[#d4af37]/50 text-[#d4af37] font-black rounded-xl hover:bg-[#d4af37] hover:text-black hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] active:scale-95 transition-all duration-300 text-sm uppercase tracking-widest items-center justify-center"
+                  className="hidden lg:flex px-12 py-3.5 sm:py-4 bg-[#F3B800] hover:bg-[#e0aa00] text-black font-black rounded-xl hover:shadow-[0_0_30px_rgba(243,184,0,0.4)] active:scale-95 transition-all duration-300 text-sm uppercase tracking-widest items-center justify-center shadow-lg"
                 >
                   VOTER
                 </button>
@@ -230,7 +230,7 @@ const CandidateProfile = () => {
       <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-gradient-to-t from-black via-black/95 to-transparent lg:hidden pb-6 flex justify-center">
         <button
           onClick={() => setIsVoteModalOpen(true)}
-          className="w-[90%] py-3.5 bg-[#d4af37]/10 border border-[#d4af37]/50 text-[#d4af37] font-black rounded-xl shadow-[0_-4px_30px_rgba(212,175,55,0.2)] text-xs uppercase tracking-widest flex items-center justify-center hover:bg-[#d4af37] hover:text-black hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] active:scale-95 transition-all"
+          className="w-[90%] py-3.5 bg-[#F3B800] hover:bg-[#e0aa00] text-black font-black rounded-xl shadow-[0_4px_25px_rgba(243,184,0,0.4)] text-xs uppercase tracking-widest flex items-center justify-center active:scale-95 transition-all"
         >
           VOTER
         </button>

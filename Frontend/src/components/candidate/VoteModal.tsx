@@ -303,7 +303,7 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
                         disabled={votesCount < 1}
                         className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-lg flex items-center justify-center gap-2 ${
                           votesCount >= 1
-                            ? 'bg-[#d4af37] text-black hover:bg-[#e5c158] shadow-[#d4af37]/20 active:scale-[0.99]'
+                            ? 'bg-[#F3B800] text-black hover:bg-[#e0aa00] shadow-[#F3B800]/20 active:scale-[0.99]'
                             : 'bg-white/10 text-neutral-500 border border-white/5 cursor-not-allowed opacity-50'
                         }`}
                       >
@@ -324,21 +324,24 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
                     key="step_payment"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
+                    exit={{ opacity: 0, x: -20 }}
                     onSubmit={handleSubmitPayment}
                     className="space-y-4"
                   >
-                    {/* Badge résumé du choix */}
-                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Star className="w-4 h-4 text-[#d4af37] fill-[#d4af37]" />
-                        <span className="text-xs text-white font-bold">
-                          {votesCount} Vote{votesCount > 1 ? 's' : ''}
-                        </span>
+                    {/* Récapitulatif sélectionné */}
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Sélection :</p>
+                        <p className="text-white font-black text-sm">
+                          {votesCount} {votesCount > 1 ? 'Votes' : 'Vote'}
+                        </p>
                       </div>
-                      <span className="text-xs font-black text-[#d4af37]">
-                        {amount.toLocaleString('fr-FR')} FCFA
-                      </span>
+                      <div className="text-right">
+                        <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Montant total :</p>
+                        <p className="text-[#F3B800] font-black text-sm sm:text-base">
+                          {amount.toLocaleString('fr-FR')} FCFA
+                        </p>
+                      </div>
                     </div>
 
                     {/* Sélection du mode de paiement */}
@@ -353,12 +356,12 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
                           onClick={() => setPaymentOption('MTN_MOMO')}
                           className={`p-3 rounded-2xl text-xs font-bold transition-all border flex flex-col items-center gap-1.5 ${
                             paymentOption === 'MTN_MOMO'
-                              ? 'bg-yellow-500/20 border-yellow-400 text-yellow-400 shadow-md scale-[1.02]'
-                              : 'bg-white/5 border-white/10 text-neutral-400 hover:bg-white/10 hover:text-white'
+                              ? 'bg-amber-500/10 border-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+                              : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/20'
                           }`}
                         >
-                          <Smartphone className="w-5 h-5 text-yellow-400" />
-                          <span className="text-[10px] font-black uppercase tracking-wider">MTN MoMo</span>
+                          <Smartphone className="w-5 h-5 text-amber-400" />
+                          <span>MTN MoMo</span>
                         </button>
 
                         {/* Orange Money */}
@@ -367,71 +370,63 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
                           onClick={() => setPaymentOption('ORANGE_MOMO')}
                           className={`p-3 rounded-2xl text-xs font-bold transition-all border flex flex-col items-center gap-1.5 ${
                             paymentOption === 'ORANGE_MOMO'
-                              ? 'bg-orange-500/20 border-orange-400 text-orange-400 shadow-md scale-[1.02]'
-                              : 'bg-white/5 border-white/10 text-neutral-400 hover:bg-white/10 hover:text-white'
+                              ? 'bg-orange-500/10 border-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.2)]'
+                              : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/20'
                           }`}
                         >
                           <Smartphone className="w-5 h-5 text-orange-400" />
-                          <span className="text-[10px] font-black uppercase tracking-wider">Orange</span>
+                          <span>Orange Money</span>
                         </button>
 
-                        {/* Carte Bancaire */}
+                        {/* Carte Visa/Mastercard */}
                         <button
                           type="button"
                           onClick={() => setPaymentOption('CARD')}
                           className={`p-3 rounded-2xl text-xs font-bold transition-all border flex flex-col items-center gap-1.5 ${
                             paymentOption === 'CARD'
-                              ? 'bg-blue-500/20 border-blue-400 text-blue-400 shadow-md scale-[1.02]'
-                              : 'bg-white/5 border-white/10 text-neutral-400 hover:bg-white/10 hover:text-white'
+                              ? 'bg-blue-500/10 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                              : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/20'
                           }`}
                         >
                           <CreditCard className="w-5 h-5 text-blue-400" />
-                          <span className="text-[10px] font-black uppercase tracking-wider">Carte Visa</span>
+                          <span>Carte Bancaire</span>
                         </button>
                       </div>
                     </div>
 
-                    {/* Saisie Téléphone si Mobile Money */}
+                    {/* Champs de saisie selon le mode */}
                     {isMobile ? (
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-neutral-400 block">
-                          Numéro de paiement {paymentOption === 'MTN_MOMO' ? 'MTN MoMo' : 'Orange Money'} :
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">
+                          Numéro de téléphone ({paymentOption === 'MTN_MOMO' ? 'MTN' : paymentOption === 'ORANGE_MOMO' ? 'Orange' : 'Mobile'}) :
                         </label>
-                        <div className="relative">
-                          <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-neutral-400 text-xs font-bold pointer-events-none">
-                            <span>🇨🇲 +237</span>
-                          </div>
-                          <input
-                            type="tel"
-                            value={voterPhone}
-                            onChange={(e) => setVoterPhone(e.target.value)}
-                            placeholder="6xx xx xx xx"
-                            maxLength={9}
-                            required
-                            autoFocus
-                            className="w-full rounded-xl pl-16 pr-20 py-3 bg-white/5 border border-white/10 text-white text-sm font-semibold outline-none focus:border-[#d4af37] transition-all placeholder:text-neutral-500"
-                          />
-                          {detectedOp && (
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase px-2 py-0.5 rounded border bg-black/60 text-white border-white/20">
-                              {detectedOp === 'MTN_MOMO' ? 'MTN' : 'ORANGE'}
-                            </span>
-                          )}
-                        </div>
+                        <input
+                          type="tel"
+                          value={voterPhone}
+                          onChange={(e) => setVoterPhone(e.target.value)}
+                          placeholder="6xx xx xx xx"
+                          maxLength={9}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-[#F3B800] transition-colors"
+                        />
+                        {detectedOp && (
+                          <p className="text-[10px] text-neutral-400 mt-1 flex items-center gap-1">
+                            Opérateur détecté : <span className="font-bold text-white uppercase">{detectedOp}</span>
+                          </p>
+                        )}
                       </div>
                     ) : (
-                      /* Saisie Email si Carte Bancaire */
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-neutral-400 block">
-                          Adresse email pour la facture :
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">
+                          Adresse Email (Pour le reçu de transaction) :
                         </label>
                         <div className="relative">
-                          <Mail className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="email"
                             value={voterEmail}
                             onChange={(e) => setVoterEmail(e.target.value)}
                             placeholder="votre.email@exemple.com"
-                            className="w-full rounded-xl pl-9 pr-4 py-3 bg-white/5 border border-white/10 text-white text-xs font-medium outline-none focus:border-[#d4af37] transition-all placeholder:text-neutral-500"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-[#F3B800] transition-colors"
+                            required
                           />
                         </div>
                       </div>
@@ -444,7 +439,7 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
                         disabled={!canSubmitPayment}
                         className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-lg flex items-center justify-center gap-2 ${
                           canSubmitPayment
-                            ? 'bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black hover:opacity-95 shadow-[#d4af37]/20 active:scale-[0.99]'
+                            ? 'bg-[#F3B800] hover:bg-[#e0aa00] text-black shadow-[#F3B800]/20 active:scale-[0.99]'
                             : 'bg-white/10 text-neutral-500 border border-white/5 cursor-not-allowed opacity-50'
                         }`}
                       >

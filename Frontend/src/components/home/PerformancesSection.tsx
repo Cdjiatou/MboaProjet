@@ -131,7 +131,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
           {/* Bouton VOTER */}
           <button
             onClick={(e) => { e.stopPropagation(); onVote(candidate); }}
-            className="shrink-0 px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#b8952e] text-black text-xs font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-95 transition-all shadow-md"
+            className="shrink-0 px-4 py-2 bg-[#F3B800] hover:bg-[#e0aa00] text-black text-xs font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(243,184,0,0.4)] active:scale-95 transition-all shadow-md"
           >
             Voter
           </button>
@@ -262,7 +262,7 @@ const VideoLightbox: React.FC<VideoLightboxProps> = ({ candidate, onClose, onVot
             )}
             <button
               onClick={() => { onClose(); setTimeout(() => onVote(candidate), 100); }}
-              className="px-5 py-2.5 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black text-xs font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all"
+              className="px-5 py-2.5 bg-[#F3B800] hover:bg-[#e0aa00] text-black text-xs font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(243,184,0,0.4)] transition-all"
             >
               Voter maintenant
             </button>

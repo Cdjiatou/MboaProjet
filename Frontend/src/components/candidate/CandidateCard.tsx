@@ -144,7 +144,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleVoteAction}
-              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#b8952e] text-black shadow-[0_4px_20px_rgba(212,175,55,0.35)] hover:shadow-[0_0_25px_rgba(212,175,55,0.6)] transition-all duration-200"
+              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-[#F3B800] hover:bg-[#e0aa00] text-black shadow-[0_4px_20px_rgba(243,184,0,0.35)] hover:shadow-[0_0_25px_rgba(243,184,0,0.6)] transition-all duration-200"
             >
               Voter
             </motion.button>
