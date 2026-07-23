@@ -657,10 +657,6 @@ const Home = () => {
                     </span>
                   )}
                 </div>
-                {/* Badge étoile */}
-                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#d4af37] flex items-center justify-center shadow-lg border-2 border-[#050505]">
-                  <Star className="w-3.5 h-3.5 text-black fill-black" />
-                </div>
               </div>
 
               <h3 className="text-white font-bold text-sm sm:text-base uppercase tracking-wider group-hover:text-[#d4af37] transition-colors duration-300">
