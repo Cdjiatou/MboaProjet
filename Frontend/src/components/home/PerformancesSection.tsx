@@ -93,9 +93,9 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
             <motion.div
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.95 }}
-              className="w-14 h-14 rounded-full bg-[#d4af37]/90 backdrop-blur-sm flex items-center justify-center shadow-[0_0_40px_rgba(212,175,55,0.5)] transition-all duration-300 group-hover/play:bg-[#d4af37] group-hover/play:shadow-[0_0_60px_rgba(212,175,55,0.7)]"
+              className="w-14 h-14 rounded-full bg-[#d4af37]/20 backdrop-blur-md border border-[#d4af37]/30 flex items-center justify-center shadow-[0_8px_32px_rgba(212,175,55,0.15)] transition-all duration-300 group-hover/play:bg-[#d4af37]/30 group-hover/play:border-[#d4af37]/50 group-hover/play:scale-110"
             >
-              <Play className="w-6 h-6 text-black fill-black ml-0.5" />
+              <Play className="w-6 h-6 text-[#d4af37] fill-[#d4af37] ml-0.5 opacity-90" />
             </motion.div>
           </button>
         )}
@@ -130,7 +130,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
 
           <button
             onClick={(e) => { e.stopPropagation(); onVote(candidate); }}
-            className="shrink-0 px-3.5 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black text-[10px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-95 transition-all whitespace-nowrap"
+            className="shrink-0 px-3.5 py-2 bg-[#d4af37]/20 backdrop-blur-md border border-[#d4af37]/30 text-[#d4af37] text-[10px] font-black uppercase tracking-wider rounded-xl hover:bg-[#d4af37]/30 hover:border-[#d4af37]/50 active:scale-95 transition-all whitespace-nowrap shadow-[0_4px_16px_rgba(212,175,55,0.15)]"
           >
             Voter
           </button>
