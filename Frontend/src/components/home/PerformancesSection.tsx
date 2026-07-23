@@ -61,76 +61,77 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.5, delay: (index % 4) * 0.1 }}
-      className="group relative overflow-hidden rounded-2xl bg-[#0b0b0b] border border-white/[0.06] cursor-pointer aspect-[4/3] sm:aspect-[4/5]"
+      className="group relative overflow-hidden rounded-2xl bg-[#0d0d12] border border-white/10 hover:border-[#d4af37]/40 transition-all duration-300 shadow-2xl flex flex-col h-full cursor-pointer"
+      onClick={() => (hasVideo ? onPlay(candidate) : onVote(candidate))}
     >
-      {/* Thumbnail / Background */}
-      <div className="relative w-full h-full overflow-hidden">
+      {/* Zone Media (Thumbnail + Overlays) */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-900 shrink-0">
         {thumb && !imgError ? (
           <img
             src={thumb}
             alt={`${candidate.firstName} ${candidate.lastName}`}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 brightness-95 group-hover:brightness-105"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] flex items-center justify-center">
-            <span className="text-4xl font-black bg-gradient-to-br from-[#d4af37] to-[#b8952e] bg-clip-text text-transparent">
+          <div className="w-full h-full bg-gradient-to-br from-[#1a1610] to-[#0d0b08] flex items-center justify-center">
+            <span className="text-3xl font-black bg-gradient-to-br from-[#d4af37] to-[#b8952e] bg-clip-text text-transparent">
               {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
             </span>
           </div>
         )}
 
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+        {/* Dégradé léger en bas de l'image */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
-        {/* Bouton Play central */}
-        {hasVideo && (
-          <button
-            onClick={() => onPlay(candidate)}
-            className="absolute inset-0 flex items-center justify-center group/play"
-            aria-label={`Voir la prestation de ${candidate.firstName}`}
-          >
-            <motion.div
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-14 h-14 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 group-hover/play:bg-white/25 group-hover/play:border-white/50 group-hover/play:scale-110"
-            >
-              <Play className="w-6 h-6 text-white fill-white ml-0.5" />
-            </motion.div>
-          </button>
-        )}
-
-        {/* Badge catégorie */}
+        {/* Badge Catégorie (Top Left) */}
         {candidate.category && (
-          <div className="absolute top-3 left-3">
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-neutral-300">
+          <div className="absolute top-3 left-3 z-10">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 bg-black/70 backdrop-blur-md rounded-full border border-white/15 text-neutral-200 shadow-md">
               {candidate.category.name}
             </span>
           </div>
         )}
 
-        {/* Votes badge */}
-        <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 border border-white/10">
-          <Star className="w-3 h-3 text-[#d4af37] fill-[#d4af37]" />
-          <span className="text-xs font-black text-white">
-            {candidate.totalVotesCache.toLocaleString('fr-FR')}
-          </span>
+        {/* Bouton Play central au survol */}
+        {hasVideo && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20 backdrop-blur-[1px] opacity-90 group-hover:opacity-100 transition-opacity">
+            <motion.div
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 group-hover:bg-white/30 group-hover:border-white/50"
+            >
+              <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white fill-white ml-0.5" />
+            </motion.div>
+          </div>
+        )}
+      </div>
+
+      {/* Zone Infos & Action (Structure propre sous l'image) */}
+      <div className="p-4 flex flex-col justify-between flex-grow bg-gradient-to-b from-[#121216] to-[#0a0a0d]">
+        <div>
+          <h3 className="text-white font-black text-base sm:text-lg leading-tight truncate group-hover:text-[#d4af37] transition-colors">
+            {candidate.firstName} {candidate.lastName}
+          </h3>
+          <p className="text-neutral-400 text-xs font-medium mt-1 truncate">
+            {hasVideo ? 'Regarder la vidéo' : 'Profil candidat'}
+          </p>
         </div>
 
-        {/* Infos en bas */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-white font-black text-sm leading-tight truncate">
-              {candidate.firstName} {candidate.lastName}
-            </p>
-            <p className="text-neutral-400 text-[10px] font-medium mt-0.5 truncate">
-              {hasVideo ? 'Voir la prestation' : 'Profil candidat'}
-            </p>
+        {/* Pied de carte : Compteur de votes + Bouton Voter */}
+        <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/[0.08] gap-2">
+          {/* Badge Nombre de votes */}
+          <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+            <Star className="w-3.5 h-3.5 text-[#d4af37] fill-[#d4af37]" />
+            <span className="text-white font-black text-xs">
+              {candidate.totalVotesCache.toLocaleString('fr-FR')}
+            </span>
           </div>
 
+          {/* Bouton VOTER */}
           <button
             onClick={(e) => { e.stopPropagation(); onVote(candidate); }}
-            className="shrink-0 px-3.5 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black text-[10px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-95 transition-all whitespace-nowrap shadow-md"
+            className="shrink-0 px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#b8952e] text-black text-xs font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-95 transition-all shadow-md"
           >
             Voter
           </button>
