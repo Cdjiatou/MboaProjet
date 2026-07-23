@@ -85,15 +85,17 @@ const CandidateProfile = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-32 sm:pb-16 bg-black text-white relative overflow-hidden">
-      {/* Background avec image du candidat floutée (Vibrant & Sublime) */}
+      {/* Background Hero avec la photo de l'artiste (Style Apple Music / Netflix) */}
       {candidate.profilePhoto && (
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-[520px] sm:h-[680px] z-0 overflow-hidden pointer-events-none">
           <img
             src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
             alt=""
-            className="w-full h-full object-cover object-top scale-110 blur-2xl opacity-60 filter brightness-90 saturate-125 transition-all"
+            className="w-full h-full object-cover object-top scale-105 blur-lg opacity-45 sm:opacity-55 filter brightness-95 saturate-125 transition-all duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black" />
+          {/* Dégradés d'intégration fluide avec le reste du site */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/60 to-black" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/70" />
         </div>
       )}
 
