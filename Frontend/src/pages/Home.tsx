@@ -430,39 +430,39 @@ const Home = () => {
             transition={{ delay: 1, duration: 1 }}
             className="absolute bottom-12 left-0 right-0 z-10 px-6 hidden sm:block"
           >
-            <div className="max-w-4xl mx-auto backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl py-5 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#d4af37]/50"></div>
-                <p className="text-center text-[10px] sm:text-xs text-[#d4af37] font-black uppercase tracking-[0.3em]">
+            <div className="max-w-4xl mx-auto bg-white border border-white rounded-3xl py-4 px-6 shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden">
+              <div className="flex items-center justify-center gap-4 mb-3">
+                <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-neutral-400"></div>
+                <p className="text-center text-[10px] sm:text-xs text-neutral-900 font-black uppercase tracking-[0.3em]">
                   Avec le soutien de
                 </p>
-                <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#d4af37]/50"></div>
+                <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-neutral-400"></div>
               </div>
               
-              {/* Marquee horizontal défilant */}
+              {/* Marquee horizontal défilant sur fond blanc */}
               <div className="relative overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white/5 to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white/5 to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
                 <div className="flex items-center gap-12 animate-[sponsorScroll_20s_linear_infinite] hover:[animation-play-state:paused] w-max">
                   {[...sponsors, ...sponsors, ...sponsors].map((sponsor, idx) => (
-                    <div key={idx} className="h-12 sm:h-16 flex items-center justify-center shrink-0">
+                    <div key={idx} className="h-12 sm:h-14 flex items-center justify-center shrink-0">
                       {sponsor.image ? (
                         <img 
                           src={getMediaUrl(sponsor.image)} 
                           alt={sponsor.name} 
-                          className="h-full w-auto max-w-[140px] sm:max-w-[180px] object-contain drop-shadow-lg" 
+                          className="h-full w-auto max-w-[140px] sm:max-w-[180px] object-contain" 
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                             const parent = (e.target as HTMLImageElement).parentElement;
                             if (parent) parent.innerHTML = `
-                              <span class="text-white text-sm font-bold tracking-[0.15em] uppercase whitespace-nowrap">${sponsor.name}</span>
+                              <span class="text-neutral-900 text-sm font-black tracking-[0.15em] uppercase whitespace-nowrap">${sponsor.name}</span>
                             `;
                           }}
                         />
                       ) : (
                         <div className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 bg-[#d4af37] rotate-45 shrink-0" />
-                          <span className="text-white text-sm font-bold tracking-[0.15em] uppercase whitespace-nowrap">
+                          <span className="text-neutral-900 text-sm font-black tracking-[0.15em] uppercase whitespace-nowrap">
                             {sponsor.name}
                           </span>
                         </div>
@@ -493,35 +493,39 @@ const Home = () => {
       </section>
       {sponsors.length > 0 && (
         <section className="sm:hidden w-full bg-[#050505] pt-8 px-6 border-b border-white/[0.04] pb-6">
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl py-5 px-4 overflow-hidden">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#d4af37]/50"></div>
-              <p className="text-center text-[10px] text-[#d4af37] font-black uppercase tracking-[0.3em]">
+          <div className="bg-white border border-white rounded-3xl py-4 px-4 overflow-hidden shadow-xl">
+            <div className="flex items-center justify-center gap-4 mb-3">
+              <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-neutral-400"></div>
+              <p className="text-center text-[10px] text-neutral-900 font-black uppercase tracking-[0.3em]">
                 Avec le soutien de
               </p>
-              <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#d4af37]/50"></div>
+              <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-neutral-400"></div>
             </div>
             
-            {/* Marquee horizontal défilant */}
+            {/* Marquee horizontal défilant sur fond blanc (Mobile) */}
             <div className="relative overflow-hidden">
-              <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white/5 to-transparent z-10 pointer-events-none" />
-              <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/5 to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
               <div className="flex items-center gap-12 animate-[sponsorScroll_20s_linear_infinite] hover:[animation-play-state:paused] w-max">
                 {[...sponsors, ...sponsors, ...sponsors].map((sponsor, idx) => (
-                  <div key={idx} className="h-12 flex items-center justify-center shrink-0">
+                  <div key={idx} className="h-10 flex items-center justify-center shrink-0">
                     {sponsor.image ? (
                       <img 
                         src={getMediaUrl(sponsor.image)} 
                         alt={sponsor.name} 
-                        className="h-full w-auto max-w-[120px] object-contain drop-shadow-lg" 
+                        className="h-full w-auto max-w-[130px] object-contain"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
+                          const parent = (e.target as HTMLImageElement).parentElement;
+                          if (parent) parent.innerHTML = `
+                            <span class="text-neutral-900 text-xs font-black tracking-[0.15em] uppercase whitespace-nowrap">${sponsor.name}</span>
+                          `;
                         }}
                       />
                     ) : (
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-[#d4af37] rotate-45 shrink-0" />
-                        <span className="text-white text-xs font-bold tracking-[0.15em] uppercase whitespace-nowrap">
+                        <span className="text-neutral-900 text-xs font-black tracking-[0.15em] uppercase whitespace-nowrap">
                           {sponsor.name}
                         </span>
                       </div>
