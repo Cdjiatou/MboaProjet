@@ -93,9 +93,9 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
             <motion.div
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.95 }}
-              className="w-14 h-14 rounded-full bg-[#d4af37]/20 backdrop-blur-md border border-[#d4af37]/30 flex items-center justify-center shadow-[0_8px_32px_rgba(212,175,55,0.15)] transition-all duration-300 group-hover/play:bg-[#d4af37]/30 group-hover/play:border-[#d4af37]/50 group-hover/play:scale-110"
+              className="w-14 h-14 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 group-hover/play:bg-white/25 group-hover/play:border-white/50 group-hover/play:scale-110"
             >
-              <Play className="w-6 h-6 text-[#d4af37] fill-[#d4af37] ml-0.5 opacity-90" />
+              <Play className="w-6 h-6 text-white fill-white ml-0.5" />
             </motion.div>
           </button>
         )}
@@ -110,9 +110,9 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
         )}
 
         {/* Votes badge */}
-        <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 border border-[#d4af37]/20">
+        <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 backdrop-blur-md rounded-full px-2.5 py-1 border border-white/10">
           <Star className="w-3 h-3 text-[#d4af37] fill-[#d4af37]" />
-          <span className="text-xs font-black text-[#d4af37]">
+          <span className="text-xs font-black text-white">
             {candidate.totalVotesCache.toLocaleString('fr-FR')}
           </span>
         </div>
@@ -130,7 +130,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
 
           <button
             onClick={(e) => { e.stopPropagation(); onVote(candidate); }}
-            className="shrink-0 px-3.5 py-2 bg-[#d4af37]/20 backdrop-blur-md border border-[#d4af37]/30 text-[#d4af37] text-[10px] font-black uppercase tracking-wider rounded-xl hover:bg-[#d4af37]/30 hover:border-[#d4af37]/50 active:scale-95 transition-all whitespace-nowrap shadow-[0_4px_16px_rgba(212,175,55,0.15)]"
+            className="shrink-0 px-3.5 py-2 bg-gradient-to-r from-[#d4af37] to-[#b8952e] text-black text-[10px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-95 transition-all whitespace-nowrap shadow-md"
           >
             Voter
           </button>
@@ -350,7 +350,7 @@ const PerformancesSection: React.FC = () => {
       >
         <Link
           to="/candidats"
-          className="inline-flex items-center gap-2 px-8 py-3.5 border border-[#d4af37]/30 text-[#d4af37] text-sm font-bold rounded-full hover:bg-[#d4af37]/10 hover:border-[#d4af37]/60 transition-all duration-300"
+          className="inline-flex items-center gap-2 px-8 py-3.5 border border-white/20 bg-white/5 backdrop-blur-sm text-white text-sm font-bold rounded-full hover:bg-white/10 hover:border-[#d4af37]/50 hover:text-[#d4af37] transition-all duration-300 shadow-lg"
         >
           Voir tous les candidats
           <Maximize2 className="w-4 h-4" />
