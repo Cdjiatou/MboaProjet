@@ -4,7 +4,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, X, Star, Volume2, VolumeX, Maximize2, ExternalLink } from 'lucide-react';
+import { Play, X, Vote, Volume2, VolumeX, Maximize2, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePublicCandidates } from '@/hooks/usePublicCandidates';
 import { VoteModal } from '@/components/candidate/VoteModal';
@@ -119,11 +119,11 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
         </div>
 
         {/* Pied de carte : Compteur de votes + Bouton Voter */}
-        <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/[0.08] gap-2">
-          {/* Badge Nombre de votes */}
-          <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
-            <Star className="w-3.5 h-3.5 text-[#d4af37] fill-[#d4af37]" />
-            <span className="text-white font-black text-xs">
+        <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/[0.08] gap-3">
+          {/* Badge Nombre de votes avec icône de vote */}
+          <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 text-neutral-200">
+            <Vote className="w-4 h-4 text-[#d4af37]" />
+            <span className="text-white font-black text-xs sm:text-sm">
               {candidate.totalVotesCache.toLocaleString('fr-FR')}
             </span>
           </div>
@@ -243,7 +243,7 @@ const VideoLightbox: React.FC<VideoLightboxProps> = ({ candidate, onClose, onVot
                   </span>
                 )}
                 <span className="flex items-center gap-1 text-[10px] font-black text-[#d4af37]">
-                  <Star className="w-3 h-3 fill-[#d4af37]" />
+                  <Vote className="w-3.5 h-3.5" />
                   {candidate.totalVotesCache.toLocaleString('fr-FR')} votes
                 </span>
               </div>
@@ -329,8 +329,8 @@ const PerformancesSection: React.FC = () => {
         </p>
       </motion.div>
 
-      {/* Grille uniforme */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Grille uniforme avec espacement horizontal généreux */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 lg:gap-8">
         {featured.map((candidate, index) => (
           <VideoCard
             key={candidate.id}
