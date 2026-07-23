@@ -137,13 +137,13 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
             <span className="text-neutral-400 text-[10px] uppercase font-bold tracking-wider">votes</span>
           </div>
 
-          {/* Bouton VOTER (Épuré et plat #F3B800) */}
+          {/* Bouton VOTER (Épuré et plat #F4AD00) */}
           {onVoteClick && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleVoteAction}
-              className="px-5 py-2 rounded-full text-xs font-black uppercase tracking-wider bg-[#F3B800] hover:bg-[#e0aa00] text-black transition-all duration-200"
+              className="px-5 py-2 rounded-full text-xs font-black uppercase tracking-wider bg-[#F4AD00] hover:bg-[#d99b00] text-black transition-all duration-200"
             >
               Voter
             </motion.button>

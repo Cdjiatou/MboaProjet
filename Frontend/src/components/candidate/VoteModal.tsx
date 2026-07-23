@@ -303,7 +303,7 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
                         disabled={votesCount < 1}
                         className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-lg flex items-center justify-center gap-2 ${
                           votesCount >= 1
-                            ? 'bg-[#F3B800] text-black hover:bg-[#e0aa00] shadow-[#F3B800]/20 active:scale-[0.99]'
+                            ? 'bg-[#F4AD00] text-black hover:bg-[#d99b00] active:scale-[0.99]'
                             : 'bg-white/10 text-neutral-500 border border-white/5 cursor-not-allowed opacity-50'
                         }`}
                       >
@@ -439,7 +439,7 @@ export const VoteModal: React.FC<Props> = ({ candidate, isOpen, onClose, onVoteS
                         disabled={!canSubmitPayment}
                         className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-lg flex items-center justify-center gap-2 ${
                           canSubmitPayment
-                            ? 'bg-[#F3B800] hover:bg-[#e0aa00] text-black shadow-[#F3B800]/20 active:scale-[0.99]'
+                            ? 'bg-[#F4AD00] hover:bg-[#d99b00] text-black active:scale-[0.99]'
                             : 'bg-white/10 text-neutral-500 border border-white/5 cursor-not-allowed opacity-50'
                         }`}
                       >
