@@ -23,13 +23,6 @@ export const Footer = () => {
   const assets = useThemeStore((state) => state.assets);
   const logoUrl = assets.logo_url || assets.site_logo;
 
-  // Debug log pour vérifier la valeur du logo
-  console.log('🎨 Logo Debug - Footer:', {
-    'assets': assets,
-    'logo_url': assets?.logo_url,
-    'site_logo': assets?.site_logo,
-    'logoUrl utilisé': logoUrl
-  });
 
   return (
     <footer className="w-full bg-[#050505] border-t border-neutral-900 mt-auto">

@@ -31,7 +31,7 @@ function getYouTubeId(url: string): string | null {
 function getThumbnail(videoUrl: string | null, profilePhoto: string | null, updatedAt?: string): string {
   if (videoUrl) {
     const ytId = getYouTubeId(videoUrl);
-    if (ytId) return `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+    if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
   }
   if (profilePhoto) return getMediaUrl(profilePhoto, updatedAt);
   return '';
