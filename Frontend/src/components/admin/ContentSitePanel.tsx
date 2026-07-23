@@ -90,10 +90,20 @@ export const ContentSitePanel = () => {
         </div>
       </div>
 
+
       {/* Navigation horizontale (scroll fluide sur mobile) */}
+
       <div className="relative">
+
         {/* Masques de dégradé pour indiquer le scroll */}
-        <div className="absolute left-0 top-0 bottom-2 w-8 bg-gradient-to-r from-[#060608] to-transparent z-10 pointer-events-none sm:hidden" />
+
+        <div className="absolute left-0 top-0 bottom-2 w-8 bg-gradient-to-r 
+        from-[#060608]
+         to-transparent
+          z-10 pointer-events-none s
+          m:hidden" />
+
+          
         <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-[#060608] to-transparent z-10 pointer-events-none sm:hidden" />
 
         <nav

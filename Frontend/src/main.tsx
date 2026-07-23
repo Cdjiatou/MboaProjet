@@ -9,6 +9,11 @@ if (!rootElement) throw new Error('Failed to find the root element');
 
 const root = createRoot(rootElement);
 
+// Auto-rechargement automatique si de nouveaux fichiers JS (chunks) sont déployés
+window.addEventListener('vite:preloadError', () => {
+  window.location.reload();
+});
+
 root.render(
   <React.StrictMode>
     <BrowserRouter>
