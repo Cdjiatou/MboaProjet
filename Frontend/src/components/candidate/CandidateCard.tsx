@@ -129,22 +129,21 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
 
         {/* Ligne du bas : Compteur de votes & Bouton VOTER */}
         <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/[0.06] gap-2">
-          {/* Votes (Glassmorphism Neutre) */}
-          <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
-            <Star className="w-3.5 h-3.5 text-[#d4af37] fill-[#d4af37]" />
+          {/* Votes (Neutre sans icône) */}
+          <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10">
             <span className="text-white font-black text-xs">
               {candidate.totalVotesCache.toLocaleString('fr-FR')}
             </span>
             <span className="text-neutral-400 text-[10px] uppercase font-bold tracking-wider">votes</span>
           </div>
 
-          {/* Bouton VOTER lumineux */}
+          {/* Bouton VOTER (Épuré et plat #F3B800) */}
           {onVoteClick && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleVoteAction}
-              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-[#F3B800] hover:bg-[#e0aa00] text-black shadow-[0_4px_20px_rgba(243,184,0,0.35)] hover:shadow-[0_0_25px_rgba(243,184,0,0.6)] transition-all duration-200"
+              className="px-5 py-2 rounded-full text-xs font-black uppercase tracking-wider bg-[#F3B800] hover:bg-[#e0aa00] text-black transition-all duration-200"
             >
               Voter
             </motion.button>

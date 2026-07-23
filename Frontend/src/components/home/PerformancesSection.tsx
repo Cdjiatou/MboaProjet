@@ -120,18 +120,18 @@ const VideoCard: React.FC<VideoCardProps> = ({ candidate, index, onPlay, onVote 
 
         {/* Pied de carte : Compteur de votes + Bouton Voter */}
         <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/[0.08] gap-3">
-          {/* Badge Nombre de votes avec icône de vote */}
-          <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 text-neutral-200">
-            <Vote className="w-4 h-4 text-[#d4af37]" />
+          {/* Badge Nombre de votes */}
+          <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 text-neutral-200">
             <span className="text-white font-black text-xs sm:text-sm">
               {candidate.totalVotesCache.toLocaleString('fr-FR')}
             </span>
+            <span className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">votes</span>
           </div>
 
-          {/* Bouton VOTER */}
+          {/* Bouton VOTER (Épuré sans ombre, style plat #F3B800) */}
           <button
             onClick={(e) => { e.stopPropagation(); onVote(candidate); }}
-            className="shrink-0 px-4 py-2 bg-[#F3B800] hover:bg-[#e0aa00] text-black text-xs font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_20px_rgba(243,184,0,0.4)] active:scale-95 transition-all shadow-md"
+            className="shrink-0 px-5 py-2 bg-[#F3B800] hover:bg-[#e0aa00] text-black text-xs font-black uppercase tracking-wider rounded-full active:scale-95 transition-all"
           >
             Voter
           </button>
