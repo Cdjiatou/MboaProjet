@@ -35,7 +35,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
       case 3:
         return 'bg-gradient-to-br from-[#f3a971] via-[#cd7f32] to-[#7a3e0c] text-white font-black shadow-[0_0_15px_rgba(205,127,50,0.5)] border border-amber-300/40';
       default:
-        return 'bg-black/60 backdrop-blur-md text-[#d4af37] border border-[#d4af37]/40 shadow-lg font-black';
+        return 'bg-black/60 backdrop-blur-md text-white border border-white/20 shadow-lg font-black';
     }
   };
 
@@ -54,10 +54,10 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
           </div>
         )}
 
-        {/* Badge Catégorie (Top Right en glassmorphism) */}
+        {/* Badge Catégorie (Top Right en glassmorphism neutre) */}
         {candidate.category?.name && (
           <div className="absolute top-3 right-3 z-20">
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#d4af37] border border-[#d4af37]/30 shadow-md">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-white border border-white/20 shadow-md">
               {candidate.category.name}
             </span>
           </div>
@@ -81,21 +81,21 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
           {/* Dégradé d'assombrissement en bas de l'image pour lisibilité */}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-300 pointer-events-none" />
 
-          {/* Bouton Play vidéo au survol */}
+          {/* Bouton Play vidéo au survol (Frosted Glass Blanc) */}
           {candidate.videoUrl && (
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 bg-black/30 backdrop-blur-[2px]">
               <motion.div
                 whileHover={{ scale: 1.15 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-14 h-14 rounded-full bg-[#d4af37] text-black flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.6)]"
+                className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
               >
-                <Play className="w-6 h-6 fill-black ml-0.5" />
+                <Play className="w-6 h-6 fill-white ml-0.5" />
               </motion.div>
             </div>
           )}
         </Link>
 
-        {/* Overlay Partage Social au survol sur l'image (Positionné en bas de l'image pour éviter les chevauchements avec les infos) */}
+        {/* Overlay Partage Social au survol sur l'image */}
         <div 
           className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto bg-black/70 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-lg"
           onClick={(e) => e.stopPropagation()}
@@ -120,7 +120,7 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
 
           {/* Localisation */}
           <div className="flex items-center gap-1 text-neutral-400 text-xs mt-1 truncate">
-            <MapPin className="w-3 h-3 text-[#d4af37]/70 shrink-0" />
+            <MapPin className="w-3 h-3 text-neutral-400 shrink-0" />
             <span className="truncate">
               {[candidate.city, candidate.country].filter(Boolean).join(', ') || 'Cameroun'}
             </span>
@@ -129,10 +129,10 @@ export const CandidateCard = ({ candidate, rank, onVoteClick }: Props) => {
 
         {/* Ligne du bas : Compteur de votes & Bouton VOTER */}
         <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/[0.06] gap-2">
-          {/* Votes */}
-          <div className="flex items-center gap-1.5 bg-[#d4af37]/10 px-2.5 py-1 rounded-lg border border-[#d4af37]/20">
+          {/* Votes (Glassmorphism Neutre) */}
+          <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
             <Star className="w-3.5 h-3.5 text-[#d4af37] fill-[#d4af37]" />
-            <span className="text-[#d4af37] font-black text-xs">
+            <span className="text-white font-black text-xs">
               {candidate.totalVotesCache.toLocaleString('fr-FR')}
             </span>
             <span className="text-neutral-400 text-[10px] uppercase font-bold tracking-wider">votes</span>
