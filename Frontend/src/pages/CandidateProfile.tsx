@@ -85,17 +85,17 @@ const CandidateProfile = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-32 sm:pb-16 bg-black text-white relative overflow-hidden">
-      {/* Background Hero avec la photo de l'artiste (Style Apple Music / Netflix) */}
+      {/* Background Hero avec la photo de l'artiste positionnée du côté droit */}
       {candidate.profilePhoto && (
-        <div className="absolute top-0 left-0 right-0 h-[520px] sm:h-[680px] z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-full lg:w-[55%] h-[600px] sm:h-[750px] z-0 overflow-hidden pointer-events-none">
           <img
             src={getMediaUrl(candidate.profilePhoto, candidate.updatedAt)}
             alt=""
-            className="w-full h-full object-cover object-top scale-105 blur-lg opacity-45 sm:opacity-55 filter brightness-95 saturate-125 transition-all duration-700"
+            className="w-full h-full object-cover object-top scale-105 blur-xl opacity-60 sm:opacity-70 filter brightness-95 saturate-125 transition-all duration-700"
           />
-          {/* Dégradés d'intégration fluide avec le reste du site */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/60 to-black" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/70" />
+          {/* Dégradés d'intégration fluide (fondu vers la gauche et le bas) */}
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-black/50 to-black" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
         </div>
       )}
 
@@ -170,8 +170,6 @@ const CandidateProfile = () => {
           >
             {/* Carte de profil */}
             <div className="bg-white/[0.02] backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl sm:rounded-3xl p-5 sm:p-10 text-center space-y-6 sm:space-y-8 relative overflow-hidden">
-              {/* Decorative top gradient */}
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#d4af37] via-[#fff3c4] to-[#b8952e]"></div>
 
               {/* Avatar */}
               <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full overflow-hidden border border-white/10 bg-[#141414] relative z-10">
